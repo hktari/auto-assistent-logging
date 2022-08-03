@@ -1,1 +1,29 @@
-db.json
+{
+    "job_log_entry": [
+        {
+            "id": "0e96854a-cdc5-4239-a2dd-8c6bf7936cb1",
+            "job_id": "b66092e4-e924-4602-96ea-38fe0d99fbf8",
+            "success": true,
+            "message": "Completed successfully",
+            "timestamp": 1659563046969,
+            "screenshots": ""
+        }
+    ],
+    "jobs": [
+        {
+            "id": "cd319045-b687-4c91-a373-47c91f4608cd",
+            "execute_time": "2022-08-03T21:44:06.969Z",
+            "status": "completed",
+            "login_info_id": "ab927dee-b47c-45fc-b4c7-7f0be2d0a1ed",
+            "error_message": "",
+            "action": "click_start_btn"
+        }
+    ],
+    "login_info": [
+        {
+            "id": "6bbb7678-31e3-49c6-bd16-9996c9094c41",
+            "username": "bostjankamnik45",
+            "password": "password"
+        }
+    ]
+}
