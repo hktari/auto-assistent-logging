@@ -1,22 +1,25 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState } from 'react'
 
-const LoginPage = () => {
-    const navigate = useNavigate()
+const LoginPage = ({onLogin}) => {
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
 
     function onSubmit(ev) {
         ev.preventDefault()
         console.log('submit');
-        navigate('/dashboard')
+        onLogin(username, password)
     }
 
     return (
         <div>
             <form action="" method="post" onSubmit={onSubmit}>
                 <label htmlFor="P9999_USERNAME">Username</label>
-                <input type="text" name="" id="P9999_USERNAME" placeholder='username' />
+                <input onChange={ev => setUsername(ev.currentTarget.value)} value={username}
+                    type="text" name="" id="P9999_USERNAME" placeholder='username' />
+
                 <label htmlFor="P9999_PASSWORD">Password</label>
-                <input type="password" name="" id="P9999_PASSWORD" placeholder='password' />
+                <input onChange={ev => setPassword(ev.currentTarget.value)} value={password}
+                    type="password" name="" id="P9999_PASSWORD" placeholder='password' />
                 <div className="t-Login-buttons">
                     <button type="submit">Login</button>
                 </div>
