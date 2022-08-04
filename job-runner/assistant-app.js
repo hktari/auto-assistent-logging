@@ -11,28 +11,27 @@ function delay(waitTime) {
 }
 
 function executeAction({ username, password, action }) {
-    return new Promise((res, rej) => {
+    return new Promise((resolve, reject) => {
         (async () => {
-            const browser = await puppeteer.launch({
-                headless: false,
-                slowMo: 50, // slow down by 250ms
-                // devtools: true
-            }); // default is true
-
             const VALID_ACTION = Array.from(
                 Object.entries(AUTOMATE_ACTION).values())
                 .includes(action);
 
-            if(!VALID_ACTION){
-                rej(`Unhandled type of action ${action}`);
+            if (!VALID_ACTION) {
+                reject(`Unhandled type of action ${action}`);
                 return;
             }
 
-
             const isStartAction = action === AUTOMATE_ACTION.START_BTN
             console.debug('Executing start action: ', isStartAction)
-            
+
             try {
+                const browser = await puppeteer.launch({
+                    headless: false,
+                    slowMo: 50, // slow down by 250ms
+                    // devtools: true
+                }); // default is true
+
                 const page = await browser.newPage();
                 await page.goto('https://mddsz.si/oa/oa_web_ws/r/osebna_asistenca');
                 await page.waitForNavigation(); // The promise resolves after navigation has finished
@@ -59,9 +58,9 @@ function executeAction({ username, password, action }) {
 
                 // await page.screenshot({ path: 'example.png' });
                 await browser.close();
-                res("Finished successfully !")
+                resolve("Finished successfully !")
             } catch (error) {
-                rej(error.toString())
+                reject(error.toString())
             }
         })();
     })

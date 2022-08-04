@@ -50,17 +50,22 @@ if (parentPort)
 
 (async () => {
 
+    const LOOKUP_INTERVAL = '5 minutes'
+
     // TODO: select only the jobs in the give interval
     const queryResult = await query(`SELECT * 
                                     from job
                                     JOIN login_info ON login_info.id = job.login_info_id
-                                    where status != 'COMPLETED' AND execute_time < now()
-                                    `)
+                                    where status != 'COMPLETED' AND (
+                                        (execute_time - interval '$1') <= now() AND
+                                        (execute_time + interval '$1') >= now()	
+                                    )`, LOOKUP_INTERVAL)
 
 
     for (const row of queryResult.rows) {
         logger.info(`running: ` + JSON.stringify(row))
         await assistantApp.executeAction({ username: row.username, password: row.password, action: row.action })
+
     }
     // query databaseand iterate over them with concurrency
     // await pMap(queryResult.rows, mapper, { concurrency });
