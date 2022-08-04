@@ -7,12 +7,14 @@ const Cabin = require('cabin');
 
 const assistantApp = require('../assistant-app')
 
+const { JOB_ENTRY_STATUS, JOB_STATUS, AUTOMATE_ACTION } = require('../interface')
+
 //
 // we recommend using Cabin as it is security-focused
 // and you can easily hook in Slack webhooks and more
 // <https://cabinjs.com>
 //
-const logger = new Cabin();
+const console = new Cabin();
 
 // store boolean if the job is cancelled
 let isCancelled = false;
@@ -27,14 +29,16 @@ async function mapper(result) {
     if (isCancelled) return;
     try {
         const response = await email.send(result);
-        logger.info('sent email', { response });
+        console.info('sent email', { response });
         // here is where you would write to the database that it was sent
         return response;
     } catch (err) {
         // catch the error so if one email fails they all don't fail
-        logger.error(err);
+        console.erroror(err);
     }
 }
+
+
 
 // handle cancellation (this is a very simple example)
 if (parentPort)
@@ -62,11 +66,43 @@ if (parentPort)
                                     )`, LOOKUP_INTERVAL)
 
 
+    let jobs = [];
     for (const row of queryResult.rows) {
-        logger.info(`running: ` + JSON.stringify(row))
-        await assistantApp.executeAction({ username: row.username, password: row.password, action: row.action })
+        console.info(`queueing: ` + JSON.stringify(row))
+        jobs.push(
+            assistantApp.executeAction({ username: row.username, password: row.password, action: row.action }))
+    }
+
+    const job_results = await Promise.allSettled(jobs)
+
+    for (let idx = 0; idx < job_results.length; idx++) {
+        const cur_job = jobs[idx];
+        const cur_job_result = job_results[idx]
+        const successful = cur_job_result.status === 'fulfilled'
+
+        try {
+            const job_entry_status = cur_job_result.status === 'fulfilled' ? JOB_ENTRY_STATUS.SUCCESSFUL : JOB_ENTRY_STATUS.FAILED
+
+            // log job execution
+            await query(`INSERT INTO job_run_entry (job_id, message, status, "timestamp")
+                        VALUES($1, '$2', '$3', now())`,
+                [cur_job.id, successful ? cur_job_result.value : cur_job_result.reason.toString(), job_entry_status])
+        } catch (error) {
+            console.error('Error adding job execution entry');
+            console.error(error)
+            // TODO: return ?
+        }
+
+
+        query(`UPDATE job
+            SET status = '$2', error_message = '$3'
+            WHERE id = $1`, [cur_job.id, successful ? JOB_STATUS.COMPLETED : JOB_STATUS.FAILED, cur_job_result.reason?.toString()])
+            .then(res => console.debug('UPDATE job [SUCCESS]'))
+            .catch(err => console.error('UPDATE JOB [ERROR]: ', err))
+
 
     }
+
     // query databaseand iterate over them with concurrency
     // await pMap(queryResult.rows, mapper, { concurrency });
 
