@@ -56,19 +56,21 @@ if (parentPort)
 
     const LOOKUP_INTERVAL = '5 minutes'
 
+    console.log('[AUTOMATION]: ', 'fetching due jobs...')
+    
     // TODO: select only the jobs in the give interval
     const queryResult = await query(`SELECT * 
                                     from job
                                     JOIN login_info ON login_info.id = job.login_info_id
                                     where status != 'COMPLETED' AND (
-                                        (execute_time - interval '$1') <= now() AND
-                                        (execute_time + interval '$1') >= now()	
-                                    )`, LOOKUP_INTERVAL)
+                                        (execute_time - interval '${LOOKUP_INTERVAL}') <= now() AND
+                                        (execute_time + interval '${LOOKUP_INTERVAL}') >= now()	
+                                    )`)
 
 
     let jobs = [];
     for (const row of queryResult.rows) {
-        console.info(`queueing: ` + JSON.stringify(row))
+        console.info('[AUTOMATION]: ', `queueing: ` + JSON.stringify(row))
         jobs.push(
             assistantApp.executeAction({ username: row.username, password: row.password, action: row.action }))
     }
@@ -76,16 +78,18 @@ if (parentPort)
     const job_results = await Promise.allSettled(jobs)
 
     for (let idx = 0; idx < job_results.length; idx++) {
-        const cur_job = jobs[idx];
+        const cur_job = queryResult.rows[idx];
         const cur_job_result = job_results[idx]
         const successful = cur_job_result.status === 'fulfilled'
+
+        console.info('[AUTOMATION]: ', `saving job results...: ` + JSON.stringify(cur_job_result))
 
         try {
             const job_entry_status = cur_job_result.status === 'fulfilled' ? JOB_ENTRY_STATUS.SUCCESSFUL : JOB_ENTRY_STATUS.FAILED
 
             // log job execution
             await query(`INSERT INTO job_run_entry (job_id, message, status, "timestamp")
-                        VALUES($1, '$2', '$3', now())`,
+                        VALUES($1, $2, $3, now())`,
                 [cur_job.id, successful ? cur_job_result.value : cur_job_result.reason.toString(), job_entry_status])
         } catch (error) {
             console.error('Error adding job execution entry');
@@ -95,7 +99,7 @@ if (parentPort)
 
 
         query(`UPDATE job
-            SET status = '$2', error_message = '$3'
+            SET status = $2, error_message = $3
             WHERE id = $1`, [cur_job.id, successful ? JOB_STATUS.COMPLETED : JOB_STATUS.FAILED, cur_job_result.reason?.toString()])
             .then(res => console.debug('UPDATE job [SUCCESS]'))
             .catch(err => console.error('UPDATE JOB [ERROR]: ', err))

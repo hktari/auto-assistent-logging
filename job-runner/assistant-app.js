@@ -1,5 +1,7 @@
 const puppeteer = require('puppeteer');
 const { AUTOMATE_ACTION } = require('./interface');
+// TODO: switch on process.env
+const config = require('./config.dev.json');
 
 function delay(waitTime) {
     return new Promise((resolve) => {
@@ -13,9 +15,10 @@ function delay(waitTime) {
 function executeAction({ username, password, action }) {
     return new Promise((resolve, reject) => {
         (async () => {
-            const VALID_ACTION = Array.from(
-                Object.entries(AUTOMATE_ACTION).values())
-                .includes(action);
+            
+            const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
+                                        .map(val => val[1])
+                                        .includes(action);
 
             if (!VALID_ACTION) {
                 reject(`Unhandled type of action ${action}`);
@@ -33,7 +36,7 @@ function executeAction({ username, password, action }) {
                 }); // default is true
 
                 const page = await browser.newPage();
-                await page.goto('https://mddsz.si/oa/oa_web_ws/r/osebna_asistenca');
+                await page.goto(config.ASSISTANT_WEBAPP.ENDPOINT);
                 await page.waitForNavigation(); // The promise resolves after navigation has finished
 
                 const usernameInput = await page.$('#P9999_USERNAME')
@@ -52,9 +55,13 @@ function executeAction({ username, password, action }) {
                 const startBtn = await page.waitForSelector(startBtnSelector) // wait 30 sec for login
                 await delay(3000);
 
-                console.log('start btn disabled:', await page.$eval(startBtnSelector, btn => btn.disabled))
-                console.log('stop btn disabled:', await page.$eval(stopBtnSelector, btn => btn.disabled))
-                // await startBtn.click();
+                await page.$eval(isStartAction ? startBtnSelector : stopBtnSelector, btn => {
+                    if(btn.disabled){
+                        throw new Error(`Can't click button: ${btn.className}. \nDisabled`);
+                    }
+
+                    btn.click();
+                })
 
                 // await page.screenshot({ path: 'example.png' });
                 await browser.close();
@@ -67,7 +74,7 @@ function executeAction({ username, password, action }) {
 }
 
 const assistantApp = {
-    addEntry: executeAction
+    executeAction: executeAction
 }
 
 module.exports = assistantApp
