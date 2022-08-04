@@ -59,13 +59,13 @@ if (parentPort)
     console.log('[AUTOMATION]: fetching due jobs...')
 
     // TODO: select only the jobs in the give interval
-    const queryResult = await db.query(`SELECT * 
-                                    from job
-                                    JOIN login_info ON login_info.id = job.login_info_id
-                                    where status != 'COMPLETED' AND (
-                                        (execute_time - interval '${LOOKUP_INTERVAL}') <= now() AND
-                                        (execute_time + interval '${LOOKUP_INTERVAL}') >= now()	
-                                    )`)
+    const queryResult = await db.query(`SELECT job.id, job.execute_time, job.status, job.action, login_info.username, login_info.password
+    from job
+    JOIN login_info ON login_info.id = job.login_info_id
+    where LOWER(status) != LOWER('${JOB_STATUS.COMPLETED}') AND (
+        (execute_time - interval '${LOOKUP_INTERVAL}') <= now() AND
+        (execute_time + interval '${LOOKUP_INTERVAL}') >= now()	
+    )`)
     console.log(`[AUTOMATION]: Fetched ${queryResult.rowCount} due jobs`)
 
     let jobs = [];
@@ -89,8 +89,8 @@ if (parentPort)
 
             // log job execution
             await db.query(`INSERT INTO job_run_entry (job_id, message, status, "timestamp")
-                        VALUES($1, $2, $3, now())`,
-                [cur_job.id, successful ? cur_job_result.value : cur_job_result.reason.toString(), job_entry_status])
+                        VALUES(${cur_job.id}, $1, $2, now())`,
+                [successful ? cur_job_result.value : cur_job_result.reason.toString(), job_entry_status])
         } catch (error) {
             console.log('[AUTOMATION]: Error adding job execution entry');
             console.log(error)
@@ -98,19 +98,13 @@ if (parentPort)
         }
 
 
-        try {
-            debugger;
-            const success = await db.query(`UPDATE job
-                        SET status = $2, error_message = $3
-                        WHERE id = $1`, [+cur_job.id, successful ? JOB_STATUS.COMPLETED : JOB_STATUS.FAILED, cur_job_result.reason?.toString()])
-            debugger;
-            if (success) {
-                console.debug('[AUTOMATION]: UPDATE job [SUCCESS]')
-            } else {
-                console.log('[AUTOMATION]: failed to update job:', JSON.stringify(cur_job))
-            }
-        } catch (error) {
-            console.log('[AUTOMATION]: UPDATE JOB [ERROR]: ', error)
+        const success = await db.query(`UPDATE job
+                                SET status = $1, error_message = $2
+                                WHERE id = ${cur_job.id}`, [successful ? JOB_STATUS.COMPLETED : JOB_STATUS.FAILED, cur_job_result.reason?.toString()])
+        if (success) {
+            console.log('[AUTOMATION]: UPDATE job [SUCCESS]')
+        } else {
+            console.log('[AUTOMATION]: failed to update job:', JSON.stringify(cur_job))
         }
     }
 
