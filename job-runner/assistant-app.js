@@ -1,6 +1,5 @@
 const puppeteer = require('puppeteer');
 
-
 function delay(waitTime) {
     return new Promise((resolve) => {
         setTimeout(() => {
