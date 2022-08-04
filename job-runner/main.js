@@ -31,5 +31,9 @@ const bree = new Bree({
 
 // start all jobs (this is the equivalent of reloading a crontab):
 (async () => {
-    await bree.start();
+    try {
+        await bree.start();        
+    } catch (error) {
+        console.error(error)
+    }
 })();

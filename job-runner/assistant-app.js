@@ -36,7 +36,6 @@ async function executeAction({ username, password, action }) {
         await page.waitForNavigation(); // The promise resolves after navigation has finished
 
         const usernameInput = await page.waitForSelector('#P9999_USERNAME')
-        debugger;
         await usernameInput.type(username)
 
         const pwdInput = await page.$('#P9999_PASSWORD');
@@ -59,6 +58,10 @@ async function executeAction({ username, password, action }) {
 
             btn.click();
         })
+
+        // todo
+        // fos-Alert--success
+        // h2 Zapis uspešno dodan.
 
         // await page.screenshot({ path: 'example.png' });
         await browser.close();

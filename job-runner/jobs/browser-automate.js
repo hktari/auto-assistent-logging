@@ -22,7 +22,7 @@ let isCancelled = false;
 // how many emails to send at once
 const concurrency = os.cpus().length;
 
-const { query } = require('../database')
+const { db } = require('../database')
 
 async function mapper(result) {
     // return early if the job was already cancelled
@@ -56,21 +56,21 @@ if (parentPort)
 
     const LOOKUP_INTERVAL = '5 minutes'
 
-    console.log('[AUTOMATION]: ', 'fetching due jobs...')
-    
+    console.log('[AUTOMATION]: fetching due jobs...')
+
     // TODO: select only the jobs in the give interval
-    const queryResult = await query(`SELECT * 
+    const queryResult = await db.query(`SELECT * 
                                     from job
                                     JOIN login_info ON login_info.id = job.login_info_id
                                     where status != 'COMPLETED' AND (
                                         (execute_time - interval '${LOOKUP_INTERVAL}') <= now() AND
                                         (execute_time + interval '${LOOKUP_INTERVAL}') >= now()	
                                     )`)
-
+    console.log(`[AUTOMATION]: Fetched ${queryResult.rowCount} due jobs`)
 
     let jobs = [];
     for (const row of queryResult.rows) {
-        console.info('[AUTOMATION]: ', `queueing: ` + JSON.stringify(row))
+        console.info(`[AUTOMATION]: queueing: ${JSON.stringify(row)}`)
         jobs.push(
             assistantApp.executeAction({ username: row.username, password: row.password, action: row.action }))
     }
@@ -82,29 +82,36 @@ if (parentPort)
         const cur_job_result = job_results[idx]
         const successful = cur_job_result.status === 'fulfilled'
 
-        console.info('[AUTOMATION]: ', `saving job results...: ` + JSON.stringify(cur_job_result))
+        console.info(`[AUTOMATION]: saving job results...: ${JSON.stringify(cur_job_result)}`)
 
         try {
             const job_entry_status = cur_job_result.status === 'fulfilled' ? JOB_ENTRY_STATUS.SUCCESSFUL : JOB_ENTRY_STATUS.FAILED
 
             // log job execution
-            await query(`INSERT INTO job_run_entry (job_id, message, status, "timestamp")
+            await db.query(`INSERT INTO job_run_entry (job_id, message, status, "timestamp")
                         VALUES($1, $2, $3, now())`,
                 [cur_job.id, successful ? cur_job_result.value : cur_job_result.reason.toString(), job_entry_status])
         } catch (error) {
-            console.error('Error adding job execution entry');
-            console.error(error)
+            console.log('[AUTOMATION]: Error adding job execution entry');
+            console.log(error)
             // TODO: return ?
         }
 
 
-        query(`UPDATE job
-            SET status = $2, error_message = $3
-            WHERE id = $1`, [cur_job.id, successful ? JOB_STATUS.COMPLETED : JOB_STATUS.FAILED, cur_job_result.reason?.toString()])
-            .then(res => console.debug('UPDATE job [SUCCESS]'))
-            .catch(err => console.error('UPDATE JOB [ERROR]: ', err))
-
-
+        try {
+            debugger;
+            const success = await db.query(`UPDATE job
+                        SET status = $2, error_message = $3
+                        WHERE id = $1`, [+cur_job.id, successful ? JOB_STATUS.COMPLETED : JOB_STATUS.FAILED, cur_job_result.reason?.toString()])
+            debugger;
+            if (success) {
+                console.debug('[AUTOMATION]: UPDATE job [SUCCESS]')
+            } else {
+                console.log('[AUTOMATION]: failed to update job:', JSON.stringify(cur_job))
+            }
+        } catch (error) {
+            console.log('[AUTOMATION]: UPDATE JOB [ERROR]: ', error)
+        }
     }
 
     // query databaseand iterate over them with concurrency
