@@ -9,15 +9,17 @@ const LoginPage = () => {
         console.log('submit');
         navigate('/dashboard')
     }
-    
+
     return (
         <div>
             <form action="" method="post" onSubmit={onSubmit}>
-                <label htmlFor="#P9999_USERNAME">Username</label>
-                <input type="text" name="" id="#P9999_USERNAME" placeholder='username' />
-                <label htmlFor="#P9999_PASSWORD">Password</label>
-                <input type="password" name="" id="#P9999_PASSWORD" placeholder='password' />
-                <button className='t-Login-buttons button' type="submit">Login</button>
+                <label htmlFor="P9999_USERNAME">Username</label>
+                <input type="text" name="" id="P9999_USERNAME" placeholder='username' />
+                <label htmlFor="P9999_PASSWORD">Password</label>
+                <input type="password" name="" id="P9999_PASSWORD" placeholder='password' />
+                <div className="t-Login-buttons">
+                    <button type="submit">Login</button>
+                </div>
             </form>
         </div>
     )

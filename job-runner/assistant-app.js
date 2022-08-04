@@ -12,65 +12,61 @@ function delay(waitTime) {
 
 }
 
-function executeAction({ username, password, action }) {
-    return new Promise((resolve, reject) => {
-        (async () => {
-            
-            const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
-                                        .map(val => val[1])
-                                        .includes(action);
+async function executeAction({ username, password, action }) {
+    const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
+        .map(val => val[1])
+        .includes(action);
 
-            if (!VALID_ACTION) {
-                reject(`Unhandled type of action ${action}`);
-                return;
+    if (!VALID_ACTION) {
+        throw new Error(`Unhandled type of action ${action}`);
+    }
+
+    const isStartAction = action === AUTOMATE_ACTION.START_BTN
+    console.debug('Executing start action: ', isStartAction)
+
+    try {
+        const browser = await puppeteer.launch({
+            headless: false,
+            slowMo: 50, // slow down by 250ms
+            // devtools: true
+        }); // default is true
+
+        const page = await browser.newPage();
+        await page.goto(config.ASSISTANT_WEBAPP.ENDPOINT);
+        await page.waitForNavigation(); // The promise resolves after navigation has finished
+
+        const usernameInput = await page.waitForSelector('#P9999_USERNAME')
+        debugger;
+        await usernameInput.type(username)
+
+        const pwdInput = await page.$('#P9999_PASSWORD');
+        await pwdInput.type(password);
+
+        const loginBtn = await page.$('.t-Login-buttons button')
+        loginBtn.click()
+
+        const startBtnSelector = 'button.t-Button--success';
+        const stopBtnSelector = 'button.t-Button--danger';
+        // make sure start button is enabled
+
+        const startBtn = await page.waitForSelector(startBtnSelector) // wait 30 sec for login
+        await delay(3000);
+
+        await page.$eval(isStartAction ? startBtnSelector : stopBtnSelector, btn => {
+            if (btn.disabled) {
+                throw new Error(`Can't click button: ${btn.className}. \nDisabled`);
             }
 
-            const isStartAction = action === AUTOMATE_ACTION.START_BTN
-            console.debug('Executing start action: ', isStartAction)
+            btn.click();
+        })
 
-            try {
-                const browser = await puppeteer.launch({
-                    headless: false,
-                    slowMo: 50, // slow down by 250ms
-                    // devtools: true
-                }); // default is true
-
-                const page = await browser.newPage();
-                await page.goto(config.ASSISTANT_WEBAPP.ENDPOINT);
-                await page.waitForNavigation(); // The promise resolves after navigation has finished
-
-                const usernameInput = await page.$('#P9999_USERNAME')
-                await usernameInput.type(username)
-
-                const pwdInput = await page.$('#P9999_PASSWORD');
-                await pwdInput.type(password);
-
-                const loginBtn = await page.$('.t-Login-buttons button')
-                loginBtn.click()
-
-                const startBtnSelector = 'button.t-Button--success';
-                const stopBtnSelector = 'button.t-Button--danger';
-                // make sure start button is enabled
-
-                const startBtn = await page.waitForSelector(startBtnSelector) // wait 30 sec for login
-                await delay(3000);
-
-                await page.$eval(isStartAction ? startBtnSelector : stopBtnSelector, btn => {
-                    if(btn.disabled){
-                        throw new Error(`Can't click button: ${btn.className}. \nDisabled`);
-                    }
-
-                    btn.click();
-                })
-
-                // await page.screenshot({ path: 'example.png' });
-                await browser.close();
-                resolve("Finished successfully !")
-            } catch (error) {
-                reject(error.toString())
-            }
-        })();
-    })
+        // await page.screenshot({ path: 'example.png' });
+        await browser.close();
+        return "Finished successfully !"
+    } catch (error) {
+        console.error(error)
+        throw error;
+    }
 }
 
 const assistantApp = {
