@@ -5,6 +5,8 @@ const { parentPort } = require('worker_threads');
 const Cabin = require('cabin');
 // const pMap = require('p-map');
 
+const assistantApp = require('../assistant-app')
+
 //
 // we recommend using Cabin as it is security-focused
 // and you can easily hook in Slack webhooks and more
@@ -50,12 +52,15 @@ if (parentPort)
 
     // TODO: select only the jobs in the give interval
     const queryResult = await query(`SELECT * 
-                            from job
-                            where status != 'COMPLETED' AND execute_time < now()`)
+                                    from job
+                                    JOIN login_info ON login_info.id = job.login_info_id
+                                    where status != 'COMPLETED' AND execute_time < now()
+                                    `)
 
-                
+
     for (const row of queryResult.rows) {
         logger.info(`running: ` + JSON.stringify(row))
+        await assistantApp.executeAction({ username: row.username, password: row.password, action: row.action })
     }
     // query databaseand iterate over them with concurrency
     // await pMap(queryResult.rows, mapper, { concurrency });

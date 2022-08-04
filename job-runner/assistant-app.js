@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const { AUTOMATE_ACTION } = require('./interface');
 
 function delay(waitTime) {
     return new Promise((resolve) => {
@@ -9,8 +10,7 @@ function delay(waitTime) {
 
 }
 
-function addEntry({ username, password, start }) {
-
+function executeAction({ username, password, action }) {
     return new Promise((res, rej) => {
         (async () => {
             const browser = await puppeteer.launch({
@@ -19,6 +19,19 @@ function addEntry({ username, password, start }) {
                 // devtools: true
             }); // default is true
 
+            const VALID_ACTION = Array.from(
+                Object.entries(AUTOMATE_ACTION).values())
+                .includes(action);
+
+            if(!VALID_ACTION){
+                rej(`Unhandled type of action ${action}`);
+                return;
+            }
+
+
+            const isStartAction = action === AUTOMATE_ACTION.START_BTN
+            console.debug('Executing start action: ', isStartAction)
+            
             try {
                 const page = await browser.newPage();
                 await page.goto('https://mddsz.si/oa/oa_web_ws/r/osebna_asistenca');
@@ -46,16 +59,16 @@ function addEntry({ username, password, start }) {
 
                 // await page.screenshot({ path: 'example.png' });
                 await browser.close();
-                res(true)
+                res("Finished successfully !")
             } catch (error) {
-                rej(error)
+                rej(error.toString())
             }
         })();
     })
 }
 
 const assistantApp = {
-    addEntry
+    addEntry: executeAction
 }
 
 module.exports = assistantApp
