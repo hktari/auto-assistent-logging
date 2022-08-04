@@ -60,12 +60,12 @@ if (parentPort)
 
     // TODO: select only the jobs in the give interval
     const queryResult = await db.query(`SELECT job.id, job.execute_time, job.status, job.action, login_info.username, login_info.password
-    from job
-    JOIN login_info ON login_info.id = job.login_info_id
-    where LOWER(status) != LOWER('${JOB_STATUS.COMPLETED}') AND (
-        (execute_time - interval '${LOOKUP_INTERVAL}') <= now() AND
-        (execute_time + interval '${LOOKUP_INTERVAL}') >= now()	
-    )`)
+                                        from job
+                                        JOIN login_info ON login_info.id = job.login_info_id
+                                        where LOWER(status) != LOWER('${JOB_STATUS.COMPLETED}') AND (
+                                            (execute_time - interval '${LOOKUP_INTERVAL}') <= now() AND
+                                            (execute_time + interval '${LOOKUP_INTERVAL}') >= now()	
+                                        )`)
     console.log(`[AUTOMATION]: Fetched ${queryResult.rowCount} due jobs`)
 
     let jobs = [];
