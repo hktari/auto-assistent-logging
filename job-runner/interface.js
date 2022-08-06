@@ -3,14 +3,7 @@ const AUTOMATE_ACTION = Object.freeze({
     STOP_BTN: 'stop_btn'
 })
 
-const JOB_STATUS = Object.freeze({
-    PENDING: 'pending',
-    RUNNING: 'running',
-    COMPLETED: 'completed',
-    FAILED: 'failed'
-})
-
-const JOB_ENTRY_STATUS = Object.freeze({
+const LOG_ENTRY_STATUS = Object.freeze({
     SUCCESSFUL: 'successful',
     FAILED: 'failed'
 })
@@ -22,7 +15,6 @@ const DAILY_CONFIG_AUTOMATION_TYPE = Object.freeze({
 
 module.exports = {
     AUTOMATE_ACTION,
-    JOB_STATUS,
-    JOB_ENTRY_STATUS,
+    LOG_ENTRY_STATUS,
     DAILY_CONFIG_AUTOMATION_TYPE
 }

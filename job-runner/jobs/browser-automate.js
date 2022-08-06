@@ -1,4 +1,4 @@
-const { JOB_ENTRY_STATUS, JOB_STATUS, AUTOMATE_ACTION, DAILY_CONFIG_AUTOMATION_TYPE: WORKDAY_CONFIG_AUTOMATION_TYPE } = require('../interface')
+const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS } = require('../interface')
 const { db } = require('../database');
 const { executeAction } = require('../assistant-app');
 
@@ -22,12 +22,22 @@ function timeToExecute(dueDate, now) {
     return Math.abs(dueDate.getTime() - now.getTime()) < thresholdMinutes * 60 * 1000
 }
 
-async function shouldExecute(user, action, dueDate, now) {
+async function shouldExecute(username, action, dueDate, now) {
     // if no successful record in 'log_entry' table for given user, given action, for dueDate
-
-
-
+    const queryResult = await db.query(`SELECT *
+                                        FROM log_entry le JOIN login_info li on le.login_info_id = li.id
+                                        WHERE li.username = $1 
+                                        AND date_trunc('day', le.timestamp) = date_trunc('day', timestamp $2)
+                                        AND action = $3
+                                        AND status = $4;`, [username, dueDate, action, LOG_ENTRY_STATUS.SUCCESSFUL])
+    if (queryResult.rowCount > 0) {
+        console.debug(`Already executed sucessfully action ${action} today for user ${username}`)
+        return false;
+    } else {
+        return true;
+    }
 }
+
 async function getDailyConfig(username, date) {
     const queryResult = await db.query(`SELECT dc.date, dc.start_at, dc.end_at, dc.automation_type
                     FROM daily_config dc JOIN login_info li ON dc.login_info_id = li.id
@@ -43,7 +53,7 @@ async function getDailyConfig(username, date) {
 
 
 async function checkForExecutionFailure() {
-
+    return Promise.resolve(false);
 }
 
 async function getWeeklyConfig(username, date) {
@@ -129,7 +139,7 @@ class WorkdayConfig {
         const { abbrevToDayOfWeek, dayOfWeekToAbbrv } = require('../util')
         const now = new Date()
 
-        const dailyConfig = getDailyConfig(user.username, now)
+        const dailyConfig = await getDailyConfig(user.username, now)
         let selectedConfig = dailyConfig;
 
         if (dailyConfig && dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
@@ -142,7 +152,7 @@ class WorkdayConfig {
             }))
             continue;
         } else {
-            selectedConfig = getWeeklyConfig(user.username, now)
+            selectedConfig = await getWeeklyConfig(user.username, now)
         }
 
         if (selectedConfig === null) {
@@ -152,16 +162,16 @@ class WorkdayConfig {
 
         let action = null;
         let dueDate = null;
-        if (timeToExecute(userStartAt, now)) {
+        if (timeToExecute(selectedConfig.startAt, now)) {
             action = AUTOMATE_ACTION.START_BTN;
-            dueDate = userStartAt;
-        } else if (timeToExecute(userEndAt, now)) {
+            dueDate = selectedConfig.startAt;
+        } else if (timeToExecute(selectedConfig.endAt, now)) {
             action = AUTOMATE_ACTION.STOP_BTN;
-            dueDate = userEndAt;
+            dueDate = selectedConfig.endAt;
         }
 
-        if (shouldExecute(user, action, dueDate, now)) {
-            if (checkForExecutionFailure(user, action, dueDate)) {
+        if (await shouldExecute(user.username, action, dueDate)) {
+            if (await checkForExecutionFailure(user, action, dueDate)) {
                 // TOOD: notify user if not already
 
             } else {
