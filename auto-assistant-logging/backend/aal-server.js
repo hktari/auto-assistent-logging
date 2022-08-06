@@ -14,21 +14,21 @@ app.get('/', (req, res, next) => {
     res.send('Hello world')
 })
 
-const accountRouter = require('./routers/accountRouter');
-app.use(accountRouter);
+app.use(require('./routers/accountRouter'));
+app.use(require('./routers/loginInfoRouter'));
 
 function logErrors(err, req, res, next) {
     log(error(err.stack))
     next(err)
 }
-function clientErrorHandler (err, req, res, next) {
+function clientErrorHandler(err, req, res, next) {
     if (req.xhr) {
-      res.status(500).send({ error: 'Something failed!' })
+        res.status(500).send({ error: 'Something failed!' })
     } else {
-      next(err)
+        next(err)
     }
-  }
-  
+}
+
 app.use(logErrors);
 app.use(clientErrorHandler);
 

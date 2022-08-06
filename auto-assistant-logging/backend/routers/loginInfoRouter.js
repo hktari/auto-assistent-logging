@@ -8,7 +8,7 @@ router.route('/account/:id/login-info')
     .get((req, res, next) => {
         log(info('[GET] login info'))
 
-        db.query(`SELECT a.id, email, username, password 
+        db.query(`SELECT a.id, email, li.username, li.password 
                     FROM login_info li JOIN account a ON li.user_id = a.id
                     WHERE a.id = $1`, [req.params.id])
             .then(result => res.status(result.rowCount > 0 ? 200 : 404).json(result.rows))
@@ -35,3 +35,5 @@ router.route('/account/:id/login-info')
             .then(result => res.sendStatus(result.rowCount > 0 ? 200 : 404))
             .catch(err => next(err))
     })
+
+module.exports = router;
