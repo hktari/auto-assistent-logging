@@ -1,4 +1,7 @@
 
+const express = require('express')
+const chalk = require('chalk')
+
 /**
  * Updates the workweek config for the given user
  * {
@@ -40,3 +43,21 @@
 async function updateWorkweek(username, weekConfig) {
 
 }
+
+
+
+
+
+
+const router = express.Router()
+router.use('/workweek')
+    .post(async (req, res) => {
+        console.log(chalk.gray('[POST] /workweek'))
+    })
+    .delete(async (req, res) => {
+        console.log(chalk.gray('[DELETE] /workweek'))
+
+    })
+    .get(async (req, res) => {
+        console.log(chalk.gray('[GET] /workweek'))
+    })

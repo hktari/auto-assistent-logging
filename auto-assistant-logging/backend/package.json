@@ -2,14 +2,17 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "The backend for the automate assistant logging app",
-  "main": "auto-assistant-logging-server.js",
+  "main": "aal-server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node ./aal-server"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.1"
+    "chalk": "^4.1.0",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "pg": "^8.7.3"
   }
 }
