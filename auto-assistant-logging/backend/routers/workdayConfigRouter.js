@@ -29,6 +29,18 @@ async function getLoginInfoID(id) {
     return queryResult.rows[0]?.id
 }
 
+router.param('id', async (req, res, next) => {
+    const loginInfoID = await getLoginInfoID(req.params.id);
+    if (loginInfoID === undefined) {
+        res.sendStatus(404)
+        log(info('login info not found'))
+        return;
+    }
+    req.loginInfoID = loginInfoID
+    log(debug('login info id: ' + loginInfoID))
+    next()
+})
+
 router.route('/account/:id/workweek')
     .get((req, res, next) => {
         db.query(`SELECT day, start_at, end_at
@@ -40,33 +52,22 @@ router.route('/account/:id/workweek')
             .catch(err => next(err))
     })
     .post(async (req, res, next) => {
-
-        // note: we don't try/catch this because if connecting throws an exception
-        // we don't need to dispose of the client (it will be undefined)
         const client = await db.connect()
         try {
             const workweekConfig = mapFromDTO(req.body)
             log(debug(JSON.stringify(workweekConfig)))
 
-            const loginInfoID = await getLoginInfoID(req.params.id);
-            if (loginInfoID === undefined) {
-                res.sendStatus(404)
-                return;
-            }
-            log(debug('login info id: ' + loginInfoID))
-
             await client.query('BEGIN')
 
             let updateCnt = 0;
             for (let i = 0; i < workweekConfig.length; i++) {
-                const configItem = workweekConfig[i];                
-                log(debug(JSON.stringify(configItem)))
+                const configItem = workweekConfig[i];
                 const queryResult = await client.query(`INSERT INTO work_week_config (login_info_id, day, start_at, end_at)
-                                                        VALUES ($1,$2,$3,$4)`, [loginInfoID, configItem.day, configItem.start_at, configItem.end_at])
+                                                        VALUES ($1,$2,$3,$4)`, [req.loginInfoID, configItem.day, configItem.start_at, configItem.end_at])
                 updateCnt += queryResult.rowCount;
             }
 
-            log(debug('updated ' + updateCnt + ' rows in total'))
+            log(debug('added ' + updateCnt + ' rows in total'))
             await client.query('COMMIT')
             res.sendStatus(200);
         } catch (e) {
@@ -77,10 +78,13 @@ router.route('/account/:id/workweek')
         }
     })
     .put((req, res, next) => {
-
+        res.sendStatus(404)
     })
     .delete((req, res, next) => {
-
+        db.query(`DELETE FROM work_week_config
+                    WHERE login_info_id=$1`, [req.loginInfoID])
+            .then(result => res.sendStatus(result.rowCount > 0 ? 200 : 404))
+            .catch(err => next(err))
     })
 
 module.exports = router;
