@@ -1,0 +1,1 @@
+The backend for the automate assistant logging app
