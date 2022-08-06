@@ -15,8 +15,14 @@ const JOB_ENTRY_STATUS = Object.freeze({
     FAILED: 'failed'
 })
 
+const DAILY_CONFIG_AUTOMATION_TYPE = Object.freeze({
+    AUTOMATE: 'automate',
+    NO_AUTOMATE: 'no_automate' // don't do automation for that day despite weekly config
+})
+
 module.exports = {
     AUTOMATE_ACTION,
     JOB_STATUS,
-    JOB_ENTRY_STATUS
+    JOB_ENTRY_STATUS,
+    DAILY_CONFIG_AUTOMATION_TYPE
 }

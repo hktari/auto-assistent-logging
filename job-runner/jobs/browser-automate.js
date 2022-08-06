@@ -1,4 +1,4 @@
-const { JOB_ENTRY_STATUS, JOB_STATUS, AUTOMATE_ACTION } = require('../interface')
+const { JOB_ENTRY_STATUS, JOB_STATUS, AUTOMATE_ACTION, DAILY_CONFIG_AUTOMATION_TYPE: WORKDAY_CONFIG_AUTOMATION_TYPE } = require('../interface')
 const { db } = require('../database');
 const { executeAction } = require('../assistant-app');
 
@@ -28,9 +28,49 @@ async function shouldExecute(user, action, dueDate, now) {
 
 
 }
+async function getDailyConfig(username, date) {
+    const queryResult = await db.query(`SELECT dc.date, dc.start_at, dc.end_at, dc.automation_type
+                    FROM daily_config dc JOIN login_info li ON dc.login_info_id = li.id
+                    WHERE li.username = $1 AND date dc.date = $2;`, [username, date.toISOString().substring(0, 10)])
+
+    return queryResult.rows.map(row => new WorkdayConfig(row.username, row.start_at, row.end_at, row.date, row.automation_type))
+}
+
 
 async function checkForExecutionFailure() {
 
+}
+
+
+class ActionLogEntry {
+    constructor(user, action, status, message, error, timestamp) {
+        this.user = user;
+        this.action = action;
+        this.status = status;
+        this.message = message;
+        this.error = error;
+        this.timestamp = timestamp;
+    }
+}
+
+
+class WorkdayConfig {
+    constructor(username, startAt, endAt, date, automation_type) {
+        this.username = username;
+        this.startAt = startAt;
+        this.endAt = endAt;
+
+        this.date = new Date(Date.parse(date))
+        if (this.date.toString().toLowerCase().includes('invalid')) {
+            throw new Error('invalid date: ' + date)
+        }
+
+        if (!Object.values(WORKDAY_CONFIG_AUTOMATION_TYPE).includes(automation_type)) {
+            throw new Error(`invalid automation type: ${automation_type}`)
+        }
+
+        this.automation_type = automation_type;
+    }
 }
 
 (async () => {
@@ -46,27 +86,40 @@ async function checkForExecutionFailure() {
 
         const { abbrevToDayOfWeek, dayOfWeekToAbbrv } = require('../util')
         const now = new Date()
-        const today = dayOfWeekToAbbrv(now.getDay())
 
-        /**
-         * {
-            "login_info_id": "6bbb7678-31e3-49c6-bd16-9996c9094c41",
-            "day": "mon",
-            "start_at": "14:00",
-            "end_at": "22:00",
+        const dailyConfig = getDailyConfig(user, now)
+        let selectedConfig = null;
+
+        if (dailyConfig) {
+            if (dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
+                console.log(`[AUTOMATION]: user ${user.email} requested no automation for date: ${dailyConfig.date}`);
+                actionPromises.push(new Promise((res, rej) => {
+                    res({
+                        workdayConfig: selectedConfig,
+                        result: 'Skipping automation as requested'
+                    })
+                }))
+            } else {
+                // map to common object structure
+                selectedConfig = {
+                    day: dayOfWeekToAbbrv(new Date(dailyConfig.date)),
+                    start_at: dailyConfig.start_at,
+                    end_at: dailyConfig.end_at,
+                    login_info_id: dailyConfig.login_info_id
+                }
+            }
+        } else {
+            const today = dayOfWeekToAbbrv(now.getDay())
+            selectedConfig = getWeeklyConfig(today)
         }
-         */
-        // TODO: fetch user workday for today
-        const userWorkday = {}
-
 
         const userStartAt = new Date(), userEndAt = new Date()
-        userStartAt.setHours(+userWorkday.start_at.split(':')[0])
-        userStartAt.setMinutes(+userWorkday.start_at.split(':')[1])
+        userStartAt.setHours(+selectedConfig.start_at.split(':')[0])
+        userStartAt.setMinutes(+selectedConfig.start_at.split(':')[1])
         console.log('user start at: ', userStartAt)
 
-        userEndAt.setHours(+userWorkday.end_at.split(':')[0])
-        userEndAt.setMinutes(+userWorkday.end_at.split(':')[1])
+        userEndAt.setHours(+selectedConfig.end_at.split(':')[0])
+        userEndAt.setMinutes(+selectedConfig.end_at.split(':')[1])
         console.log('user end at: ', userStartAt)
 
         let action = null;
@@ -93,12 +146,12 @@ async function checkForExecutionFailure() {
         }
     }
 
-    const job_results = await Promise.allSettled(actionPromises)
+    const actionResults = await Promise.allSettled(actionPromises)
 
     // TODO: rework
-    for (let idx = 0; idx < job_results.length; idx++) {
+    for (let idx = 0; idx < actionResults.length; idx++) {
         const cur_job = queryResult.rows[idx];
-        const cur_job_result = job_results[idx]
+        const cur_job_result = actionResults[idx]
         const successful = cur_job_result.status === 'fulfilled'
 
         console.info(`[AUTOMATION]: saving job results...: ${JSON.stringify(cur_job_result)}`)
