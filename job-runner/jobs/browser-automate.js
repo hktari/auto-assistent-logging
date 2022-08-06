@@ -1,4 +1,4 @@
-const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS } = require('../interface')
+const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('../interface')
 const { db } = require('../database');
 const { executeAction } = require('../assistant-app');
 
@@ -74,68 +74,12 @@ async function getWeeklyConfig(username, date) {
  * @param {boolean} onlyAutomateEnabled 
  */
 async function getUsers(onlyAutomateEnabled = true) {
-    const queryResult = await db.query(`SELECT a.email, a."automationEnabled", li.username, li.password
+    const queryResult = await db.query(`SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, li.password
                                         FROM account a JOIN login_info li on a.id = li.user_id
                                         WHERE "automationEnabled" = ${onlyAutomateEnabled};`)
 
     // TODO: decrypt password
     return queryResult.rows;
-}
-
-class ActionLogEntry {
-    constructor(user, action, status, message, error, timestamp) {
-        this.user = user;
-        this.action = action;
-        this.status = status;
-        this.message = message;
-        this.error = error;
-        this.timestamp = timestamp;
-    }
-}
-
-
-class WorkdayConfig {
-    /**
-     * 
-     * @param {string} username 
-     * @param {string} startAt 14:00
-     * @param {string} endAt 22:00
-     * @param {string | Date} date 
-     * @param {WORKDAY_CONFIG_AUTOMATION_TYPE} automation_type 
-     */
-    constructor(username, startAt, endAt, date, automation_type) {
-        this.username = username;
-
-        this.startAt = new Date(date);
-        this.startAt.setHours(+startAt.split(':')[0])
-        this.startAt.setMinutes(+startAt.split(':')[1])
-        console.log('user start at: ', this.startAt)
-
-        this.endAt = new Date(date);
-        this.endAt.setHours(+endAt.split(':')[0])
-        this.endAt.setMinutes(+endAt.split(':')[1])
-        console.log('user end at: ', this.endAt)
-
-
-        if (date instanceof Date) {
-            this.date = date
-        } else {
-            this.date = new Date(Date.parse(date))
-        }
-
-        const allDates = [this.startAt, this.endAt, date]
-        for (const d in allDates) {
-            if (d.toString().toLowerCase().includes('invalid')) {
-                throw new Error('invalid date: ' + allDates)
-            }
-        }
-
-        if (!Object.values(WORKDAY_CONFIG_AUTOMATION_TYPE).includes(automation_type)) {
-            throw new Error(`invalid automation type: ${automation_type}`)
-        }
-
-        this.automation_type = automation_type;
-    }
 }
 
 (async () => {
@@ -158,7 +102,9 @@ class WorkdayConfig {
             console.log(`[AUTOMATION]: user ${user.username} requested no automation for date: ${dailyConfig.date}`);
             actionPromises.push(new Promise((res, rej) => {
                 res({
-                    workdayConfig: dailyConfig,
+                    user: user,
+                    workdayConfig: selectedConfig,
+                    action: null,
                     result: 'Skipping automation as requested'
                 })
             }))
@@ -188,9 +134,14 @@ class WorkdayConfig {
 
             } else {
                 console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
-
-
-                actionPromises.push(executeAction(user.username, action));
+                actionPromises.push(async () => {
+                    return {
+                        user: user,
+                        action: action,
+                        workdayConfig: selectedConfig,
+                        result: await executeAction(user.username, action)
+                    }
+                });
             }
 
         } else {
@@ -201,39 +152,41 @@ class WorkdayConfig {
     const actionResults = await Promise.allSettled(actionPromises)
 
     // TODO: rework
-    for (let idx = 0; idx < actionResults.length; idx++) {
-        const cur_job = queryResult.rows[idx];
-        const cur_job_result = actionResults[idx]
-        const successful = cur_job_result.status === 'fulfilled'
+    /**
+     *    {
+            "status": "fullfilled",
+            "reason": "err",
+            "value": {
+                "user": {
+                    "username": "joža"
+                    ...
+                },
+                "result": "Successfully executed action"
+            }
+        }
+     
+     */
+    for (const actionResult in actionResults) {
+        const successful = actionResult.status === 'fulfilled'
+        const curUser = actionResult.value.user;
 
-        console.info(`[AUTOMATION]: saving job results...: ${JSON.stringify(cur_job_result)}`)
+        console.info(`[AUTOMATION]: saving job results...: ${JSON.stringify(actionResult)}`)
 
         try {
-            const job_entry_status = cur_job_result.status === 'fulfilled' ? JOB_ENTRY_STATUS.SUCCESSFUL : JOB_ENTRY_STATUS.FAILED
+            const logEntryStatus = actionResult.status === 'fulfilled' ? LOG_ENTRY_STATUS.SUCCESSFUL : LOG_ENTRY_STATUS.FAILED;
+            const logEntryErr = successful ? null : actionResult.reason.toString();
+            const logEntryMsg = actionResult.value.result;
 
             // log job execution
-            await db.query(`INSERT INTO job_run_entry (job_id, message, status, "timestamp")
-                        VALUES(${cur_job.id}, $1, $2, now())`,
-                [successful ? cur_job_result.value : cur_job_result.reason.toString(), job_entry_status])
+            const queryResult = await db.query(`INSERT INTO log_entry (login_info_id, status, "timestamp", error, message, "action")
+                            VALUES ($1, $2, $3, $4, $5, $6);`,
+                [curUser.login_info_id, logEntryStatus, now, logEntryErr, logEntryMsg, actionResult.value.action])
+            console.log('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
         } catch (error) {
-            console.log('[AUTOMATION]: Error adding job execution entry');
+            console.log('[AUTOMATION]: Error adding log entry');
             console.log(error)
-            // TODO: return ?
-        }
-
-
-        const success = await db.query(`UPDATE job
-                                SET status = $1, error_message = $2
-                                WHERE id = ${cur_job.id}`, [successful ? JOB_STATUS.COMPLETED : JOB_STATUS.FAILED, cur_job_result.reason?.toString()])
-        if (success) {
-            console.log('[AUTOMATION]: UPDATE job [SUCCESS]')
-        } else {
-            console.log('[AUTOMATION]: failed to update job:', JSON.stringify(cur_job))
         }
     }
-
-    // query databaseand iterate over them with concurrency
-    // await pMap(queryResult.rows, mapper, { concurrency });
 
     // signal to parent that the job is done
     if (parentPort) parentPort.postMessage('done');
