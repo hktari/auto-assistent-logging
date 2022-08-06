@@ -56,18 +56,14 @@ if (parentPort)
 
     const LOOKUP_INTERVAL = '5 minutes'
 
-    console.log('[AUTOMATION]: fetching due jobs...')
+    // TODO: fetch users
+    const usersToAutomate = [];
 
-    // TODO: select only the jobs in the give interval
-    const queryResult = await db.query(`SELECT job.id, job.execute_time, job.status, job.action, login_info.username, login_info.password
-                                        from job
-                                        JOIN login_info ON login_info.id = job.login_info_id
-                                        where LOWER(status) != LOWER('${JOB_STATUS.COMPLETED}') AND (
-                                            (execute_time - interval '${LOOKUP_INTERVAL}') <= now() AND
-                                            (execute_time + interval '${LOOKUP_INTERVAL}') >= now()	
-                                        )`)
-    console.log(`[AUTOMATION]: Fetched ${queryResult.rowCount} due jobs`)
+    for (const user in usersToAutomate) {
+        const userWorkweek = {}
+        const today = new Date().getDay()
 
+    }
     let jobs = [];
     for (const row of queryResult.rows) {
         console.info(`[AUTOMATION]: queueing: ${JSON.stringify(row)}`)
