@@ -1,0 +1,45 @@
+{
+    "log_entry": [
+        {
+            "id": "cd319045-b687-4c91-a373-47c91f4608cd",
+            "timestamp": "2022-08-03T21:44:06.969Z",
+            "status": "completed",
+            "user_id": "ab927dee-b47c-45fc-b4c7-7f0be2d0a1ed",
+            "error": "",
+            "message": "",
+            "action": "click_start_btn"
+        }
+    ],
+    "login_info": [
+        {
+            "id": "6bbb7678-31e3-49c6-bd16-9996c9094c41",
+            "user_id": "94de87da-39e3-4913-9fcd-cb1d72420345",
+            "username": "bostjankamnik45",
+            "password": "password"
+        }
+    ],
+    "user": [
+        {
+            "id": "94de87da-39e3-4913-9fcd-cb1d72420345",
+            "email": "bkamnik1995@gmail.com",
+            "password": "password",
+            "automationEnabled": true
+        }
+    ],
+    "work_week": [
+        {
+            "login_info_id": "6bbb7678-31e3-49c6-bd16-9996c9094c41",
+            "day": "mon",
+            "start_at": "14:00",
+            "end_at": "22:00",
+            "timezone": "+0200"
+        },
+        {
+            "login_info_id": "6bbb7678-31e3-49c6-bd16-9996c9094c41",
+            "day": "tue",
+            "start_at": "14:00",
+            "end_at": "22:00",
+            "timezone": "+0200"
+        }
+    ]
+}
