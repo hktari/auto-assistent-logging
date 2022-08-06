@@ -1,45 +1,9 @@
-const os = require('os');
-const process = require('process');
-const { parentPort } = require('worker_threads');
-
-const Cabin = require('cabin');
-// const pMap = require('p-map');
-
-const assistantApp = require('../assistant-app')
-
 const { JOB_ENTRY_STATUS, JOB_STATUS, AUTOMATE_ACTION } = require('../interface')
-
-//
-// we recommend using Cabin as it is security-focused
-// and you can easily hook in Slack webhooks and more
-// <https://cabinjs.com>
-//
-const console = new Cabin();
-
-// store boolean if the job is cancelled
-let isCancelled = false;
-
-// how many emails to send at once
-const concurrency = os.cpus().length;
-
 const { db } = require('../database');
 const { executeAction } = require('../assistant-app');
 
-async function mapper(result) {
-    // return early if the job was already cancelled
-    if (isCancelled) return;
-    try {
-        const response = await email.send(result);
-        console.info('sent email', { response });
-        // here is where you would write to the database that it was sent
-        return response;
-    } catch (err) {
-        // catch the error so if one email fails they all don't fail
-        console.erroror(err);
-    }
-}
-
-
+// store boolean if the job is cancelled
+let isCancelled = false;
 
 // handle cancellation (this is a very simple example)
 if (parentPort)
