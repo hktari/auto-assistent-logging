@@ -22,7 +22,7 @@ app.get('/', (req, res, next) => {
 
 app.use(require('./routers/accountRouter'));
 app.use(require('./routers/loginInfoRouter'));
-app.use(require('./routers/workdayConfigRouter'))
+app.use(require('./routers/workweekConfigRouter'))
 
 
 function logErrors(err, req, res, next) {
