@@ -33,7 +33,12 @@ async function getDailyConfig(username, date) {
                     FROM daily_config dc JOIN login_info li ON dc.login_info_id = li.id
                     WHERE li.username = $1 AND date dc.date = $2;`, [username, date.toISOString().substring(0, 10)])
 
-    return queryResult.rows.map(row => new WorkdayConfig(row.username, row.start_at, row.end_at, row.date, row.automation_type))
+    if (queryResult.rowCount === 0) {
+        return null;
+    } else {
+        const firstRow = queryResult.rows[0];
+        return new WorkdayConfig(firstRow.username, firstRow.start_at, firstRow.end_at, firstRow.date, firstRow.automation_type)
+    }
 }
 
 
@@ -88,26 +93,17 @@ class WorkdayConfig {
         const now = new Date()
 
         const dailyConfig = getDailyConfig(user, now)
-        let selectedConfig = null;
+        let selectedConfig = dailyConfig;
 
-        if (dailyConfig) {
-            if (dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
-                console.log(`[AUTOMATION]: user ${user.email} requested no automation for date: ${dailyConfig.date}`);
-                actionPromises.push(new Promise((res, rej) => {
-                    res({
-                        workdayConfig: selectedConfig,
-                        result: 'Skipping automation as requested'
-                    })
-                }))
-            } else {
-                // map to common object structure
-                selectedConfig = {
-                    day: dayOfWeekToAbbrv(new Date(dailyConfig.date)),
-                    start_at: dailyConfig.start_at,
-                    end_at: dailyConfig.end_at,
-                    login_info_id: dailyConfig.login_info_id
-                }
-            }
+        if (dailyConfig && dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
+            console.log(`[AUTOMATION]: user ${user.email} requested no automation for date: ${dailyConfig.date}`);
+            actionPromises.push(new Promise((res, rej) => {
+                res({
+                    workdayConfig: dailyConfig,
+                    result: 'Skipping automation as requested'
+                })
+            }))
+            continue;
         } else {
             const today = dayOfWeekToAbbrv(now.getDay())
             selectedConfig = getWeeklyConfig(today)
