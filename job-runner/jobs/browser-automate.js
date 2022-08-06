@@ -69,6 +69,19 @@ async function getWeeklyConfig(username, date) {
     }
 }
 
+/**
+ * Get user data from the 'user' and 'login_info' tables
+ * @param {boolean} onlyAutomateEnabled 
+ */
+async function getUsers(onlyAutomateEnabled = true) {
+    const queryResult = await db.query(`SELECT a.email, a."automationEnabled", li.username, li.password
+                                        FROM account a JOIN login_info li on a.id = li.user_id
+                                        WHERE "automationEnabled" = ${onlyAutomateEnabled};`)
+
+    // TODO: decrypt password
+    return queryResult.rows;
+}
+
 class ActionLogEntry {
     constructor(user, action, status, message, error, timestamp) {
         this.user = user;
@@ -129,8 +142,7 @@ class WorkdayConfig {
 
     const LOOKUP_INTERVAL = '5 minutes'
 
-    // TODO: fetch users
-    const usersToAutomate = [];
+    const usersToAutomate = await getUsers();
 
     let actionPromises = [];
 
@@ -171,16 +183,18 @@ class WorkdayConfig {
         }
 
         if (await shouldExecute(user.username, action, dueDate)) {
-            if (await checkForExecutionFailure(user, action, dueDate)) {
+            if (await checkForExecutionFailure(user.username, action, dueDate)) {
                 // TOOD: notify user if not already
 
             } else {
-                console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(userWorkday)}`)
-                actionPromises.push(executeAction(user, action));
+                console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
+
+
+                actionPromises.push(executeAction(user.username, action));
             }
 
         } else {
-            console.log(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(userWorkday)}`)
+            console.log(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
         }
     }
 
