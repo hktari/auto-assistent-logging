@@ -24,3 +24,8 @@ function abbrevToDayOfWeek(abbrev) {
         throw new Error(`Failed to map day ${abbrev} to abbreviation.\nMap: ${Object.entries(abbrevMap)}`)
     }
 }
+
+module.exports = {
+    dayOfWeekToAbbrv,
+    abbrevToDayOfWeek
+}

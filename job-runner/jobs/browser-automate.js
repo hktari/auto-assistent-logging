@@ -22,7 +22,8 @@ let isCancelled = false;
 // how many emails to send at once
 const concurrency = os.cpus().length;
 
-const { db } = require('../database')
+const { db } = require('../database');
+const { executeAction } = require('../assistant-app');
 
 async function mapper(result) {
     // return early if the job was already cancelled
@@ -59,20 +60,53 @@ if (parentPort)
     // TODO: fetch users
     const usersToAutomate = [];
 
+    let actionPromises = [];
+
     for (const user in usersToAutomate) {
-        const userWorkweek = {}
-        const today = new Date().getDay()
 
+        const { abbrevToDayOfWeek, dayOfWeekToAbbrv } = require('../util')
+        const today = dayOfWeekToAbbrv(new Date().getDay())
+
+        /**
+         * {
+            "login_info_id": "6bbb7678-31e3-49c6-bd16-9996c9094c41",
+            "day": "mon",
+            "start_at": "14:00",
+            "end_at": "22:00",
+        }
+         */
+        // TODO: fetch user workday for today
+        const userWorkday = {}
+
+
+        const userStartAt = new Date(), userEndAt = new Date()
+        userStartAt.setHours(+userWorkday.start_at.split(':')[0])
+        userStartAt.setMinutes(+userWorkday.start_at.split(':')[1])
+        console.log('user start at: ', userStartAt)
+
+        userEndAt.setHours(+userWorkday.end_at.split(':')[0])
+        userEndAt.setMinutes(+userWorkday.end_at.split(':')[1])
+        console.log('user end at: ', userStartAt)
+
+        let action = null;
+        if (timeToExecute(userStartAt)) {
+            action = AUTOMATE_ACTION.START_BTN;
+        } else if (timeToExecute(userEndAt)) {
+            action = AUTOMATE_ACTION.STOP_BTN;
+        }
+
+        // if no successful record in 'log_entry' table for given user 
+        if (shouldExecute(user, action, userWorkday)) {
+            console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(userWorkday)}`)
+            actionPromises.push(executeAction(user, action));
+        } else {
+            console.log(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(userWorkday)}`)
+        }
     }
-    let jobs = [];
-    for (const row of queryResult.rows) {
-        console.info(`[AUTOMATION]: queueing: ${JSON.stringify(row)}`)
-        jobs.push(
-            assistantApp.executeAction({ username: row.username, password: row.password, action: row.action }))
-    }
 
-    const job_results = await Promise.allSettled(jobs)
+    const job_results = await Promise.allSettled(actionPromises)
 
+    // TODO: rework
     for (let idx = 0; idx < job_results.length; idx++) {
         const cur_job = queryResult.rows[idx];
         const cur_job_result = job_results[idx]
