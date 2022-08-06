@@ -1,6 +1,6 @@
 
 const express = require('express')
-const chalk = require('chalk')
+const { log, error, info } = require('../util/logging')
 
 /**
  * Updates the workweek config for the given user
