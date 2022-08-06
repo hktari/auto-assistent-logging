@@ -53,6 +53,11 @@ if (parentPort)
     });
 
 
+function timeToExecute(dueDate, now) {
+    const thresholdMinutes = 1
+    return Math.abs(dueDate.getTime() - now.getTime()) < thresholdMinutes * 60 * 1000
+}
+
 (async () => {
 
     const LOOKUP_INTERVAL = '5 minutes'
@@ -65,7 +70,8 @@ if (parentPort)
     for (const user in usersToAutomate) {
 
         const { abbrevToDayOfWeek, dayOfWeekToAbbrv } = require('../util')
-        const today = dayOfWeekToAbbrv(new Date().getDay())
+        const now = new Date()
+        const today = dayOfWeekToAbbrv(now.getDay())
 
         /**
          * {
@@ -89,14 +95,17 @@ if (parentPort)
         console.log('user end at: ', userStartAt)
 
         let action = null;
-        if (timeToExecute(userStartAt)) {
+        let dueDate = null;
+        if (timeToExecute(userStartAt, now)) {
             action = AUTOMATE_ACTION.START_BTN;
-        } else if (timeToExecute(userEndAt)) {
+            dueDate = userStartAt;
+        } else if (timeToExecute(userEndAt, now)) {
             action = AUTOMATE_ACTION.STOP_BTN;
+            dueDate = userEndAt;
         }
 
         // if no successful record in 'log_entry' table for given user 
-        if (shouldExecute(user, action, userWorkday)) {
+        if (shouldExecute(user, action, dueDate, now)) {
             console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(userWorkday)}`)
             actionPromises.push(executeAction(user, action));
         } else {
