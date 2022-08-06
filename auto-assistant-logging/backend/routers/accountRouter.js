@@ -6,9 +6,15 @@ const { log, error } = require('../util/logging');
 const router = express.Router();
 
 router.route('/account/')
-    .get((req, res) => {
+    .get(async (req, res) => {
         console.log(chalk.gray('[GET] /account'))
-        res.status(200).send('not implemented')
+        try {
+            const queryResult = await db.query(`SELECT email, "automationEnabled"
+                                                FROM account;`)
+            res.status(200).json(queryResult.rows)
+        } catch (e) {
+            next(e)
+        }
     })
     .post(async (req, res, next) => {
         console.log(chalk.gray('[POST] /account'))
