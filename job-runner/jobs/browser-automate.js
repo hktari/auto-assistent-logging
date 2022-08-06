@@ -58,6 +58,17 @@ function timeToExecute(dueDate, now) {
     return Math.abs(dueDate.getTime() - now.getTime()) < thresholdMinutes * 60 * 1000
 }
 
+async function shouldExecute(user, action, dueDate, now) {
+    // if no successful record in 'log_entry' table for given user, given action, for dueDate
+
+
+
+}
+
+async function checkForExecutionFailure() {
+
+}
+
 (async () => {
 
     const LOOKUP_INTERVAL = '5 minutes'
@@ -104,10 +115,15 @@ function timeToExecute(dueDate, now) {
             dueDate = userEndAt;
         }
 
-        // if no successful record in 'log_entry' table for given user 
         if (shouldExecute(user, action, dueDate, now)) {
-            console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(userWorkday)}`)
-            actionPromises.push(executeAction(user, action));
+            if (checkForExecutionFailure(user, action, dueDate)) {
+                // TOOD: notify user if not already
+
+            } else {
+                console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(userWorkday)}`)
+                actionPromises.push(executeAction(user, action));
+            }
+
         } else {
             console.log(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(userWorkday)}`)
         }
