@@ -6,9 +6,15 @@ require('dotenv').config();
 const express = require('express')
 const app = express()
 app.use(express.json())
-const { log, error } = require('./util/logging')
+const { log, error, info } = require('./util/logging')
 
 // router.all('*', requireAuthentication, loadUser)
+
+function logger(req, res, next) {
+    log(info(`[${req.method}] ${req.originalUrl}`))
+    next()
+}
+app.use(logger);
 
 app.get('/', (req, res, next) => {
     res.send('Hello world')
@@ -16,6 +22,8 @@ app.get('/', (req, res, next) => {
 
 app.use(require('./routers/accountRouter'));
 app.use(require('./routers/loginInfoRouter'));
+app.use(require('./routers/workdayConfigRouter'))
+
 
 function logErrors(err, req, res, next) {
     log(error(err.stack))
