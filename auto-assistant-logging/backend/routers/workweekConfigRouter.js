@@ -1,7 +1,8 @@
 
 const express = require('express')
 const { log, error, info, debug } = require('../util/logging')
-const { db } = require('../services/database')
+const { db } = require('../services/database');
+const { loadLoginInfoID } = require('../middleware/common');
 
 const router = express.Router();
 
@@ -21,25 +22,7 @@ function mapFromDTO(dto) {
         throw err;
     }
 }
-
-async function getLoginInfoID(id) {
-    const queryResult = await db.query(`SELECT li.id FROM login_info li JOIN account a on li.user_id = a.id 
-                            WHERE a.id = $1 
-                            LIMIT 1`, [id])
-    return queryResult.rows[0]?.id
-}
-
-router.param('id', async (req, res, next) => {
-    const loginInfoID = await getLoginInfoID(req.params.id);
-    if (loginInfoID === undefined) {
-        res.sendStatus(404)
-        log(info('login info not found'))
-        return;
-    }
-    req.loginInfoID = loginInfoID
-    log(debug('login info id: ' + loginInfoID))
-    next()
-})
+router.param('id', loadLoginInfoID);
 
 router.route('/account/:id/workweek')
     .get((req, res, next) => {
