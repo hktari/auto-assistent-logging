@@ -82,15 +82,28 @@ class WorkdayConfig {
      */
     constructor(username, startAt, endAt, date, automation_type) {
         this.username = username;
-        this.startAt = startAt;
-        this.endAt = endAt;
+
+        this.startAt = new Date(date);
+        this.startAt.setHours(+startAt.split(':')[0])
+        this.startAt.setMinutes(+startAt.split(':')[1])
+        console.log('user start at: ', this.startAt)
+
+        this.endAt = new Date(date);
+        this.endAt.setHours(+endAt.split(':')[0])
+        this.endAt.setMinutes(+endAt.split(':')[1])
+        console.log('user end at: ', this.endAt)
+
 
         if (date instanceof Date) {
             this.date = date
         } else {
             this.date = new Date(Date.parse(date))
-            if (this.date.toString().toLowerCase().includes('invalid')) {
-                throw new Error('invalid date: ' + date)
+        }
+
+        const allDates = [this.startAt, this.endAt, date]
+        for (const d in allDates) {
+            if (d.toString().toLowerCase().includes('invalid')) {
+                throw new Error('invalid date: ' + allDates)
             }
         }
 
@@ -132,19 +145,10 @@ class WorkdayConfig {
             selectedConfig = getWeeklyConfig(user.username, now)
         }
 
-        if(selectedConfig === null){
+        if (selectedConfig === null) {
             console.log(`User ${user.username}. No configurations found`)
             return;
         }
-
-        const userStartAt = new Date(), userEndAt = new Date()
-        userStartAt.setHours(+selectedConfig.start_at.split(':')[0])
-        userStartAt.setMinutes(+selectedConfig.start_at.split(':')[1])
-        console.log('user start at: ', userStartAt)
-
-        userEndAt.setHours(+selectedConfig.end_at.split(':')[0])
-        userEndAt.setMinutes(+selectedConfig.end_at.split(':')[1])
-        console.log('user end at: ', userStartAt)
 
         let action = null;
         let dueDate = null;
