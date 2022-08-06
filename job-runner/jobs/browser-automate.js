@@ -46,6 +46,18 @@ async function checkForExecutionFailure() {
 
 }
 
+async function getWeeklyConfig(username, date) {
+    const today = dayOfWeekToAbbrv(date.getDay())
+    const queryResult = await db.query(`SELECT wwc.day, wwc.start_at, wwc.end_at, li.username
+                                        FROM work_week_config wwc JOIN login_info li on wwc.login_info_id = li.id
+                                        WHERE li.username = $1 AND LOWER(wwc.day) = $2;`, [username, today])
+    if (queryResult.rowCount > 0) {
+        const firstRow = queryResult.rows[0];
+        return new WorkdayConfig(firstRow.username, firstRow.start_at, firstRow.end_at, date, WORKDAY_CONFIG_AUTOMATION_TYPE.AUTOMATE);
+    } else {
+        return null;
+    }
+}
 
 class ActionLogEntry {
     constructor(user, action, status, message, error, timestamp) {
@@ -60,14 +72,26 @@ class ActionLogEntry {
 
 
 class WorkdayConfig {
+    /**
+     * 
+     * @param {string} username 
+     * @param {string} startAt 14:00
+     * @param {string} endAt 22:00
+     * @param {string | Date} date 
+     * @param {WORKDAY_CONFIG_AUTOMATION_TYPE} automation_type 
+     */
     constructor(username, startAt, endAt, date, automation_type) {
         this.username = username;
         this.startAt = startAt;
         this.endAt = endAt;
 
-        this.date = new Date(Date.parse(date))
-        if (this.date.toString().toLowerCase().includes('invalid')) {
-            throw new Error('invalid date: ' + date)
+        if (date instanceof Date) {
+            this.date = date
+        } else {
+            this.date = new Date(Date.parse(date))
+            if (this.date.toString().toLowerCase().includes('invalid')) {
+                throw new Error('invalid date: ' + date)
+            }
         }
 
         if (!Object.values(WORKDAY_CONFIG_AUTOMATION_TYPE).includes(automation_type)) {
@@ -92,11 +116,11 @@ class WorkdayConfig {
         const { abbrevToDayOfWeek, dayOfWeekToAbbrv } = require('../util')
         const now = new Date()
 
-        const dailyConfig = getDailyConfig(user, now)
+        const dailyConfig = getDailyConfig(user.username, now)
         let selectedConfig = dailyConfig;
 
         if (dailyConfig && dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
-            console.log(`[AUTOMATION]: user ${user.email} requested no automation for date: ${dailyConfig.date}`);
+            console.log(`[AUTOMATION]: user ${user.username} requested no automation for date: ${dailyConfig.date}`);
             actionPromises.push(new Promise((res, rej) => {
                 res({
                     workdayConfig: dailyConfig,
@@ -105,8 +129,12 @@ class WorkdayConfig {
             }))
             continue;
         } else {
-            const today = dayOfWeekToAbbrv(now.getDay())
-            selectedConfig = getWeeklyConfig(today)
+            selectedConfig = getWeeklyConfig(user.username, now)
+        }
+
+        if(selectedConfig === null){
+            console.log(`User ${user.username}. No configurations found`)
+            return;
         }
 
         const userStartAt = new Date(), userEndAt = new Date()
