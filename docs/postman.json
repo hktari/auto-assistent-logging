@@ -1,0 +1,214 @@
+{
+	"info": {
+		"_postman_id": "fe9cb103-bc3e-421a-83f0-00ee72e862c3",
+		"name": "auto assistant logging",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "2083059"
+	},
+	"item": [
+		{
+			"name": "workweek",
+			"item": [
+				{
+					"name": "getWorkweek",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "addWorkweek",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "deleteWorkweek",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "workday",
+			"item": [
+				{
+					"name": "getWorkday",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "addWorkday",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"date\": \"2022-08-06T22:56:03.400Z\",\n    \"start_at\": \"14:00\",\n    \"end_at\": \"22:00\",\n    \"automation_type\": \"automate\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{endpoint}}/account/2/workday",
+							"host": [
+								"{{endpoint}}"
+							],
+							"path": [
+								"account",
+								"2",
+								"workday"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteWorkday",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "account",
+			"item": [
+				{
+					"name": "getAccounts",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "getOneAccount",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "addAccount",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"joža123@gmail.com\",\n    \"password\": \"secret\",\n    \"automationEnabled\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{endpoint}}/account",
+							"host": [
+								"{{endpoint}}"
+							],
+							"path": [
+								"account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteAccount",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "updateAccount",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "resetPassword",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "login info",
+			"item": [
+				{
+					"name": "getLoginInfo",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "addLoginInfo",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"joža123@gmail.com\",\n    \"password\": \"secret\",\n    \"automationEnabled\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{endpoint}}/account",
+							"host": [
+								"{{endpoint}}"
+							],
+							"path": [
+								"account"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteLoginInfo",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "updateLoginInfo",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

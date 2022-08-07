@@ -27,7 +27,7 @@ function timeToExecute(dueDate, now) {
     const LOOKUP_INTERVAL = '5 minutes'
 
     const usersToAutomate = await db.getUsers();
-
+    
     let actionPromises = [];
 
     for (const user in usersToAutomate) {

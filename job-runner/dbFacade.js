@@ -1,5 +1,7 @@
 const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('../interface')
 const { db } = require('../database');
+const crypto = require('./util/crypto')
+
 
 async function shouldExecute(username, action, dueDate, now) {
     // if no successful record in 'log_entry' table for given user, given action, for dueDate
@@ -50,6 +52,7 @@ async function getWeeklyConfig(username, date) {
 
 /**
  * Get user data from the 'user' and 'login_info' tables
+ * Also decrypts the password
  * @param {boolean} onlyAutomateEnabled 
  */
 async function getUsers(onlyAutomateEnabled = true) {
@@ -57,14 +60,31 @@ async function getUsers(onlyAutomateEnabled = true) {
                                         FROM account a JOIN login_info li on a.id = li.user_id
                                         WHERE "automationEnabled" = ${onlyAutomateEnabled};`)
 
-    // TODO: decrypt password
-    return queryResult.rows;
+
+    let users = queryResult.rows.map(row => {
+        try {
+            const password = crypto.decrypt(row.password_cipher, row.iv_cipher)
+            return {
+                id: row.id,
+                email: row.email,
+                automationEnabled: row.automationEnabled,
+                username: row.username,
+                password: password
+            }
+        } catch (err) {
+            console.error(`Failed to map user ${row.email}. Probably failure in decrypting password.`, err, JSON.stringify(row))
+            return null;
+        }
+    });
+
+    // filter out users with decryption errors
+    return users.filter(user => user !== null)
 }
 
 async function addLogEntry(login_info_id, status, timestamp, error, message, action) {
     const queryResult = await db.query(`INSERT INTO log_entry (login_info_id, status, "timestamp", error, message, "action")
                                         VALUES ($1, $2, $3, $4, $5, $6);`,
-                                        [login_info_id, status, timestamp, error, message, action])
+        [login_info_id, status, timestamp, error, message, action])
     console.log('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
     return queryResult.rowCount;
 }
