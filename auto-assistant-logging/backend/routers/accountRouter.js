@@ -2,6 +2,7 @@ const express = require('express')
 const chalk = require('chalk')
 const { db } = require('../services/database');
 const { log, error, info } = require('../util/logging');
+const { encrypt: has, hash } = require('../util/encrypt');
 
 const router = express.Router();
 
@@ -21,8 +22,10 @@ router.route('/account/')
         console.log(chalk.gray(JSON.stringify(req.body)))
 
         try {
+            const pwdHash = await hash(req.body.password)
+
             const queryResult = await db.query(`INSERT INTO ACCOUNT (email, password, "automationEnabled")
-                                            VALUES ($1, $2, $3);`, [req.body.email, req.body.password, req.body.automationEnabled ?? false])
+                                            VALUES ($1, $2, $3);`, [req.body.email, pwdHash, req.body.automationEnabled ?? false])
             if (queryResult.rowCount === 1) {
                 res.sendStatus(200)
             }

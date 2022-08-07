@@ -20,6 +20,7 @@ app.get('/', (req, res, next) => {
     res.send('Hello world')
 })
 
+app.use(require('./routers/authRouter'))
 app.use(require('./routers/accountRouter'));
 app.use(require('./routers/loginInfoRouter'));
 app.use(require('./routers/workweekConfigRouter'))
