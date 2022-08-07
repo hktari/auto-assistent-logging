@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer');
 const { AUTOMATE_ACTION } = require('./interface');
-// TODO: switch on process.env
-const config = require('./config.dev.json');
+const ENDPOINT = process.env.MDDSZ_WEBAPP_ENDPOINT
 
 function delay(waitTime) {
     return new Promise((resolve) => {
@@ -32,7 +31,7 @@ async function executeAction({ username, password, action }) {
         }); // default is true
 
         const page = await browser.newPage();
-        await page.goto(config.ASSISTANT_WEBAPP.ENDPOINT);
+        await page.goto(ENDPOINT);
         await page.waitForNavigation(); // The promise resolves after navigation has finished
 
         const usernameInput = await page.waitForSelector('#P9999_USERNAME')
