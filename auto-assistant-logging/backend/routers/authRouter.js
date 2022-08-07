@@ -1,7 +1,7 @@
 const express = require('express')
 const { createToken, requireAuthentication, requireAdminAuth } = require('../middleware/auth')
 const { db } = require('../services/database')
-const encrypt = require('../util/encrypt')
+const crypto = require('../util/crypto')
 const { log, info } = require('../util/logging')
 const { route } = require('./accountRouter')
 const router = express.Router()
@@ -14,7 +14,7 @@ router.post('/login', async (req, res, next) => {
         res.sendStatus(400);
     } else {
         const account = queryResult.rows[0]
-        if (await encrypt.compare(req.body.password, account.password)) {
+        if (await crypto.compare(req.body.password, account.password)) {
             log(info('login succeeded: ' + req.body.email))
 
             res.status(200).json({
@@ -44,7 +44,7 @@ router.post('/reset-password', requireAuthentication, requireAdminAuth, async (r
 
 router.post('/signup', async (req, res, next) => {
     try {
-        const pwdHash = await encrypt.hash(req.body.password)
+        const pwdHash = await crypto.hash(req.body.password)
 
         const queryResult = await db.query(`INSERT INTO ACCOUNT (email, password, "automationEnabled")
                                         VALUES ($1, $2, $3);`, [req.body.email, pwdHash, req.body.automationEnabled ?? false])

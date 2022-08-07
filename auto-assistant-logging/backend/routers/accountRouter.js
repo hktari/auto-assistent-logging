@@ -2,7 +2,7 @@ const express = require('express')
 const chalk = require('chalk')
 const { db } = require('../services/database');
 const { log, error, info } = require('../util/logging');
-const { hash } = require('../util/encrypt');
+const { hash } = require('../util/crypto');
 
 const router = express.Router();
 
