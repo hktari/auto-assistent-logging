@@ -53,7 +53,7 @@ async function getWeeklyConfig(username, date) {
  * @param {boolean} onlyAutomateEnabled 
  */
 async function getUsers(onlyAutomateEnabled = true) {
-    const queryResult = await db.query(`SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, li.password
+    const queryResult = await db.query(`SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, li.password_cipher, li.iv_cipher
                                         FROM account a JOIN login_info li on a.id = li.user_id
                                         WHERE "automationEnabled" = ${onlyAutomateEnabled};`)
 
