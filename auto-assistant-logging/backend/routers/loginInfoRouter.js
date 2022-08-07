@@ -1,6 +1,7 @@
 const express = require('express')
 const { log, error, info } = require('../util/logging')
 const { db } = require('../services/database')
+const { encrypt } = require('../util/crypto')
 
 const router = express.Router()
 
@@ -14,12 +15,15 @@ router.route('/account/:id/login-info')
             .then(result => res.status(result.rowCount > 0 ? 200 : 404).json(result.rows))
             .catch(err => next(err))
     })
-    .post((req, res, next) => {
-        // todo: encrypt password
-        db.query(`INSERT INTO login_info (user_id, username, password)
-                    VALUES($1, $2, $3)`, [req.params.id, req.body.username, req.body.password])
-            .then(result => res.status(200).json(result.rows))
-            .catch(err => next(err))
+    .post(async (req, res, next) => {
+        try {
+            const pwdCipher = encrypt(req.body.password)
+            const queryResult = await db.query(`INSERT INTO login_info (user_id, username, password_cipher, iv_cipher)
+                                                VALUES($1, $2, $3, $4)`, [req.params.id, req.body.username, pwdCipher.cipherText, pwdCipher.iv])
+            res.status(200).json(result.rows)
+        } catch (err) {
+            next(err)
+        }
     })
     .put((req, res, next) => {
         // todo: encrypt password
