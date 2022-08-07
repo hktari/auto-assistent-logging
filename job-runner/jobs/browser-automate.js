@@ -1,14 +1,12 @@
 const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('../interface')
 const db = require('../dbFacade')
-const { executeAction } = require('../mddsz-api');
-
-const { parentPort } = require('worker_threads');
+const { executeAction } = require('../assistant-app');
 
 // store boolean if the job is cancelled
 let isCancelled = false;
 
 // handle cancellation (this is a very simple example)
-if (parentPort) {
+if (parentPort)
     parentPort.once('message', (message) => {
         //
         // TODO: once we can manipulate concurrency option to p-map
@@ -17,7 +15,6 @@ if (parentPort) {
         //
         if (message === 'cancel') isCancelled = true;
     });
-}
 
 
 function timeToExecute(dueDate, now) {
