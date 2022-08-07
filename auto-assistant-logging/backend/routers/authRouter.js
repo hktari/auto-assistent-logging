@@ -1,5 +1,5 @@
 const express = require('express')
-const { createToken, requireAuthentication , requireAdminAuth} = require('../middleware/auth')
+const { createToken, requireAuthentication, requireAdminAuth } = require('../middleware/auth')
 const { db } = require('../services/database')
 const encrypt = require('../util/encrypt')
 const { log, info } = require('../util/logging')
@@ -33,7 +33,7 @@ router.post('/login', async (req, res, next) => {
 })
 router.post('/reset-password', requireAuthentication, requireAdminAuth, async (req, res, next) => {
     try {
-        
+
         const queryResult = await db.query(`UPDATE ACCOUNT SET password = $1
                                                 WHERE email = $2`, [req.body.password, req.params.id])
         res.sendStatus(queryResult.rowCount > 0 ? 200 : 404);
@@ -42,5 +42,18 @@ router.post('/reset-password', requireAuthentication, requireAdminAuth, async (r
     }
 })
 
+router.post('/signup', async (req, res, next) => {
+    try {
+        const pwdHash = await encrypt.hash(req.body.password)
+
+        const queryResult = await db.query(`INSERT INTO ACCOUNT (email, password, "automationEnabled")
+                                        VALUES ($1, $2, $3);`, [req.body.email, pwdHash, req.body.automationEnabled ?? false])
+        if (queryResult.rowCount === 1) {
+            res.sendStatus(200)
+        }
+    } catch (e) {
+        next(e)
+    }
+})
 
 module.exports = router
