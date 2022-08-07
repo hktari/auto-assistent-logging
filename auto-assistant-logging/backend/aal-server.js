@@ -1,15 +1,10 @@
-'use strict'
-
 require('dotenv').config();
 
-// TODO: setup express with postgres
 const express = require('express');
 const { requireAuthentication } = require('./middleware/auth');
 const app = express()
 app.use(express.json())
 const { log, error, info } = require('./util/logging')
-
-// router.all('*', requireAuthentication, loadUser)
 
 function logger(req, res, next) {
     log(info(`[${req.method}] ${req.originalUrl}`))
