@@ -3,7 +3,8 @@
 require('dotenv').config();
 
 // TODO: setup express with postgres
-const express = require('express')
+const express = require('express');
+const { requireAuthentication } = require('./middleware/auth');
 const app = express()
 app.use(express.json())
 const { log, error, info } = require('./util/logging')
@@ -20,8 +21,11 @@ app.get('/', (req, res, next) => {
     res.send('Hello world')
 })
 
+
 app.use(require('./routers/authRouter'))
-app.use(require('./routers/accountRouter'));
+
+
+app.use(requireAuthentication, require('./routers/accountRouter'));
 app.use(require('./routers/loginInfoRouter'));
 app.use(require('./routers/workweekConfigRouter'))
 app.use(require('./routers/workdayConfigRouter'))

@@ -2,7 +2,7 @@ const express = require('express')
 const chalk = require('chalk')
 const { db } = require('../services/database');
 const { log, error, info } = require('../util/logging');
-const { encrypt: has, hash } = require('../util/encrypt');
+const { hash } = require('../util/encrypt');
 
 const router = express.Router();
 
@@ -75,17 +75,5 @@ router.route('/account/:id')
             next(e)
         }
     })
-
-router.post('/account/:id/reset-password', async (req, res, next) => {
-    log(info(`[POST] ${req.params.id}/reset-password`))
-    try {
-        const queryResult = await db.query(`UPDATE ACCOUNT SET password = $1
-                                                WHERE id = $2`, [req.body.password, req.params.id])
-        res.sendStatus(queryResult.rowCount > 0 ? 200 : 404);
-    } catch (e) {
-        next(e)
-    }
-})
-
 
 module.exports = router;
