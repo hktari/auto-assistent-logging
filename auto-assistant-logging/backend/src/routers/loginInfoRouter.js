@@ -25,7 +25,7 @@ router.route('/account/:id/login-info')
             next(err)
         }
     })
-    .put((req, res, next) => {
+    .put(async (req, res, next) => {
         try {
             const pwdCipher = encrypt(req.body.password)
             const queryResult = await db.query(`UPDATE login_info SET username = $1, password_cipher = $2, iv_cipher = $3

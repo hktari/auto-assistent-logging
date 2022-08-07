@@ -7,7 +7,7 @@ const { hash } = require('../util/crypto');
 const router = express.Router();
 
 router.route('/account/')
-    .get(async (req, res) => {
+    .get(async (req, res, next) => {
         console.log(chalk.gray('[GET] /account'))
         try {
             const queryResult = await db.query(`SELECT email, "automationEnabled"
