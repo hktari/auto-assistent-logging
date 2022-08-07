@@ -9,3 +9,8 @@
 
 ## DEV
 - add log start / end entry implementation to MOCK-FRONTEND
+
+## TEST
+- setup dev system which automates MOCK-FRONTEND
+- verify backend logs using postman
+- verify MOCK-FRONTEND logs

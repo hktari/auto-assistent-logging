@@ -4,20 +4,11 @@ const Bree = require('bree');
 const Cabin = require('cabin');
 require('dotenv').config()
 
-
-//
-// we recommend using Cabin as it is security-focused
-// and you can easily hook in Slack webhooks and more
-// <https://cabinjs.com>
-//
-const logger = new Cabin();
-
 const bree = new Bree({
-    logger,
     jobs: [
         {
             // runs `./jobs/email.js` every minute
-            name: 'browser-automate',
+            name: 'auto-assistant',
             interval: '5s',
             // run on start as well
             timeout: 0

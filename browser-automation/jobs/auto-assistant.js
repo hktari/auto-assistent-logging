@@ -1,12 +1,12 @@
 const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('../interface')
 const db = require('../dbFacade')
-const { executeAction } = require('../assistant-app');
+const { executeAction } = require('../mddsz-api');
 
 // store boolean if the job is cancelled
 let isCancelled = false;
 
 // handle cancellation (this is a very simple example)
-if (parentPort)
+if (parentPort) {
     parentPort.once('message', (message) => {
         //
         // TODO: once we can manipulate concurrency option to p-map
@@ -15,6 +15,7 @@ if (parentPort)
         //
         if (message === 'cancel') isCancelled = true;
     });
+}
 
 
 function timeToExecute(dueDate, now) {
@@ -27,7 +28,7 @@ function timeToExecute(dueDate, now) {
     const LOOKUP_INTERVAL = '5 minutes'
 
     const usersToAutomate = await db.getUsers();
-    
+
     let actionPromises = [];
 
     for (const user in usersToAutomate) {
