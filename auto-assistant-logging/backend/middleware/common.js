@@ -7,7 +7,7 @@ async function loadLoginInfoID(req, res, next) {
         next()
         return;
     }
-    const queryResult = await db.query(`SELECT li.id FROM login_info li JOIN account a on li.user_id = a.id 
+    const queryResult = await db.query(`SELECT li.id FROM login_info li JOIN account a on li.account_id = a.id 
                             WHERE a.id = $1 
                             LIMIT 1`, [req.params.id])
     req.loginInfoID = queryResult.rows[0]?.id

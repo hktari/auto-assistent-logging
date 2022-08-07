@@ -28,7 +28,7 @@ router.route('/account/:id/workweek')
     .get((req, res, next) => {
         db.query(`SELECT day, start_at, end_at
                 FROM work_week_config wwc JOIN login_info li ON wwc.login_info_id = li.id
-                WHERE li.user_id = $1`, [req.params.id])
+                WHERE li.account_id = $1`, [req.params.id])
             .then(result => {
                 res.status(200).json(result.rows)
             })

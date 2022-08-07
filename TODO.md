@@ -8,6 +8,4 @@
 - create database on AWS RDS. MOCK-FRONTEND
 
 ## DEV
-- add implementation of BACKEND
-- create POSTMAN for BACKEND
 - add log start / end entry implementation to MOCK-FRONTEND
