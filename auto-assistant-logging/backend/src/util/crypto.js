@@ -37,10 +37,15 @@ function encrypt(text) {
 
     log(debug('encryption...'))
 
+
+    const resizedIV = Buffer.allocUnsafe(16);
+    const iv = crypto.createHash('sha256').update('myHashedIV').digest();
+    iv.copy(resizedIV);
+
     const key = loadKey()
-    const iv = crypto.randomBytes(16)
     const keyBuffer = crypto.createHash('sha256').update(key).digest();
-    const cipher = crypto.createCipheriv('aes256', keyBuffer, iv);
+
+    const cipher = crypto.createCipheriv('aes256', keyBuffer, resizedIV);
     const msg = [];
 
     msg.push(cipher.update(text, 'utf8', 'hex'));
@@ -53,7 +58,7 @@ function encrypt(text) {
     // }
     log(debug('finished !'))
 
-    return { cipherText: msg.join(''), iv: iv.toString('hex') }
+    return { cipherText: msg.join(''), iv: resizedIV.toString('hex') }
 }
 
 function decrypt(iv, cipherText) {
