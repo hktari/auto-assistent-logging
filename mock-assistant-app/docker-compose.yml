@@ -1,0 +1,10 @@
+version: "1.0"
+services:
+  mock-mddsz-frontend:
+    build: ./frontend/
+    ports:
+      - "80:3000"
+  mock-mddsz-backend:
+    build: ./backend/
+    ports:
+      - "5983:5983"
