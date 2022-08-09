@@ -5,13 +5,14 @@ const { dayOfWeekToAbbrv } = require('./util');
 
 
 async function shouldExecute(username, action, dueDate, now) {
+    console.debug('shouldExecute')
     // if no successful record in 'log_entry' table for given user, given action, for dueDate
     const queryResult = await db.query(`SELECT *
                                         FROM log_entry le JOIN login_info li on le.login_info_id = li.id
                                         WHERE li.username = $1 
-                                        AND date_trunc('day', le.timestamp) = date_trunc('day', timestamp $2)
-                                        AND action = $3
-                                        AND status = $4;`, [username, dueDate, action, LOG_ENTRY_STATUS.SUCCESSFUL])
+                                        AND date_trunc('day', le.timestamp) = date_trunc('day', timestamp '${dueDate.toISOString()}')
+                                        AND action = $2
+                                        AND status = $3;`, [username, action, LOG_ENTRY_STATUS.SUCCESSFUL])
     if (queryResult.rowCount > 0) {
         console.debug(`Already executed sucessfully action ${action} today for user ${username}`)
         return false;
@@ -80,7 +81,8 @@ async function getUsers(onlyAutomateEnabled = true) {
     });
 
     // filter out users with decryption errors
-    return users.filter(user => user !== null)
+    users = users.filter(user => user !== null)
+    return users
 }
 
 async function addLogEntry(login_info_id, status, timestamp, error, message, action) {
