@@ -2,14 +2,15 @@ import React, { useState } from 'react'
 import api from '../services/api'
 import { setCurAction, setUser } from '../features/userSlice'
 import { useSelector, useDispatch } from 'react-redux'
+
+import uuid from 'react-uuid'
 function LogEntry(action) {
     return {
-        id: LogEntry.prototype.idCntr++,
+        id: uuid(),
         action: action,
         timestamp: new Date().toISOString()
     }
 }
-LogEntry.prototype.idCntr = 0;
 
 const Dashboard = () => {
     const [sucessBannerVisible, setSucessBannerVisible] = useState(false)
@@ -24,7 +25,7 @@ const Dashboard = () => {
         console.log('START CLICKED')
 
         let userUpdate = { ...user, action: 'start' }
-        userUpdate.logs.push(new LogEntry('start'))
+        userUpdate.logs = [...userUpdate.logs, new LogEntry('start')]
 
         userUpdate = await api.putUser(userUpdate)
         dispatch(setUser(userUpdate));
@@ -39,7 +40,7 @@ const Dashboard = () => {
         console.log('STOP CLICKED')
 
         let userUpdate = { ...user, action: 'stop' }
-        userUpdate.logs.push(new LogEntry('stop'))
+        userUpdate.logs = [...userUpdate.logs, new LogEntry('stop')]
         
         userUpdate = await api.putUser(userUpdate)
         dispatch(setUser(userUpdate));
