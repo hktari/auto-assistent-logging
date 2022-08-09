@@ -1,6 +1,7 @@
 const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('./interface')
 const { db } = require('./database');
-const crypto = require('./util/crypto')
+const crypto = require('./util/crypto');
+const { dayOfWeekToAbbrv } = require('./util');
 
 
 async function shouldExecute(username, action, dueDate, now) {

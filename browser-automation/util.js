@@ -10,16 +10,16 @@ const daysMap = {
 const abbrevMap = Object.fromEntries(Object.entries(daysMap).map(kv => [kv[1], kv[0]]))
 
 function dayOfWeekToAbbrv(day) {
-    if (daysMap.has(day)) {
-        return daysMap.get(day)
+    if (daysMap.hasOwnProperty(day)) {
+        return daysMap[day]
     } else {
         throw new Error(`Failed to map day ${day} to abbreviation.\nMap: ${Object.entries(daysMap)}`)
     }
 }
 
 function abbrevToDayOfWeek(abbrev) {
-    if (abbrevMap.has(abbrev)) {
-        return daysMap.get(abbrev)
+    if (abbrevMap.hasOwnProperty(abbrev)) {
+        return daysMap[abbrev]
     } else {
         throw new Error(`Failed to map day ${abbrev} to abbreviation.\nMap: ${Object.entries(abbrevMap)}`)
     }
