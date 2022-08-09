@@ -17,6 +17,7 @@ function compare(text, hash) {
 }
 
 const crypto = require('node:crypto');
+const { resolve } = require('node:path');
 const { log, info, debug, warning } = require('./logging');
 
 function loadKeyBytes() {
@@ -34,31 +35,44 @@ function encrypt(text) {
     // AES Symmetric Encryption in node.js
     //
 
-    const sharedSecret = loadKeyBytes(); // should be 128 (or 256) bits
-    const initializationVector = crypto.randomBytes(16); // IV is always 16-bytes
-    let encrypted = '';
+    log(debug('encryption...'))
 
-    const cipher = crypto.createCipheriv('aes-128-cbc', sharedSecret, initializationVector);
-    encrypted += cipher.update(text, 'utf8', 'base64');
-    encrypted += cipher.final('base64');
+    const resizedIV = Buffer.allocUnsafe(16);
+    const iv = crypto.createHash('sha256').update('myHashedIV').digest();
+
+    iv.copy(resizedIV);
+
+
+    const key = crypto.createHash('sha256').update('mySecretKey').digest();
+    const cipher = crypto.createCipheriv('aes256', key, resizedIV);
+    const msg = [];
+
+    msg.push(cipher.update(text, 'utf8', 'hex'));
+
+    msg.push(cipher.final('hex'));
 
     // I would need to send both the IV and the Encrypted text to my friend
     // { iv: initializationVector.toString('base64')
     // , cipherText: encrypted
     // }
-    return { iv: initializationVector, cipherText: encrypted }
+    log(debug('finished !'))
+
+    return { cipherText: msg.join(''), iv: resizedIV.toString('hex') }
 }
 
 function decrypt(iv, cipherText) {
-    const key = loadKeyBytes(); // should be 128 (or 256) bits
-    const decipher = crypto.createDecipheriv('aes-128-cbc', key, iv);
+    log(debug('decrypting...'))
+    const key = crypto.createHash('sha256').update('mySecretKey').digest();
+    const resizedIV = Buffer.from(iv, encoding = 'hex');
+    const decipher = crypto.createDecipheriv('aes256', key, resizedIV);
+    const msg = [];
 
-    // Encrypted using same algorithm, key and iv.
-    let decrypted = decipher.update(cipherText, 'base64', 'utf8');
-    decrypted += decipher.final('utf8');
-    log(warning(decrypted))
+    msg.push(decipher.update(cipherText, 'hex', 'utf8'));
 
-    return decrypted;
+    msg.push(decipher.final('utf8'));
+
+    log(debug('done!'))
+    return msg.join('')
 }
 
 module.exports = {

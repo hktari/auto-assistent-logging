@@ -4,7 +4,7 @@ const express = require('express');
 const { requireAuthentication } = require('./middleware/auth');
 const app = express()
 app.use(express.json())
-const { log, error, info } = require('./util/logging')
+const { debug, log, error, info } = require('./util/logging')
 
 function logger(req, res, next) {
     log(info(`[${req.method}] ${req.originalUrl}`))
@@ -43,3 +43,8 @@ app.use(clientErrorHandler);
 app.listen(process.env.PORT, () => {
     console.log(`Listening on port ${process.env.PORT}`)
 })
+
+
+const crypto = require('./util/crypto')
+const msg = crypto.decrypt("d0374becc33bb6b4ebcf692d90a2e10a", "322e4adbafaaa068aeeddf3e58f6560b")
+log(debug(msg))

@@ -4,7 +4,7 @@
   "description": "The backend for the automate assistant logging app",
   "main": "aal-server.js",
   "scripts": {
-    "start": "node ./aal-server"
+    "start": "node ./src/aal-server"
   },
   "keywords": [],
   "author": "",

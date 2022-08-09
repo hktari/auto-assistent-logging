@@ -1,7 +1,7 @@
 const express = require('express')
-const { log, error, info } = require('../util/logging')
+const { log, error, info, debug } = require('../util/logging')
 const { db } = require('../services/database')
-const { encrypt } = require('../util/crypto')
+const { encrypt, decrypt } = require('../util/crypto')
 
 const router = express.Router()
 
@@ -9,7 +9,8 @@ router.route('/account/:id/login-info')
     .get((req, res, next) => {
         log(info('[GET] login info'))
 
-        db.query(`SELECT a.id, email, li.username, li.password_cipher, li.iv_cipher 
+        db.query(`SELECT a.id, email, li.username, 
+                    encode(li.password_cipher, 'hex') as password_cipher, encode(li.iv_cipher, 'hex') as iv_cipher 
                     FROM login_info li JOIN account a ON li.account_id = a.id
                     WHERE a.id = $1`, [req.params.id])
             .then(result => res.status(result.rowCount > 0 ? 200 : 404).json(result.rows))
@@ -19,8 +20,8 @@ router.route('/account/:id/login-info')
         try {
             const pwdCipher = encrypt(req.body.password)
             const queryResult = await db.query(`INSERT INTO login_info (account_id, username, password_cipher, iv_cipher)
-                                                VALUES($1, $2, $3, $4)`, [req.params.id, req.body.username, pwdCipher.cipherText, pwdCipher.iv])
-            res.status(200)
+                                                VALUES($1, $2, decode($3, 'hex'), decode($4, 'hex'))`, [req.params.id, req.body.username, pwdCipher.cipherText, pwdCipher.iv])
+            res.sendStatus(200)
         } catch (err) {
             next(err)
         }

@@ -10,7 +10,7 @@ router.route('/account/')
     .get(async (req, res, next) => {
         console.log(chalk.gray('[GET] /account'))
         try {
-            const queryResult = await db.query(`SELECT email, "automationEnabled"
+            const queryResult = await db.query(`SELECT id, email, "automationEnabled"
                                                 FROM account;`)
             res.status(200).json(queryResult.rows)
         } catch (e) {
@@ -22,7 +22,7 @@ router.route('/account/:id')
     .get(async (req, res, next) => {
         console.log(chalk.gray('[GET] /account/' + req.params.id))
         try {
-            const queryResult = await db.query(`SELECT email, "automationEnabled"
+            const queryResult = await db.query(`SELECT id, email, "automationEnabled"
                                                 FROM account WHERE id = $1`, [req.params.id])
             if (queryResult.rowCount > 0) {
                 res.status(200).json(queryResult.rows)
