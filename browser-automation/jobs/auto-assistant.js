@@ -58,7 +58,7 @@ function timeToExecute(dueDate, now) {
 
         if (selectedConfig === null) {
             console.log(`User ${user.username}. No configurations found`)
-            return;
+            continue;
         }
 
         let action = null;
