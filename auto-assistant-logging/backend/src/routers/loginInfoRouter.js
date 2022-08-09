@@ -29,7 +29,8 @@ router.route('/account/:id/login-info')
     .put(async (req, res, next) => {
         try {
             const pwdCipher = encrypt(req.body.password)
-            const queryResult = await db.query(`UPDATE login_info SET username = $1, password_cipher = $2, iv_cipher = $3
+            const queryResult = await db.query(`UPDATE login_info SET username = $1, 
+                                            password_cipher = decode($2, 'hex'), iv_cipher = decode($3, 'hex')
                                             WHERE account_id = $4`, [req.body.username, pwdCipher.cipherText, pwdCipher.iv, req.params.id])
 
             res.sendStatus(queryResult.rowCount > 0 ? 200 : 404)
