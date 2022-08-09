@@ -3,7 +3,10 @@ services:
   mock-mddsz-frontend:
     build: ./frontend/
     ports:
-      - "80:3000"
+      - "80:80"
+    environment:
+      - REACT_APP_BACKEND_HOST=mock-mddsz-backend
+      - REACT_APP_BACKEND_PORT=5983
   mock-mddsz-backend:
     build: ./backend/
     ports:

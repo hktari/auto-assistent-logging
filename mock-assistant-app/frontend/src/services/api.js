@@ -1,5 +1,4 @@
-const endpoint = process.env.REACT_APP_BACKEND_ENDPOINT
-
+const endpoint = `http://${process.env.REACT_APP_BACKEND_HOST}:${process.env.REACT_APP_BACKEND_PORT}`
 console.debug("ENDPOINT:" + endpoint);
 
 async function allUsers() {
