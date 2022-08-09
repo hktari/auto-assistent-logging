@@ -1,0 +1,27 @@
+version: "1.0"
+services:
+  auto-assistant-logging-backend:
+    build: ./auto-assistant-logging/backend
+    ports:
+      - "3939:3939"
+    environment:
+        - PORT=3939
+        - PGHOST=host.docker.internal
+        - PGUSER=hktari
+        - PGDATABASE=asistentapp
+        - PGPASSWORD='123qweAsd.'
+        - PGPORT=5432
+        - JWT_SECRET='c673c96d-6338-4e7f-bd42-deb8c78d722a'
+        - JWT_EXPIRES_IN_HRS=24
+        - CRYPTO_KEY='Ja+HWz/137e6ZsdLL6o1ZA=='
+  browser-automation:
+    build: ./browser-automation/
+    environment:
+      - PGHOST=host.docker.internal
+      - PGUSER=hktari
+      - PGDATABASE=asistentapp
+      - PGPASSWORD='123qweAsd.'
+      - PGPORT=5432
+      - CRYPTO_KEY='Ja+HWz/137e6ZsdLL6o1ZA=='
+      - MDDSZ_WEBAPP_ENDPOINT="http://host.docker.internal"
+
