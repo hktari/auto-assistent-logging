@@ -20,14 +20,14 @@ const crypto = require('node:crypto');
 const { resolve } = require('node:path');
 const { log, info, debug, warning } = require('./logging');
 
-function loadKeyBytes() {
+function loadKey() {
     const key = process.env.CRYPTO_KEY
     if (!key) {
         throw new Error('crypto key missing')
     }
 
     log(debug(key))
-    return Buffer.from(key, 'base64')
+    return key
 }
 
 function encrypt(text) {
@@ -37,14 +37,10 @@ function encrypt(text) {
 
     log(debug('encryption...'))
 
-    const resizedIV = Buffer.allocUnsafe(16);
-    const iv = crypto.createHash('sha256').update('myHashedIV').digest();
-
-    iv.copy(resizedIV);
-
-
-    const key = crypto.createHash('sha256').update('mySecretKey').digest();
-    const cipher = crypto.createCipheriv('aes256', key, resizedIV);
+    const key = loadKey()
+    const iv = crypto.randomBytes(16)
+    const keyBuffer = crypto.createHash('sha256').update(key).digest();
+    const cipher = crypto.createCipheriv('aes256', keyBuffer, iv);
     const msg = [];
 
     msg.push(cipher.update(text, 'utf8', 'hex'));
@@ -57,14 +53,15 @@ function encrypt(text) {
     // }
     log(debug('finished !'))
 
-    return { cipherText: msg.join(''), iv: resizedIV.toString('hex') }
+    return { cipherText: msg.join(''), iv: iv.toString('hex') }
 }
 
 function decrypt(iv, cipherText) {
     log(debug('decrypting...'))
-    const key = crypto.createHash('sha256').update('mySecretKey').digest();
-    const resizedIV = Buffer.from(iv, encoding = 'hex');
-    const decipher = crypto.createDecipheriv('aes256', key, resizedIV);
+    const key = loadKey()
+    const keyBuffer = crypto.createHash('sha256').update(key).digest();
+    const ivBuffer = Buffer.from(iv, encoding = 'hex');
+    const decipher = crypto.createDecipheriv('aes256', keyBuffer, ivBuffer);
     const msg = [];
 
     msg.push(decipher.update(cipherText, 'hex', 'utf8'));

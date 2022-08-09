@@ -43,8 +43,3 @@ app.use(clientErrorHandler);
 app.listen(process.env.PORT, () => {
     console.log(`Listening on port ${process.env.PORT}`)
 })
-
-
-const crypto = require('./util/crypto')
-const msg = crypto.decrypt("d0374becc33bb6b4ebcf692d90a2e10a", "322e4adbafaaa068aeeddf3e58f6560b")
-log(debug(msg))

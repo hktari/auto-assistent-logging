@@ -57,16 +57,15 @@ async function getWeeklyConfig(username, date) {
  */
 async function getUsers(onlyAutomateEnabled = true) {
     const queryResult = await db.query(`SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, 
-                                        encode(li.password_cipher, 'hex'), encode(li.iv_cipher, 'hex')
+                                        encode(li.password_cipher, 'hex') as password_cipher, encode(li.iv_cipher, 'hex') as iv_cipher
                                         FROM account a JOIN login_info li on a.id = li.account_id
                                         WHERE "automationEnabled" = ${onlyAutomateEnabled};`)
 
-
     let users = queryResult.rows.map(row => {
         try {
-            const password = crypto.decrypt(row.password_cipher, row.iv_cipher)
+            const password = crypto.decrypt(row.iv_cipher, row.password_cipher)
             return {
-                id: row.id,
+                id: row.login_info_id,
                 email: row.email,
                 automationEnabled: row.automationEnabled,
                 username: row.username,
