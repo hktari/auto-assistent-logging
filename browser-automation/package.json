@@ -1,10 +1,10 @@
 {
-  "name": "job-runner",
+  "name": "browser-automation",
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
   "scripts": {
-    "start": "node ./main.js"
+    "start": "node ./src/main.js"
   },
   "keywords": [],
   "author": "",

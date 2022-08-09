@@ -2,11 +2,11 @@ FROM node:16
 
 WORKDIR /usr/src/app
 
-COPY ./* ./
+COPY ./src/ ./src/
 
 RUN npm install
 # If you are building your code for production
 # RUN npm ci --only=production
  
 
-CMD [ "node", "main.js" ]
+CMD [ "node", "./src/main.js" ]
