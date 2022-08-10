@@ -42,7 +42,7 @@ class WorkdayConfig {
             this.date = new Date(Date.parse(date))
         }
 
-        const allDates = [this.startAt, this.endAt, date]
+        const allDates = [this.startAt, this.endAt, this.date]
         for (const d in allDates) {
             if (d.toString().toLowerCase().includes('invalid')) {
                 throw new Error('invalid date: ' + allDates)

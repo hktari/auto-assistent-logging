@@ -88,7 +88,7 @@ function timeToExecute(dueDate, now) {
                         console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
                         actionPromises.push(
                             new Promise((resolve, reject) => {
-                                executeAction(user.username, action)
+                                executeAction(user.username, user.password, action)
                                     .then(result => {
                                         resolve({
                                             user: user,
@@ -143,9 +143,10 @@ function timeToExecute(dueDate, now) {
                 const logEntryStatus = actionResult.status === 'fulfilled' ? LOG_ENTRY_STATUS.SUCCESSFUL : LOG_ENTRY_STATUS.FAILED;
                 const logEntryErr = actionResult.reason?.err?.toString();
                 const logEntryMsg = actionResult.value?.result;
+                const logEntryAction = successful ? actionResult.value.action : actionResult.reason.action;
 
                 // log job execution
-                db.insertLogEntry(curUser.login_info_id, logEntryStatus, now, logEntryErr, logEntryMsg, actionResult.value.action)
+                await db.addLogEntry(curUser.login_info_id, logEntryStatus, new Date(), logEntryErr, logEntryMsg, logEntryAction)
             } catch (error) {
                 console.log('[AUTOMATION]: Error adding log entry');
                 console.log(error)

@@ -88,7 +88,7 @@ async function getUsers(onlyAutomateEnabled = true) {
 async function addLogEntry(login_info_id, status, timestamp, error, message, action) {
     const queryResult = await db.query(`INSERT INTO log_entry (login_info_id, status, "timestamp", error, message, "action")
                                         VALUES ($1, $2, $3, $4, $5, $6);`,
-        [login_info_id, status, timestamp, error, message, action])
+        [login_info_id, status, timestamp.toUTCString(), error, message, action])
     console.log('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
     return queryResult.rowCount;
 }

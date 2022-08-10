@@ -11,7 +11,7 @@ function delay(waitTime) {
 
 }
 
-async function executeAction({ username, password, action }) {
+async function executeAction(username, password, action) {
     const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
         .map(val => val[1])
         .includes(action);
