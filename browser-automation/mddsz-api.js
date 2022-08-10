@@ -25,8 +25,8 @@ async function executeAction(username, password, action) {
 
     try {
         const browser = await puppeteer.launch({
-            headless: false,
-            slowMo: 50, // slow down by 250ms
+            headless: true,
+            // slowMo: 50, // slow down by 250ms
             // devtools: true
         }); // default is true
 
