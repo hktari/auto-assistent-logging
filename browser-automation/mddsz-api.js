@@ -61,7 +61,7 @@ async function executeAction(username, password, action) {
         // h2 Zapis uspešno dodan.
         const successBannerSelector = ".fos-Alert--success"
         await page.waitForSelector(successBannerSelector)
-        
+
         // await page.screenshot({ path: 'example.png' });
         await browser.close();
         return "Finished successfully !"
