@@ -26,6 +26,7 @@ async function executeAction(username, password, action) {
     try {
         const browser = await puppeteer.launch({
             headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
             // slowMo: 50, // slow down by 250ms
             // devtools: true
         }); // default is true
