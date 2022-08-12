@@ -7,5 +7,4 @@ envsubst '${API_HOST} ${API_PORT}' < /etc/nginx/conf.d/default.conf.template > /
 
 cat /etc/nginx/conf.d/default.conf
 
-nginx -g daemon off;
-# exec "$@"
+exec "$@"
