@@ -19,12 +19,13 @@ services:
 
       
   auto-assistant-logging-backend:
-    build: ./auto-assistant-logging/backend
+    # build: ./auto-assistant-logging/backend
+    image: hktari/asistent-logging:backend
     ports:
       - "3939:3939"
     environment:
         - PORT=3939
-        - PGHOST=host.docker.internal
+        - PGHOST=personal.cczmpkcrumvc.eu-central-1.rds.amazonaws.com
         - PGUSER=hktari
         - PGDATABASE=asistentapp
         - PGPASSWORD='123qweAsd.'
@@ -33,9 +34,10 @@ services:
         - JWT_EXPIRES_IN_HRS=24
         - CRYPTO_KEY='Ja+HWz/137e6ZsdLL6o1ZA=='
   browser-automation:
-    build: ./browser-automation/
+    # build: ./browser-automation/
+    image: hktari/asistent-logging:browser-automation
     environment:
-      - PGHOST=host.docker.internal
+      - PGHOST=personal.cczmpkcrumvc.eu-central-1.rds.amazonaws.com
       - PGUSER=hktari
       - PGDATABASE=asistentapp
       - PGPASSWORD='123qweAsd.'
