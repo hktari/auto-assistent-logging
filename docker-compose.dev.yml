@@ -46,5 +46,5 @@ services:
       - PGPASSWORD='123qweAsd.'
       - PGPORT=5432
       - CRYPTO_KEY='Ja+HWz/137e6ZsdLL6o1ZA=='
-      - MDDSZ_WEBAPP_ENDPOINT="http://host.docker.internal"
+      - MDDSZ_WEBAPP_ENDPOINT=http://host.docker.internal
 
