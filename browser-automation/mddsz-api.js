@@ -20,6 +20,8 @@ async function executeAction(username, password, action) {
         throw new Error(`Unhandled type of action ${action}`);
     }
 
+    console.debug('endpoint: ' + ENDPOINT)
+    
     const isStartAction = action === AUTOMATE_ACTION.START_BTN
     console.debug('Executing start action: ', isStartAction)
 
@@ -32,6 +34,8 @@ async function executeAction(username, password, action) {
         }); // default is true
 
         const page = await browser.newPage();
+        page.setDefaultTimeout(5000); // wait max 10 sec for things to appear
+
         await page.goto(ENDPOINT);
         await page.waitForNavigation(); // The promise resolves after navigation has finished
 
