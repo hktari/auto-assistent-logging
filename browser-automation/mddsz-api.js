@@ -33,18 +33,17 @@ async function executeAction(username, password, action) {
     }
 
     console.debug('endpoint: ' + ENDPOINT)
+    console.debug('Executing action: ', action)
 
-    const isStartAction = action === AUTOMATE_ACTION.START_BTN
-    console.debug('Executing start action: ', isStartAction)
+    const browser = await puppeteer.launch({
+        headless: false,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        slowMo: 50, // slow down by 250ms
+        // devtools: true
+    }); // default is true
+
 
     try {
-        const browser = await puppeteer.launch({
-            headless: false,
-            args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            slowMo: 50, // slow down by 250ms
-            // devtools: true
-        }); // default is true
-
         const page = await browser.newPage();
         page.setDefaultTimeout(5000); // wait max 10 sec for things to appear
 
@@ -66,20 +65,17 @@ async function executeAction(username, password, action) {
         // make sure start button is enabled
 
         console.log('wait for login...')
+        const btnSelector = action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
+        const btn = await page.waitForSelector(btnSelector)
 
-        const startBtn = await page.waitForSelector(startBtnSelector)
+        const buttonDisabled = await page.$eval(btnSelector, btn => btn.disabled);
 
-        const buttonDisabled = false;
-        await page.$eval(isStartAction ? startBtnSelector : stopBtnSelector, btn => {
-            if (btn.disabled) {
-                buttonDisabled = true;
-            }
-
-            btn.click();
-        })
         if (buttonDisabled) {
-            throw new MDDSZApiError(action, ExecuteFailureReason.ButtonDisabled, `Can't click button: ${btn.className}. \nDisabled`);
+            throw new MDDSZApiError(action, ExecuteFailureReason.ButtonDisabled, `Can't click button: ${btnSelector}. \nDisabled`);
         }
+
+        btn.click()
+
 
         // h2 Zapis uspešno dodan.
         const successBannerSelector = ".fos-Alert--success"
@@ -92,6 +88,9 @@ async function executeAction(username, password, action) {
     } catch (error) {
         console.error(error)
         throw error;
+    }
+    finally {
+        await browser.close()
     }
 }
 

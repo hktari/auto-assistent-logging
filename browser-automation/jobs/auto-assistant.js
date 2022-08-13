@@ -148,6 +148,7 @@ function timeToExecute(dueDate, now) {
                 } else if (actionResult.reason.err instanceof MDDSZApiError) {
                     logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
                     logEntryMsg = `${actionResult.reason.err.message} (${actionResult.reason.err.failureReason})`
+                    logEntryAction = actionResult.reason.action
                 } else {
                     logEntryErr = actionResult.reason.err.toString()
                     logEntryStatus = LOG_ENTRY_STATUS.FAILED;
