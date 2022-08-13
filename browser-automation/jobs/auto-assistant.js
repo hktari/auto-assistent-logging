@@ -133,7 +133,7 @@ function timeToExecute(dueDate, now) {
             }
          
          */
-        for (const actionResult in actionResults) {
+        for (const actionResult of actionResults) {
             const successful = actionResult.status === 'fulfilled'
             const curUser = successful ? actionResult.value.user : actionResult.reason.user;
 
