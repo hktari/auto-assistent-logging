@@ -33,6 +33,7 @@ function timeToExecute(dueDate, now) {
         console.log(`got ${usersToAutomate.length} users`)
 
         let actionPromises = [];
+        console.log("time: " + new Date().toUTCString())
 
         for (const user of usersToAutomate) {
 
@@ -57,7 +58,7 @@ function timeToExecute(dueDate, now) {
                     }))
                     continue;
                 } else {
-                    console.log(`[AUTOMATION]: user ${user.username} daily config for date: ${dailyConfig.date}`);
+                    console.log(`[AUTOMATION]: ${dailyConfig}`);
                 }
             } else {
                 selectedConfig = await db.getWeeklyConfig(user.username, now)
@@ -112,27 +113,12 @@ function timeToExecute(dueDate, now) {
                     console.log(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
                 }
             } else {
-                console.log("it's not yet time")
+                console.log("waiting...")
             }
         }
 
         const actionResults = await Promise.allSettled(actionPromises)
 
-        // TODO: rework
-        /**
-         *    {
-                "status": "fullfilled",
-                "reason": "err",
-                "value": {
-                    "user": {
-                        "username": "joža"
-                        ...
-                    },
-                    "result": "Successfully executed action"
-                }
-            }
-         
-         */
         for (const actionResult of actionResults) {
             const successful = actionResult.status === 'fulfilled'
             const curUser = successful ? actionResult.value.user : actionResult.reason.user;

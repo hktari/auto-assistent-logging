@@ -26,13 +26,13 @@ class WorkdayConfig {
         this.username = username;
 
         this.startAt = new Date(date);
-        this.startAt.setHours(+startAt.split(':')[0])
-        this.startAt.setMinutes(+startAt.split(':')[1])
+        this.startAt.setUTCHours(+startAt.split(':')[0])
+        this.startAt.setUTCMinutes(+startAt.split(':')[1])
         console.log('user start at: ', this.startAt)
 
         this.endAt = new Date(date);
-        this.endAt.setHours(+endAt.split(':')[0])
-        this.endAt.setMinutes(+endAt.split(':')[1])
+        this.endAt.setUTCHours(+endAt.split(':')[0])
+        this.endAt.setUTCMinutes(+endAt.split(':')[1])
         console.log('user end at: ', this.endAt)
 
 
@@ -54,6 +54,14 @@ class WorkdayConfig {
         }
 
         this.automation_type = automation_type;
+    }
+
+    toString() {
+        const hoursFormat = (date) => `${date.getUTCHours()}:${date.getUTCMinutes()} UTC`
+        return `Configuration: ${this.username} for ${date.toDateString()}
+                \tstart: ${hoursFormat(this.startAt)}
+                \tend: ${hoursFormat(this.endAt)}
+                \t${this.automation_type}`
     }
 }
 

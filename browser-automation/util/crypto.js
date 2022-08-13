@@ -8,8 +8,6 @@ function loadKey() {
     if (!key) {
         throw new Error('crypto key missing')
     }
-
-    log(debug(key))
     return key
 }
 
@@ -19,8 +17,6 @@ function encrypt(text) {
     //
 
     log(debug('encryption...'))
-
-
     const resizedIV = Buffer.allocUnsafe(16);
     const iv = crypto.createHash('sha256').update('myHashedIV').digest();
     iv.copy(resizedIV);
@@ -34,12 +30,6 @@ function encrypt(text) {
     msg.push(cipher.update(text, 'utf8', 'hex'));
 
     msg.push(cipher.final('hex'));
-
-    // I would need to send both the IV and the Encrypted text to my friend
-    // { iv: initializationVector.toString('base64')
-    // , cipherText: encrypted
-    // }
-    log(debug('finished !'))
 
     return { cipherText: msg.join(''), iv: resizedIV.toString('hex') }
 }
