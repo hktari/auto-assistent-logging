@@ -68,7 +68,7 @@ async function getUsers(onlyAutomateEnabled = true) {
         try {
             const password = crypto.decrypt(row.iv_cipher, row.password_cipher)
             return {
-                id: row.login_info_id,
+                login_info_id: row.login_info_id,
                 email: row.email,
                 automationEnabled: row.automationEnabled,
                 username: row.username,
