@@ -1,6 +1,6 @@
 const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('../interface')
 const db = require('../dbFacade')
-const { executeAction } = require('../mddsz-api');
+const { executeAction, MDDSZApiError } = require('../mddsz-api');
 
 const { parentPort } = require('worker_threads');
 const { exit } = require('process');
@@ -139,11 +139,20 @@ function timeToExecute(dueDate, now) {
 
             console.info(`[AUTOMATION]: saving job results...: ${JSON.stringify(actionResult)}`)
 
+            let logEntryStatus, logEntryErr, logEntryMsg, logEntryAction = null
             try {
-                const logEntryStatus = actionResult.status === 'fulfilled' ? LOG_ENTRY_STATUS.SUCCESSFUL : LOG_ENTRY_STATUS.FAILED;
-                const logEntryErr = actionResult.reason?.err?.toString();
-                const logEntryMsg = actionResult.value?.result;
-                const logEntryAction = successful ? actionResult.value.action : actionResult.reason.action;
+                if (actionResult.status === 'fulfilled') {
+                    logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
+                    logEntryMsg = actionResult.value.result
+                    logEntryAction = actionResult.value.action
+                } else if (actionResult.reason.err instanceof MDDSZApiError) {
+                    logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
+                    logEntryMsg = `${actionResult.reason.err.message} (${actionResult.reason.err.failureReason})`
+                } else {
+                    logEntryErr = actionResult.reason.err.toString()
+                    logEntryStatus = LOG_ENTRY_STATUS.FAILED;
+                    logEntryAction = actionResult.reason.action
+                }
 
                 // log job execution
                 await db.addLogEntry(curUser.login_info_id, logEntryStatus, new Date(), logEntryErr, logEntryMsg, logEntryAction)
