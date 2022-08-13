@@ -41,7 +41,7 @@ async function executeAction(username, password, action) {
         const browser = await puppeteer.launch({
             headless: false,
             args: ['--no-sandbox', '--disable-setuid-sandbox'],
-            // slowMo: 50, // slow down by 250ms
+            slowMo: 50, // slow down by 250ms
             // devtools: true
         }); // default is true
 
@@ -85,6 +85,7 @@ async function executeAction(username, password, action) {
         const successBannerSelector = ".fos-Alert--success"
         await page.waitForSelector(successBannerSelector)
 
+        await delay(5000);
         // await page.screenshot({ path: 'example.png' });
         await browser.close();
         return "Finished successfully !"
