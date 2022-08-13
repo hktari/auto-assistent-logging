@@ -10,7 +10,7 @@ const bree = new Bree({
             // runs `./jobs/email.js` every minute
             name: 'auto-assistant',
             // interval: '5s',
-            cron: '* * * * 5 *',
+            cron: '* * * 5 *',
             // run on start as well
             timeout: 0
         }
