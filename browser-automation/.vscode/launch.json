@@ -5,16 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "russ",
+            "name": "debug",
             "request": "launch",
-            "name": "Launch Program",
+            "runtimeArgs": [
+                "run-script",
+                "start"            ],
+            "runtimeExecutable": "npm",
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/main.js",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ]
+            "type": "node"
         }
     ]
 }
