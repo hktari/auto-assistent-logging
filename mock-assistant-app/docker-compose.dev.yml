@@ -1,16 +1,12 @@
 version: "1.0"
 services:
   mock-mddsz-frontend:
-    # build: ./frontend/
+    build: ./frontend/
     image: hktari/asistent-logging:mock-frontend
     ports:
       - "80:80"
-    environment:
-      - REACT_APP_BACKEND_HOST=mock-mddsz-backend
-      - REACT_APP_BACKEND_PORT=5983
   mock-mddsz-backend:
-    # build: ./backend/
+    build: ./backend/
     image: hktari/asistent-logging:mock-backend
-
     ports:
       - "5983:5983"
