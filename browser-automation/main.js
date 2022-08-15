@@ -4,16 +4,21 @@ const Bree = require('bree');
 const Cabin = require('cabin');
 require('dotenv').config()
 
+let assistantJob = {
+    name: 'auto-assistant',
+    // run on start as well
+    // timeout: 0
+}
+
+if (process.env.NODE_ENV === 'development') {
+    assistantJob.interval = '5s';
+} else {
+    assistantJob.cron = '*/5 * * * *';
+}
+
 const bree = new Bree({
     jobs: [
-        {
-            // runs `./jobs/email.js` every minute
-            name: 'auto-assistant',
-            interval: '5s',
-            // cron: '*/5 * * * *',
-            // run on start as well
-            // timeout: 0
-        }
+        assistantJob
     ]
 });
 

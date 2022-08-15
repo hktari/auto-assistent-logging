@@ -38,6 +38,7 @@ services:
         - JWT_SECRET=c673c96d-6338-4e7f-bd42-deb8c78d722a
         - JWT_EXPIRES_IN_HRS=24
         - CRYPTO_KEY=Ja+HWz/137e6ZsdLL6o1ZA==
+        - NODE_ENV=development
   browser-automation:
     build: ./browser-automation/
     image: hktari/asistent-logging:browser-automation
@@ -49,4 +50,4 @@ services:
       - PGPORT=5432
       - CRYPTO_KEY=Ja+HWz/137e6ZsdLL6o1ZA==
       - MDDSZ_WEBAPP_ENDPOINT=http://host.docker.internal
-
+      - NODE_ENV=development
