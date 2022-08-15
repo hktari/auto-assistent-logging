@@ -5,7 +5,6 @@ const { dayOfWeekToAbbrv } = require('./util');
 
 
 async function shouldExecute(username, action, dueDate, now) {
-    console.debug('shouldExecute')
     // if no successful record in 'log_entry' table for given user, given action, for dueDate
     const queryResult = await db.query(`SELECT *
                                         FROM log_entry le JOIN login_info li on le.login_info_id = li.id
@@ -22,7 +21,7 @@ async function shouldExecute(username, action, dueDate, now) {
 }
 
 async function getDailyConfig(username, date) {
-    const queryResult = await db.query(`SELECT dc.date, dc.start_at, dc.end_at, dc.automation_type
+    const queryResult = await db.query(`SELECT dc.date, dc.start_at, dc.end_at, dc.automation_type, li.username
                     FROM daily_config dc JOIN login_info li ON dc.login_info_id = li.id
                     WHERE li.username = $1 
                     AND date_part('day', dc.date) = date_part('day', date '${date.toISOString()}');`, [username])

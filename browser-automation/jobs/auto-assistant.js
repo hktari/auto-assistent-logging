@@ -22,8 +22,11 @@ if (parentPort) {
 
 
 function timeToExecute(dueDate, now) {
-    const thresholdMinutes = 1
-    return Math.abs(dueDate.getTime() - now.getTime()) < thresholdMinutes * 60 * 1000
+    const thresholdMinutes = 5
+    
+    // add a buffer of ${thresholdMinutes} after ${dueDate} in which the action is still executed
+    return now.getTime() >= dueDate.getTime() &&
+        (now.getTime() - dueDate.getTime()) < (thresholdMinutes * 60 * 1000)
 }
 
 (async () => {

@@ -43,7 +43,7 @@ services:
     image: hktari/asistent-logging:browser-automation
     environment:
       - PGHOST=host.docker.internal
-      - PGUSER=hktariq
+      - PGUSER=hktari
       - PGDATABASE=asistentapp
       - PGPASSWORD=123qweAsd.
       - PGPORT=5432

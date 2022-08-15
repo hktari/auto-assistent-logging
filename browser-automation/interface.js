@@ -25,12 +25,16 @@ class WorkdayConfig {
     constructor(username, startAt, endAt, date, automation_type) {
         this.username = username;
 
-        this.startAt = new Date(date);
+        this.startAt = new Date();
+        // date is in local time, which is wrong. it should be in UTC, coz that's the database format
+        this.startAt.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate())
         this.startAt.setUTCHours(+startAt.split(':')[0])
         this.startAt.setUTCMinutes(+startAt.split(':')[1])
         console.log('user start at: ', this.startAt)
 
-        this.endAt = new Date(date);
+        this.endAt = new Date();
+        // date is in local time, which is wrong. it should be in UTC, coz that's the database format
+        this.endAt.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate())
         this.endAt.setUTCHours(+endAt.split(':')[0])
         this.endAt.setUTCMinutes(+endAt.split(':')[1])
         console.log('user end at: ', this.endAt)
@@ -58,7 +62,7 @@ class WorkdayConfig {
 
     toString() {
         const hoursFormat = (date) => `${date.getUTCHours()}:${date.getUTCMinutes()} UTC`
-        return `Configuration: ${this.username} for ${date.toDateString()}
+        return `Configuration: ${this.username} for ${this.date.toDateString()}
                 \tstart: ${hoursFormat(this.startAt)}
                 \tend: ${hoursFormat(this.endAt)}
                 \t${this.automation_type}`
