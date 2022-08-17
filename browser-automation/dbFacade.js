@@ -92,6 +92,17 @@ async function addLogEntry(login_info_id, status, timestamp, error, message, act
     return queryResult.rowCount;
 }
 
+async function anyLogEntryOfType(login_info_id, status, action, date) {
+    const queryResult = await db.query(
+        `SELECT count(1) as count
+        FROM log_entry le
+        WHERE le.login_info_id = $1 
+        AND action = $2
+        AND status = $3
+        AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}');`, [login_info_id, action, status])
+    return +queryResult.rows[0].count > 0
+}
+
 module.exports = {
     getUsers,
     getWeeklyConfig,
@@ -99,4 +110,5 @@ module.exports = {
     getDailyConfig,
     shouldExecute,
     addLogEntry,
+    anyLogEntryOfType
 }

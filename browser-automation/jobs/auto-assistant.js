@@ -57,7 +57,7 @@ function timeToExecute(dueDate, now) {
                         res({
                             user: user,
                             workdayConfig: selectedConfig,
-                            action: null,
+                            action: WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE,
                             result: 'Skipping automation as requested'
                         })
                     }))
@@ -131,6 +131,7 @@ function timeToExecute(dueDate, now) {
             console.info(`[AUTOMATION]: saving job results...: ${JSON.stringify(actionResult)}`)
 
             let logEntryStatus, logEntryErr, logEntryMsg, logEntryAction = null
+            const timestamp = new Date()
             try {
                 if (actionResult.status === 'fulfilled') {
                     logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
@@ -146,8 +147,13 @@ function timeToExecute(dueDate, now) {
                     logEntryAction = actionResult.reason.action
                 }
 
-                // log job execution
-                await db.addLogEntry(curUser.login_info_id, logEntryStatus, new Date(), logEntryErr, logEntryMsg, logEntryAction)
+                if (action === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE &&
+                    db.anyLogEntryOfType(curUser.login_info_id, logEntryStatus, logEntryAction, timestamp)) {
+                    // make sure to add only one log entry of type 'no_automate'
+                    continue;
+                }
+
+                await db.addLogEntry(curUser.login_info_id, logEntryStatus, timestamp, logEntryErr, logEntryMsg, logEntryAction)
             } catch (error) {
                 console.log('[AUTOMATION]: Error adding log entry');
                 console.log(error)
