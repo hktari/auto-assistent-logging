@@ -2,7 +2,7 @@ const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, Workd
 const db = require('../dbFacade')
 const { executeAction, MDDSZApiError } = require('../mddsz-api');
 
-const { log, info, error, debug } = require('../util/logging')
+const { log, info, error, debug, warning} = require('../util/logging')
 const { parentPort } = require('worker_threads');
 const { exit } = require('process');
 
