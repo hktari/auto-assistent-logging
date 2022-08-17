@@ -16,7 +16,7 @@ function encrypt(text) {
     // AES Symmetric Encryption in node.js
     //
 
-    log(debug('encryption...'))
+    // log(debug('encryption...'))
     const resizedIV = Buffer.allocUnsafe(16);
     const iv = crypto.createHash('sha256').update('myHashedIV').digest();
     iv.copy(resizedIV);
@@ -35,7 +35,7 @@ function encrypt(text) {
 }
 
 function decrypt(iv, cipherText) {
-    log(debug('decrypting...'))
+    // log(debug('decrypting...'))
     const key = loadKey()
     const keyBuffer = crypto.createHash('sha256').update(key).digest();
     const ivBuffer = Buffer.from(iv, encoding = 'hex');
@@ -46,7 +46,7 @@ function decrypt(iv, cipherText) {
 
     msg.push(decipher.final('utf8'));
 
-    log(debug('done!'))
+    // log(debug('done!'))
     return msg.join('')
 }
 
