@@ -35,6 +35,7 @@ function timeToExecute(dueDate, now) {
 (async () => {
     let jobError = null;
     try {
+        log(warning(`\n\n${'-'.repeat(50)}`))
         const usersToAutomate = await db.getUsers();
         log(info(`got ${usersToAutomate.length} users`))
 
