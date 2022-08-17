@@ -2,6 +2,7 @@ const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, Workd
 const db = require('../dbFacade')
 const { executeAction, MDDSZApiError } = require('../mddsz-api');
 
+const { log, info, error, debug } = require('../util/logging')
 const { parentPort } = require('worker_threads');
 const { exit } = require('process');
 
@@ -35,24 +36,25 @@ function timeToExecute(dueDate, now) {
     let jobError = null;
     try {
         const usersToAutomate = await db.getUsers();
-        console.log(`got ${usersToAutomate.length} users`)
+        log(info(`got ${usersToAutomate.length} users`))
 
         let actionPromises = [];
-        console.log("time: " + new Date().toUTCString())
+        log(info("time: " + new Date().toUTCString()))
 
         for (const user of usersToAutomate) {
 
-            console.log('processing user: ' + user.email)
-            console.log(JSON.stringify(user))
-            const { abbrevToDayOfWeek, dayOfWeekToAbbrv } = require('../util')
+            log(warning('\n' + '*'.repeat(50)))
+            log(debug('processing user: ' + user.email))
+            log(debug(JSON.stringify(user)))
             const now = new Date()
 
+            log(debug('retrieving daily config...'))
             const dailyConfig = await db.getDailyConfig(user.username, now)
             let selectedConfig = dailyConfig;
 
             if (dailyConfig) {
                 if (dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
-                    console.log(`[AUTOMATION]: user ${user.username} requested no automation for date: ${dailyConfig.date}`);
+                    log(debug(`user ${user.username} requested no automation for date: ${dailyConfig.date}`))
                     actionPromises.push(new Promise((res, rej) => {
                         res({
                             user: user,
@@ -63,14 +65,15 @@ function timeToExecute(dueDate, now) {
                     }))
                     continue;
                 } else {
-                    console.log(`[AUTOMATION]: ${dailyConfig}`);
+                    log(debug(`found ${dailyConfig}`))
                 }
             } else {
+                log(debug('retrieving weekly config...'))
                 selectedConfig = await db.getWeeklyConfig(user.username, now)
             }
 
             if (selectedConfig === null) {
-                console.log(`User ${user.username}. No configurations found`)
+                log(debug(`User ${user.username}. No configurations found`))
                 continue;
             }
 
@@ -85,13 +88,14 @@ function timeToExecute(dueDate, now) {
             }
 
             if (action && dueDate) {
+                log(debug('considering executing ' + action + ' ...'))
 
                 if (await db.shouldExecute(user.username, action, dueDate)) {
                     if (await db.checkForExecutionFailure(user.username, action, dueDate)) {
                         // TOOD: notify user if not already
 
                     } else {
-                        console.log(`Executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
+                        log(debug(`Executing action ${action} for user ${user.username}.\n${selectedConfig}`))
                         actionPromises.push(
                             new Promise((resolve, reject) => {
                                 executeAction(user.username, user.password, action)
@@ -115,10 +119,10 @@ function timeToExecute(dueDate, now) {
                     }
                 }
                 else {
-                    console.log(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
+                    log(debug(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`))
                 }
             } else {
-                console.log("waiting...")
+                log(debug("waiting..."))
             }
         }
 
@@ -128,7 +132,7 @@ function timeToExecute(dueDate, now) {
             const successful = actionResult.status === 'fulfilled'
             const curUser = successful ? actionResult.value.user : actionResult.reason.user;
 
-            console.info(`[AUTOMATION]: saving job results...: ${JSON.stringify(actionResult)}`)
+            log(info(`processing job result: ${JSON.stringify(actionResult)}`))
 
             let logEntryStatus, logEntryErr, logEntryMsg, logEntryAction = null
             const timestamp = new Date()
@@ -147,16 +151,18 @@ function timeToExecute(dueDate, now) {
                     logEntryAction = actionResult.reason.action
                 }
 
-                if (action === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE &&
+                if (logEntryAction === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE &&
                     db.anyLogEntryOfType(curUser.login_info_id, logEntryStatus, logEntryAction, timestamp)) {
                     // make sure to add only one log entry of type 'no_automate'
+                    log(debug('already added "no_automate" entry for today'))
                     continue;
                 }
 
+                log(debug('adding log entry...'))
                 await db.addLogEntry(curUser.login_info_id, logEntryStatus, timestamp, logEntryErr, logEntryMsg, logEntryAction)
             } catch (error) {
-                console.log('[AUTOMATION]: Error adding log entry');
-                console.log(error)
+                log(error('Error adding log entry'))
+                log(error(error))
                 throw error;
             }
         }
