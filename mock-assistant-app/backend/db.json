@@ -12,6 +12,13 @@
           "timestamp": "2022-08-07T15:16:58.894Z"
         }
       ]
+    },
+    {
+      "id": "eca7f348-4726-4341-b43a-9d35d74025ce",
+      "username": "ivankrivec",
+      "password": "secret",
+      "action": "start",
+      "logs": []
     }
   ]
 }

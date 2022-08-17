@@ -42,6 +42,8 @@ services:
   browser-automation:
     build: ./browser-automation/
     image: hktari/asistent-logging:browser-automation
+    extra_hosts:
+      - host.docker.internal:host-gateway
     environment:
       - PGHOST=host.docker.internal
       - PGUSER=hktari
@@ -49,5 +51,5 @@ services:
       - PGPASSWORD=123qweAsd.
       - PGPORT=5432
       - CRYPTO_KEY=Ja+HWz/137e6ZsdLL6o1ZA==
-      - MDDSZ_WEBAPP_ENDPOINT=http://host.docker.internal
+      - MDDSZ_WEBAPP_ENDPOINT=http://host.docker.internal:8000
       - NODE_ENV=development

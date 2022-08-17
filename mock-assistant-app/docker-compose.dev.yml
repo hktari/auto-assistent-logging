@@ -4,7 +4,7 @@ services:
     build: ./frontend/
     image: hktari/asistent-logging:mock-frontend
     ports:
-      - "80:80"
+      - "8000:80"
   mock-mddsz-backend:
     build: ./backend/
     image: hktari/asistent-logging:mock-backend
