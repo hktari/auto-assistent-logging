@@ -1,10 +1,11 @@
-const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('../interface')
+const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig, CONFIG_TYPE } = require('../interface')
 const db = require('../dbFacade')
 const { executeAction, MDDSZApiError } = require('../mddsz-api');
 
 const logger = require('../util/logging')
 const { parentPort } = require('worker_threads');
 const { exit } = require('process');
+const { getActionsForDate } = require('../util/actions');
 
 // store boolean if the job is cancelled
 let isCancelled = false;
@@ -32,6 +33,22 @@ function timeToExecute(dueDate, now) {
         (now.getTime() >= dueDate.getTime() && timeDiff < (thresholdMinutes * 60 * 1000))
 }
 
+// Filter out exceptions made for weekly configuration
+function filterOutExceptions(actionsList, exceptions) {
+    return actionsList.filter(action => {
+        return action.configType === CONFIG_TYPE.DAILY
+            || (action.configType === CONFIG_TYPE.WEEKLY && !exceptions.some(ex => ex.action === action.action))
+    })
+}
+
+function filterOutAlreadyExecuted(actionsList, logEntries) {
+    return actionsList.filter(action => {
+        return logEntries.some(le => {
+            return le.action === action.action && action.configType === le.configType
+        })
+    })
+}
+
 (async () => {
     let jobError = null;
     try {
@@ -50,9 +67,15 @@ function timeToExecute(dueDate, now) {
             logger.debug(JSON.stringify(user))
             const now = new Date()
 
-            logger.debug('retrieving daily config...')
-            const dailyConfig = await db.getDailyConfig(user.username, now)
-            let selectedConfig = dailyConfig;
+            let actionsPlannedToday = await getActionsForDate(user.username, now)
+
+            const workweekExceptions = await db.getWorkweekExceptions(user.username, date)
+            logger.debug('filtering out actions with weekly exceptions');
+            actionsPlannedToday = filterOutExceptions(actionsPlannedToday, workweekExceptions)
+
+            const logEntriesToday = await db.getLogEntries(user.username, date)
+            logger.debug('filtering out already executed actions');
+            actionsPlannedToday = filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
 
             if (dailyConfig) {
                 if (dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
@@ -70,8 +93,6 @@ function timeToExecute(dueDate, now) {
                     logger.debug(`found ${dailyConfig}`)
                 }
             } else {
-                logger.debug('retrieving weekly config...')
-                selectedConfig = await db.getWeeklyConfig(user.username, now)
             }
 
             if (selectedConfig === null) {
