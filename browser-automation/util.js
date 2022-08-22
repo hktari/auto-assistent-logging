@@ -5,7 +5,7 @@ const daysMap = {
     '4': 'thu',
     '5': 'fri',
     '6': 'sat',
-    '7': 'sun',
+    '0': 'sun',
 }
 const abbrevMap = Object.fromEntries(Object.entries(daysMap).map(kv => [kv[1], kv[0]]))
 
