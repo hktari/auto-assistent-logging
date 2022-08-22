@@ -1,14 +1,40 @@
-const chalk = require('chalk')
-const log = console.log;
-const error = chalk.red;
-const warning = chalk.yellow;
-const info = chalk.gray;
-const debug = chalk.hex('#4a4a4a');
+const winston = require('winston')
 
-module.exports = {
-    log,
-    error,
-    warning,
-    info,
-    debug
-}
+const { format } = require('logform');
+
+const alignedWithColorsAndTime = format.combine(
+    format.colorize(),
+    format.timestamp(),
+    format.align(),
+    format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+);
+
+const options = {
+    file: {
+        level: 'info',
+        filename: './logs/app.log',
+        handleExceptions: true,
+        json: true,
+        maxsize: 5242880, // 5MB
+        maxFiles: 5,
+        colorize: false,
+    },
+    console: {
+        level: 'debug',
+        handleExceptions: true,
+        json: false,
+        colorize: true,
+        format: alignedWithColorsAndTime
+    },
+};
+
+const logger = winston.createLogger({
+    levels: winston.config.npm.levels,
+    transports: [
+        // new winston.transports.File(options.file),
+        new winston.transports.Console(options.console)
+    ],
+    exitOnError: false
+})
+
+module.exports = logger

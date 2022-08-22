@@ -3,7 +3,7 @@ const Bree = require('bree');
 // const Graceful = require('@ladjs/graceful');
 const Cabin = require('cabin');
 require('dotenv').config()
-
+const logger = require('./util/logging')
 let assistantJob = {
     name: 'auto-assistant',
     // run on start as well
@@ -17,6 +17,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const bree = new Bree({
+    logger: logger,
     jobs: [
         assistantJob
     ]

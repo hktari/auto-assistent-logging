@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 const { AUTOMATE_ACTION } = require('./interface');
 const ENDPOINT = process.env.MDDSZ_WEBAPP_ENDPOINT
-
+const logger = require('./util/logging')
 const ExecuteFailureReason = Object.freeze({
     ButtonDisabled: 'ButtonDisabled'
 })
@@ -32,8 +32,8 @@ async function executeAction(username, password, action) {
         throw new Error(`Unhandled type of action ${action}`);
     }
 
-    console.debug('endpoint: ' + ENDPOINT)
-    console.debug('Executing action: ', action)
+    logger.debug('endpoint: ' + ENDPOINT)
+    logger.debug('Executing action: ', action)
 
     const browser = await puppeteer.launch({
         headless: true,
@@ -56,7 +56,7 @@ async function executeAction(username, password, action) {
         const pwdInput = await page.$('#P9999_PASSWORD');
         await pwdInput.type(password);
 
-        console.log('logging in...')
+        logger.log('logging in...')
         const loginBtn = await page.$('.t-Login-buttons button')
         loginBtn.click()
 
@@ -64,7 +64,7 @@ async function executeAction(username, password, action) {
         const stopBtnSelector = 'button.t-Button--danger';
         // make sure start button is enabled
 
-        console.log('wait for login...')
+        logger.log('wait for login...')
         const btnSelector = action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
         const btn = await page.waitForSelector(btnSelector)
 
@@ -86,7 +86,7 @@ async function executeAction(username, password, action) {
         await browser.close();
         return "Finished successfully !"
     } catch (error) {
-        console.error(error)
+        logger.error(error)
         throw error;
     }
     finally {

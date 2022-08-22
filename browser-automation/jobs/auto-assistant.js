@@ -2,7 +2,7 @@ const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, Workd
 const db = require('../dbFacade')
 const { executeAction, MDDSZApiError } = require('../mddsz-api');
 
-const { log, info, error, debug, warning} = require('../util/logging')
+const logger = require('../util/logging')
 const { parentPort } = require('worker_threads');
 const { exit } = require('process');
 
@@ -35,27 +35,28 @@ function timeToExecute(dueDate, now) {
 (async () => {
     let jobError = null;
     try {
-        log(warning(`\n\n${'-'.repeat(50)}`))
+        logger.info(`${'-'.repeat(50)}`)
+        logger.info('start')
         const usersToAutomate = await db.getUsers();
-        log(info(`got ${usersToAutomate.length} users`))
+        logger.info(`got ${usersToAutomate.length} users`)
 
         let actionPromises = [];
-        log(info("time: " + new Date().toUTCString()))
+        logger.info("time: " + new Date().toUTCString())
 
         for (const user of usersToAutomate) {
 
-            log(warning('\n' + '*'.repeat(50)))
-            log(debug('processing user: ' + user.email))
-            log(debug(JSON.stringify(user)))
+            logger.info('\n' + '*'.repeat(50))
+            logger.debug('processing user: ' + user.email)
+            logger.debug(JSON.stringify(user))
             const now = new Date()
 
-            log(debug('retrieving daily config...'))
+            logger.debug('retrieving daily config...')
             const dailyConfig = await db.getDailyConfig(user.username, now)
             let selectedConfig = dailyConfig;
 
             if (dailyConfig) {
                 if (dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
-                    log(debug(`user ${user.username} requested no automation for date: ${dailyConfig.date}`))
+                    logger.debug(`user ${user.username} requested no automation for date: ${dailyConfig.date}`)
                     actionPromises.push(new Promise((res, rej) => {
                         res({
                             user: user,
@@ -66,15 +67,15 @@ function timeToExecute(dueDate, now) {
                     }))
                     continue;
                 } else {
-                    log(debug(`found ${dailyConfig}`))
+                    logger.debug(`found ${dailyConfig}`)
                 }
             } else {
-                log(debug('retrieving weekly config...'))
+                logger.debug('retrieving weekly config...')
                 selectedConfig = await db.getWeeklyConfig(user.username, now)
             }
 
             if (selectedConfig === null) {
-                log(debug(`User ${user.username}. No configurations found`))
+                logger.debug(`User ${user.username}. No configurations found`)
                 continue;
             }
 
@@ -89,14 +90,14 @@ function timeToExecute(dueDate, now) {
             }
 
             if (action && dueDate) {
-                log(debug('considering executing ' + action + ' ...'))
+                logger.debug('considering executing ' + action + ' ...')
 
                 if (await db.shouldExecute(user.username, action, dueDate)) {
                     if (await db.checkForExecutionFailure(user.username, action, dueDate)) {
                         // TOOD: notify user if not already
 
                     } else {
-                        log(debug(`Executing action ${action} for user ${user.username}.\n${selectedConfig}`))
+                        logger.debug(`Executing action ${action} for user ${user.username}.\n${selectedConfig}`)
                         actionPromises.push(
                             new Promise((resolve, reject) => {
                                 executeAction(user.username, user.password, action)
@@ -120,10 +121,10 @@ function timeToExecute(dueDate, now) {
                     }
                 }
                 else {
-                    log(debug(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`))
+                    logger.debug(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
                 }
             } else {
-                log(debug("waiting..."))
+                logger.debug("waiting...")
             }
         }
 
@@ -133,7 +134,7 @@ function timeToExecute(dueDate, now) {
             const successful = actionResult.status === 'fulfilled'
             const curUser = successful ? actionResult.value.user : actionResult.reason.user;
 
-            log(info(`processing job result: ${JSON.stringify(actionResult)}`))
+            logger.info(`processing job result: ${JSON.stringify(actionResult)}`)
 
             let logEntryStatus, logEntryErr, logEntryMsg, logEntryAction = null
             const timestamp = new Date()
@@ -155,11 +156,11 @@ function timeToExecute(dueDate, now) {
                 if (logEntryAction === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE &&
                     db.anyLogEntryOfType(curUser.login_info_id, logEntryStatus, logEntryAction, timestamp)) {
                     // make sure to add only one log entry of type 'no_automate'
-                    log(debug('already added "no_automate" entry for today'))
+                    logger.debug('already added "no_automate" entry for today')
                     continue;
                 }
 
-                log(debug('adding log entry...'))
+                logger.debug('adding log entry...')
                 await db.addLogEntry(curUser.login_info_id, logEntryStatus, timestamp, logEntryErr, logEntryMsg, logEntryAction)
             } catch (error) {
                 log(error('Error adding log entry'))
@@ -173,6 +174,7 @@ function timeToExecute(dueDate, now) {
     }
     // signal to parent that the job is done
     if (parentPort) {
+        logger.log('end')
         parentPort.postMessage(jobError ?? 'done');
         if (jobError) {
             exit(1)

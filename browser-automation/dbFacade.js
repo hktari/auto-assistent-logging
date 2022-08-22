@@ -2,7 +2,7 @@ const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, Workd
 const { db } = require('./database');
 const crypto = require('./util/crypto');
 const { dayOfWeekToAbbrv } = require('./util');
-
+const logger = require('./util/logging')
 
 async function shouldExecute(username, action, dueDate, now) {
     // if no successful record in 'log_entry' table for given user, given action, for dueDate
@@ -13,7 +13,7 @@ async function shouldExecute(username, action, dueDate, now) {
                                         AND action = $2
                                         AND status = $3;`, [username, action, LOG_ENTRY_STATUS.SUCCESSFUL])
     if (queryResult.rowCount > 0) {
-        console.debug(`Already executed sucessfully action ${action} today for user ${username}`)
+        logger.debug(`Already executed sucessfully action ${action} today for user ${username}`)
         return false;
     } else {
         return true;
@@ -74,7 +74,7 @@ async function getUsers(onlyAutomateEnabled = true) {
                 password: password
             }
         } catch (err) {
-            console.error(`Failed to map user ${row.email}. Probably failure in decrypting password.`, err, JSON.stringify(row))
+            logger.error(`Failed to map user ${row.email}. Probably failure in decrypting password.`, err, JSON.stringify(row))
             return null;
         }
     });
@@ -88,7 +88,7 @@ async function addLogEntry(login_info_id, status, timestamp, error, message, act
     const queryResult = await db.query(`INSERT INTO log_entry (login_info_id, status, "timestamp", error, message, "action")
                                         VALUES ($1, $2, $3, $4, $5, $6);`,
         [login_info_id, status, timestamp.toUTCString(), error, message, action])
-    console.log('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
+    logger.log('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
     return queryResult.rowCount;
 }
 
