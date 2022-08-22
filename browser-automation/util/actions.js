@@ -4,10 +4,21 @@ const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface')
 class AutomationAction {
     constructor(username, action, configType, dueAt, message) {
         this.username = username;
-        this.action = action;
+        this.actionType = action;
         this.configType = configType;
         this.dueAt = dueAt;
         this.message = message
+    }
+
+
+    timeToExecute(time) {
+        const thresholdMinutes = 5
+        const bufferInRangeMs = 5000; // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
+        const timeDiff = Math.abs(time.getTime() - dueDate.getTime())
+
+        return timeDiff <= bufferInRangeMs ||
+            // add a buffer of ${thresholdMinutes} after ${dueDate} in which the action is still executed
+            (time.getTime() >= dueDate.getTime() && timeDiff < (thresholdMinutes * 60 * 1000))
     }
 }
 
