@@ -24,6 +24,9 @@ function delay(waitTime) {
 }
 
 async function executeAction(username, password, action) {
+    logger.debug('Executing action: ', action)
+    logger.debug('endpoint: ' + ENDPOINT)
+
     const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
         .map(val => val[1])
         .includes(action);
@@ -31,9 +34,6 @@ async function executeAction(username, password, action) {
     if (!VALID_ACTION) {
         throw new Error(`Unhandled type of action ${action}`);
     }
-
-    logger.debug('endpoint: ' + ENDPOINT)
-    logger.debug('Executing action: ', action)
 
     const browser = await puppeteer.launch({
         headless: true,

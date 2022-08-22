@@ -74,27 +74,28 @@ function filterOutAlreadyExecuted(actionsList, logEntries) {
             }
 
             for (const action of actionsPlannedToday) {
-                logger.debug('considering executing ' + action + ' ...')
 
-                logger.debug(`Executing action ${action} for user ${user.username}.\n${selectedConfig}`)
-                actionPromises.push(
-                    new Promise((resolve, reject) => {
-                        executeAction(user.username, user.password, action.actionType)
-                            .then(result => {
-                                resolve({
-                                    user: user,
-                                    action: action,
-                                    result
+                logger.debug('considering executing ' + action + ' ...')
+                if (action.timeToExecute(now)) {
+                    actionPromises.push(
+                        new Promise((resolve, reject) => {
+                            executeAction(user.username, user.password, action.actionType)
+                                .then(result => {
+                                    resolve({
+                                        user: user,
+                                        action: action,
+                                        result
+                                    })
                                 })
-                            })
-                            .catch(err => {
-                                reject({
-                                    user: user,
-                                    action: action,
-                                    err
+                                .catch(err => {
+                                    reject({
+                                        user: user,
+                                        action: action,
+                                        err
+                                    })
                                 })
-                            })
-                    }))
+                        }))
+                }
             }
         }
 
