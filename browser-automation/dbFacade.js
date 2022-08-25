@@ -88,7 +88,7 @@ async function addLogEntry(login_info_id, status, timestamp, error, message, act
     const queryResult = await db.query(`INSERT INTO log_entry (login_info_id, status, "timestamp", error, message, "action")
                                         VALUES ($1, $2, $3, $4, $5, $6);`,
         [login_info_id, status, timestamp.toUTCString(), error, message, action])
-    logger.log('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
+    logger.info('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
     return queryResult.rowCount;
 }
 
