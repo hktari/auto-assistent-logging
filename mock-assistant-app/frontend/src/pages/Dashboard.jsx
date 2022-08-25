@@ -15,8 +15,16 @@ function LogEntry(action) {
 const Dashboard = () => {
     const [sucessBannerVisible, setSucessBannerVisible] = useState(false)
     const user = useSelector((state) => state.user)
+
+    const [selectedUser, setSelectedUser] = useState('')
+
+    const [startBtnVisible, setStartBtnVisible] = useState(false)
     const startBtnDisabled = useSelector((state) => state.user.action === 'start')
+
+    const [stopBtnVisible, setStopBtnVisible] = useState(false)
     const stopBtnDisabled = useSelector((state) => state.user.action !== 'start')
+
+    const [openUserSelector, setOpenUserSelector] = useState(false)
 
     const dispatch = useDispatch();
 
@@ -41,14 +49,48 @@ const Dashboard = () => {
 
         let userUpdate = { ...user, action: 'stop' }
         userUpdate.logs = [...userUpdate.logs, new LogEntry('stop')]
-        
+
         userUpdate = await api.putUser(userUpdate)
         dispatch(setUser(userUpdate));
     }
 
 
+    function onOpenUserSelection() {
+        setOpenUserSelector(true)
+    }
+
+    function onUserSelected(user) {
+        setOpenUserSelector(false)
+        setStartBtnVisible(true)
+        setStopBtnVisible(true)
+        setSelectedUser(user)
+    }
     return (
-        <div>
+        <div style={{padding: '50px'}}>
+            <div className="">
+                <label htmlFor='P13_UPORABNIK_OA_SI_CI_ID'>Select user</label>
+                <input type="" id="P13_UPORABNIK_OA_SI_CI_ID" value={selectedUser} onClick={() => onOpenUserSelection()} />
+
+                <div id="#PopupLov_13_P13_UPORABNIK_OA_SI_CI_ID_dlg" hidden={!openUserSelector}>
+                    <div className="div a-PopupLOV-results a-GV">
+                        <div className="div a-GV-bdy">
+                            <div className="div a-GV-w-scroll">
+                                <table>
+                                    <tbody>
+                                        <tr onClick={() => onUserSelected('USER')}>
+                                            USER
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <hr />
+            <hr />
+            <hr />
+
             <div>
                 <p>
                     {user.username}
@@ -60,8 +102,8 @@ const Dashboard = () => {
             <div className="fos-Alert--success" style={sucessBannerVisible ? { display: 'block' } : { display: 'none' }}>
                 <h2>Zapis uspešno dodan.</h2>
             </div>
-            <button disabled={startBtnDisabled} className='t-Button--success' onClick={onStart}>START</button>
-            <button disabled={stopBtnDisabled} className='t-Button--danger' onClick={onStop}>STOP</button>
+            <button disabled={startBtnDisabled} className='t-Button--success' hidden={!startBtnVisible} onClick={onStart}>START</button>
+            <button disabled={stopBtnDisabled} className='t-Button--danger' hidden={!stopBtnVisible} onClick={onStop}>STOP</button>
         </div >
     )
 }
