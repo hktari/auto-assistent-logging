@@ -72,9 +72,9 @@ const Dashboard = () => {
                 <input type="" id="P13_UPORABNIK_OA_SI_CI_ID" value={selectedUser} onClick={() => onOpenUserSelection()} />
 
                 <div id="#PopupLov_13_P13_UPORABNIK_OA_SI_CI_ID_dlg" hidden={!openUserSelector}>
-                    <div className="div a-PopupLOV-results a-GV">
-                        <div className="div a-GV-bdy">
-                            <div className="div a-GV-w-scroll">
+                    <div className="a-PopupLOV-results a-GV">
+                        <div className="a-GV-bdy">
+                            <div className="a-GV-w-scroll">
                                 <table>
                                     <tbody>
                                         <tr onClick={() => onUserSelected('USER')}>
