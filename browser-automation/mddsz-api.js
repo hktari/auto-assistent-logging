@@ -73,7 +73,7 @@ async function executeAction(username, password, action) {
         openUserSelectBtn.click()
         openUserSelectBtn.focus()
 
-        const selectFirstRow = '#PopupLov_13_P13_UPORABNIK_OA_SI_CI_ID_dlg > div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr'
+        const selectFirstRow = 'div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr'
         const firstRow = await page.waitForSelector(selectFirstRow)
         firstRow.focus()
         firstRow.click()
