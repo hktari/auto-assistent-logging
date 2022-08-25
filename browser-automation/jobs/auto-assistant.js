@@ -174,7 +174,7 @@ function timeToExecute(dueDate, now) {
     }
     // signal to parent that the job is done
     if (parentPort) {
-        logger.log('end')
+        logger.debug('end')
         parentPort.postMessage(jobError ?? 'done');
         if (jobError) {
             exit(1)
