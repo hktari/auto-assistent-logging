@@ -163,8 +163,8 @@ function timeToExecute(dueDate, now) {
                 logger.debug('adding log entry...')
                 await db.addLogEntry(curUser.login_info_id, logEntryStatus, timestamp, logEntryErr, logEntryMsg, logEntryAction)
             } catch (error) {
-                log(error('Error adding log entry'))
-                log(error(error))
+                logger.error('Error adding log entry')
+                logger.error(error)
                 throw error;
             }
         }

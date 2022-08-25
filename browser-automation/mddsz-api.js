@@ -36,7 +36,7 @@ async function executeAction(username, password, action) {
     logger.debug('Executing action: ', action)
 
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         slowMo: 50, // slow down by 250ms
         // devtools: true
@@ -45,7 +45,7 @@ async function executeAction(username, password, action) {
 
     try {
         const page = await browser.newPage();
-        page.setDefaultTimeout(5000); // wait max 10 sec for things to appear
+        page.setDefaultTimeout(15000); // wait max 10 sec for things to appear
 
         await page.goto(ENDPOINT);
         await page.waitForNavigation(); // The promise resolves after navigation has finished
@@ -56,7 +56,8 @@ async function executeAction(username, password, action) {
         const pwdInput = await page.$('#P9999_PASSWORD');
         await pwdInput.type(password);
 
-        logger.log('logging in...')
+        logger.debug('logging in..');
+
         const loginBtn = await page.$('.t-Login-buttons button')
         loginBtn.click()
 
@@ -64,7 +65,7 @@ async function executeAction(username, password, action) {
         const stopBtnSelector = 'button.t-Button--danger';
         // make sure start button is enabled
 
-        logger.log('wait for login...')
+        logger.debug('wait for login...')
         const btnSelector = action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
         const btn = await page.waitForSelector(btnSelector)
 
