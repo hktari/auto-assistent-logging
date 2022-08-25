@@ -38,14 +38,14 @@ async function executeAction(username, password, action) {
     const browser = await puppeteer.launch({
         headless: false,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        slowMo: 50, // slow down by 250ms
+        slowMo: 0, // slow down by 250ms
         // devtools: true
     }); // default is true
 
 
     try {
         const page = await browser.newPage();
-        page.setDefaultTimeout(15000); // wait max 10 sec for things to appear
+        page.setDefaultTimeout(30000); // wait max 10 sec for things to appear
 
         await page.goto(ENDPOINT);
         await page.waitForNavigation(); // The promise resolves after navigation has finished
@@ -61,6 +61,24 @@ async function executeAction(username, password, action) {
         const loginBtn = await page.$('.t-Login-buttons button')
         loginBtn.click()
 
+
+        // if buttons invisible
+        const openUserSelectionBtn = '#P13_UPORABNIK_OA_SI_CI_ID'
+        // const openUserSelectionBtn = '#P13_UPORABNIK_OA_SI_CI_ID_lov_btn'
+        await page.waitForSelector(openUserSelectionBtn)
+
+        await delay(2000)
+        
+        const openUserSelectBtn = await page.$(openUserSelectionBtn)
+        openUserSelectBtn.click()
+        openUserSelectBtn.focus()
+
+        const selectFirstRow = '#PopupLov_13_P13_UPORABNIK_OA_SI_CI_ID_dlg > div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr'
+        const firstRow = await page.waitForSelector(selectFirstRow)
+        firstRow.focus()
+        firstRow.click()
+
+
         const startBtnSelector = 'button.t-Button--success';
         const stopBtnSelector = 'button.t-Button--danger';
         // make sure start button is enabled
@@ -69,6 +87,8 @@ async function executeAction(username, password, action) {
         const btnSelector = action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
         const btn = await page.waitForSelector(btnSelector)
 
+        await delay(3000)
+
         const buttonDisabled = await page.$eval(btnSelector, btn => btn.disabled);
 
         if (buttonDisabled) {
@@ -76,7 +96,6 @@ async function executeAction(username, password, action) {
         }
 
         btn.click()
-
 
         // h2 Zapis uspešno dodan.
         const successBannerSelector = ".fos-Alert--success"
