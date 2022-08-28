@@ -1,3 +1,4 @@
+const { profileEnd } = require('console');
 const puppeteer = require('puppeteer');
 const { AUTOMATE_ACTION } = require('./interface');
 const ENDPOINT = process.env.MDDSZ_WEBAPP_ENDPOINT
@@ -23,6 +24,24 @@ function delay(waitTime) {
 
 }
 
+function createBrowser(debug) {
+    if (debug) {
+        return puppeteer.launch({
+            // devtools: true
+            headless: false,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            slowMo: 50,
+        });
+    } else {
+        return puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox'],
+            slowMo: 0,
+        });
+
+    }
+}
+
 async function executeAction(username, password, action) {
     const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
         .map(val => val[1])
@@ -34,14 +53,9 @@ async function executeAction(username, password, action) {
 
     logger.debug('endpoint: ' + ENDPOINT)
     logger.debug('Executing action: ', action)
+    logger.debug('ENV:', process.env.NODE_ENV)
 
-    const browser = await puppeteer.launch({
-        headless: false,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
-        slowMo: 0, // slow down by 250ms
-        // devtools: true
-    }); // default is true
-
+    const browser = await createBrowser(process.env.NODE_ENV === 'development')
 
     try {
         const page = await browser.newPage();
@@ -68,7 +82,7 @@ async function executeAction(username, password, action) {
         await page.waitForSelector(openUserSelectionBtn)
 
         await delay(2000)
-        
+
         const openUserSelectBtn = await page.$(openUserSelectionBtn)
         openUserSelectBtn.click()
         openUserSelectBtn.focus()
