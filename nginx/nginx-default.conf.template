@@ -2,7 +2,7 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name autoasistent.online www.autoasistent.online;
+    server_name ${DOMAIN} www.${DOMAIN};
     server_tokens off;
 
     location /.well-known/acme-challenge/ {
@@ -10,7 +10,7 @@ server {
     }
 
     location / {
-        return 301 https://autoasistent.online$request_uri;
+        return 301 https://${DOMAIN}$request_uri;
     }
 }
 
@@ -18,10 +18,10 @@ server {
     listen 443 default_server ssl http2;
     listen [::]:443 ssl http2;
 
-    server_name autoasistent.online;
+    server_name ${DOMAIN};
 
-    ssl_certificate /etc/nginx/ssl/live/autoasistent.online/fullchain.pem;
-    ssl_certificate_key /etc/nginx/ssl/live/autoasistent.online/privkey.pem;
+    ssl_certificate /etc/nginx/ssl/live/${DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/live/${DOMAIN}/privkey.pem;
     
     location / {
         # enter your own info on next line
