@@ -1,4 +1,8 @@
-const { profileEnd } = require('console');
+if(process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'){
+    require('dotenv').config()
+}
+
+
 const puppeteer = require('puppeteer');
 const { AUTOMATE_ACTION } = require('./interface');
 const ENDPOINT = process.env.MDDSZ_WEBAPP_ENDPOINT
