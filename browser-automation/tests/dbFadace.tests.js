@@ -2,6 +2,7 @@ const { assert, expect } = require("chai");
 const { DESTRUCTION } = require("dns");
 const { describe, it } = require("mocha");
 const { db } = require("../database");
+const { AUTOMATE_ACTION } = require("../interface");
 
 describe('dbFacade', () => {
 
@@ -31,6 +32,17 @@ describe('dbFacade', () => {
     })
 
     describe('getUsers()', () => {
+        it('result should contain properties', (done) => {
+            const db = require('../dbFacade')
+
+            db.getUsers().then(users => {
+                users.forEach((user, idx) => {
+                    expect(user).to.deep.equal(usersWithRequiredFields[idx])
+                })
+                done()
+            }).catch(err => done(err))
+        })
+
         it('should return two users', (done) => {
             db.getUsers(onlyAutomateEnabled = false).then((res) => {
                 assert(res.length === 2, 'users array contains two entries')
@@ -51,16 +63,6 @@ describe('dbFacade', () => {
         })
     })
 
-    it('getusers() user entry should contain properties', (done) => {
-        const db = require('../dbFacade')
-
-        db.getUsers().then(users => {
-            users.forEach((user, idx) => {
-                expect(user).to.deep.equal(usersWithRequiredFields[idx])
-            })
-            done()
-        }).catch(err => done(err))
-    })
 
 
     describe('getDailyConfig()', () => {
@@ -188,6 +190,65 @@ describe('dbFacade', () => {
                     })
                     .catch(err => done(err))
             })
+        })
+    })
+
+
+    describe('getWorkweekExceptions()', () => {
+        const workWeekExceptionsPerUser = {
+            'test': [
+                {
+                    username: 'test',
+                    date: new Date(Date.UTC(2022, 7, 8)),
+                    action: AUTOMATE_ACTION.START_BTN
+                },
+                {
+                    username: 'test',
+                    date: new Date(Date.UTC(2022, 7, 8)),
+                    action: AUTOMATE_ACTION.STOP_BTN
+                }
+            ]
+        }
+
+        it('return value should have length of 2', done => {
+            db.getWorkweekExceptions('test', new Date(Date.UTC(2022, 7, 8)))
+                .then(workWeekExceptList => {
+                    expect(workWeekExceptList).to.have.lengthOf(2)
+                    done()
+                })
+                .catch(err => done(err))
+        })
+
+        it('return value should contain a start_btn action', done => {
+            db.getWorkweekExceptions('test', new Date(Date.UTC(2022, 7, 8)))
+                .then(returnVal => {
+                    const startBtnException = workWeekExceptionsPerUser['test'][0]
+                    const returnedStartBtnExcept = returnVal.filter(val => val.action === AUTOMATE_ACTION.START_BTN)[0];
+                    expect(returnedStartBtnExcept).to.exist
+                    expect(startBtnException).to.deep.equal(returnedStartBtnExcept)
+                    done()
+                })
+                .catch(err => done(err))
+        })
+        it('return value should contain a stop_btn action', done => {
+            db.getWorkweekExceptions('test', new Date(Date.UTC(2022, 7, 8)))
+                .then(returnVal => {
+                    const stopBtnException = workWeekExceptionsPerUser['test'][0]
+                    const returnedStopBtnExcept = returnVal.filter(val => val.action === AUTOMATE_ACTION.START_BTN)[0];
+                    expect(returnedStopBtnExcept).to.exist
+                    expect(stopBtnException).to.deep.equal(returnedStopBtnExcept)
+                    done()
+                })
+                .catch(err => done(err))
+        })
+
+        it('return value should be empty list for another date', done => {
+            db.getWorkweekExceptions('test', new Date(Date.UTC(2022, 7, 10)))
+                .then(returnVal => {
+                    expect(returnVal).to.be.empty
+                    done()
+                })
+                .catch(err => done(err))
         })
     })
 })

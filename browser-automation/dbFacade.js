@@ -4,6 +4,7 @@ const crypto = require('./util/crypto');
 const { dayOfWeekToAbbrv } = require('./util');
 const logger = require('./util/logging')
 
+/** NO TEST */
 async function shouldExecute(username, action, dueDate, now) {
     // if no successful record in 'log_entry' table for given user, given action, for dueDate
     const queryResult = await db.query(`SELECT *
@@ -36,6 +37,8 @@ async function getDailyConfig(username, date) {
 }
 
 
+
+/** NO TEST */
 async function checkForExecutionFailure() {
     return Promise.resolve(false);
 }
@@ -63,7 +66,7 @@ async function getUsers(onlyAutomateEnabled = true) {
     let queryStr = `SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, 
     encode(li.password_cipher, 'hex') as password_cipher, encode(li.iv_cipher, 'hex') as iv_cipher
     FROM account a JOIN login_info li on a.id = li.account_id`;
-    
+
     if (onlyAutomateEnabled) {
         queryStr += `\nWHERE "automationEnabled" = ${onlyAutomateEnabled}`
     }
@@ -115,6 +118,7 @@ async function getLogEntries(username, date) {
     return queryResult.rows.map(row => new LogEntry(row.username, row.staus, row.timestamp, row.error, row.message, row.action, row.configType));
 }
 
+/** NO TEST */
 async function anyLogEntryOfType(login_info_id, status, action, date) {
     const queryResult = await db.query(
         `SELECT count(1) as count
@@ -133,7 +137,12 @@ async function anyLogEntryOfType(login_info_id, status, action, date) {
  * @returns {WorkweekException[]}
  */
 async function getWorkweekExceptions(username, date) {
-    return Promise.resolve([])
+    const queryResult = await db.query(
+        `SELECT li.username, wwe.date, wwe."action"
+        FROM work_week_exception wwe JOIN work_week_config wwc ON wwe.work_week_config_id = wwc.id
+        JOIN login_info li ON wwc.login_info_id = li.id
+        WHERE li.username = $1 and date_part('day', wwe.date) = date_part('day', date '${date.toISOString()}')`, [username])
+    return queryResult.rows.map(row => new WorkweekException(row.username, row.date, row.action))
 }
 
 module.exports = {

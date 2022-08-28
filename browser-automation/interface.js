@@ -24,7 +24,7 @@ class WorkweekException {
     constructor(username, date, action) {
         this.username = username;
         if (date instanceof Date) {
-            this.date = date
+            this.date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
         } else {
             this.date = new Date(Date.parse(date))
         }
