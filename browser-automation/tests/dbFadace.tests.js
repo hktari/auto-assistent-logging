@@ -64,10 +64,6 @@ describe('dbFacade', () => {
         it('return value should contain properties', (done) => {
             db.getDailyConfig('test', new Date(Date.UTC(2022, 4, 1))).then(dailyConfig => {
                 expect(dailyConfig).to.deep.equal(dailyConfigsPerUser['test'])
-                //   * @param { string } username
-                //                     * @param { string } startAt 14: 00
-                //                         * @param { string } endAt 22: 00
-                //                             * @param { string | Date } date
                 done()
             }).catch(err => done(err))
         })
