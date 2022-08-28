@@ -1,3 +1,8 @@
+const CONFIG_TYPE = Object.freeze({
+    DAILY: 'CONFIG_TYPE_DAILY',
+    WEEKLY: 'CONFIG_TYPE_WEEKLY'
+})
+
 const AUTOMATE_ACTION = Object.freeze({
     START_BTN: 'start_btn',
     STOP_BTN: 'stop_btn'
@@ -13,6 +18,29 @@ const WORKDAY_CONFIG_AUTOMATION_TYPE = Object.freeze({
     NO_AUTOMATE: 'no_automate' // don't do automation for that day despite weekly config
 })
 
+class WorkweekException {
+    constructor(username, date, action) {
+        this.username = username;
+        if (date instanceof Date) {
+            this.date = date
+        } else {
+            this.date = new Date(Date.parse(date))
+        }
+        this.action = action
+    }
+}
+
+class LogEntry {
+    constructor(username, status, timestamp, error, message, action, configType) {
+        this.username = username
+        this.status = status
+        this.timestamp = timestamp
+        this.error = error
+        this.message = message
+        this.action = action
+        this.configType = configType
+    }
+}
 class WorkdayConfig {
     /**
      * 
@@ -20,44 +48,38 @@ class WorkdayConfig {
      * @param {string} startAt 14:00
      * @param {string} endAt 22:00
      * @param {string | Date} date 
-     * @param {WORKDAY_CONFIG_AUTOMATION_TYPE} automation_type 
      */
-    constructor(username, startAt, endAt, date, automation_type) {
+    constructor(username, startAt, endAt, date) {
         this.username = username;
 
-        this.startAt = new Date();
-        // date is in local time, which is wrong. it should be in UTC, coz that's the database format
-        this.startAt.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate())
-        this.startAt.setUTCHours(+startAt.split(':')[0])
-        this.startAt.setUTCMinutes(+startAt.split(':')[1])
-        console.log('user start at: ', this.startAt)
-
-        this.endAt = new Date();
-        // date is in local time, which is wrong. it should be in UTC, coz that's the database format
-        this.endAt.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate())
-        this.endAt.setUTCHours(+endAt.split(':')[0])
-        this.endAt.setUTCMinutes(+endAt.split(':')[1])
-        console.log('user end at: ', this.endAt)
-
+        this.startAt = this._parseDateAndTimeOrNull(date, startAt)
+        this.endAt = this._parseDateAndTimeOrNull(date, endAt);
 
         if (date instanceof Date) {
             this.date = date
         } else {
             this.date = new Date(Date.parse(date))
         }
+    }
 
-        const allDates = [this.startAt, this.endAt, this.date]
-        for (const d in allDates) {
-            if (d.toString().toLowerCase().includes('invalid')) {
-                throw new Error('invalid date: ' + allDates)
-            }
+    _parseDateAndTimeOrNull(date, timeStr) {
+        const [hours, min] = this._parseTimeOrNan(timeStr)
+        if (!isNaN(hours) && !isNaN(min)) {
+            // date is in local time, which is wrong. it should be in UTC, coz that's the database format
+            return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), hours, min);
+        } else {
+            return null;
         }
+    }
 
-        if (!Object.values(WORKDAY_CONFIG_AUTOMATION_TYPE).includes(automation_type)) {
-            throw new Error(`invalid automation type: ${automation_type}`)
-        }
+    _parseTimeOrNan(timeStr) {
+        const hours = +timeStr.split(':')[0]
+        const minutes = +timeStr.split(':')[1]
+        return [hours, minutes]
+    }
 
-        this.automation_type = automation_type;
+    _isInvalidDate(date) {
+        return date.toString().toLowerCase().includes('invalid')
     }
 
     toString() {
@@ -73,5 +95,8 @@ module.exports = {
     AUTOMATE_ACTION,
     LOG_ENTRY_STATUS,
     WORKDAY_CONFIG_AUTOMATION_TYPE,
+    CONFIG_TYPE,
+    WorkweekException,
+    LogEntry,
     WorkdayConfig
 }

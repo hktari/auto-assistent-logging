@@ -1,4 +1,4 @@
-const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('./interface')
+const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig, WorkweekException, LogEntry } = require('./interface')
 const { db } = require('./database');
 const crypto = require('./util/crypto');
 const { dayOfWeekToAbbrv } = require('./util');
@@ -21,6 +21,7 @@ async function shouldExecute(username, action, dueDate, now) {
 }
 
 async function getDailyConfig(username, date) {
+    logger.debug('retrieving daily config...')
     const queryResult = await db.query(`SELECT dc.date, dc.start_at, dc.end_at, dc.automation_type, li.username
                     FROM daily_config dc JOIN login_info li ON dc.login_info_id = li.id
                     WHERE li.username = $1 
@@ -40,6 +41,7 @@ async function checkForExecutionFailure() {
 }
 
 async function getWeeklyConfig(username, date) {
+    logger.debug('retrieving weekly config...')
     const today = dayOfWeekToAbbrv(date.getDay())
     const queryResult = await db.query(`SELECT wwc.day, wwc.start_at, wwc.end_at, li.username
                                         FROM work_week_config wwc JOIN login_info li on wwc.login_info_id = li.id
@@ -92,6 +94,22 @@ async function addLogEntry(login_info_id, status, timestamp, error, message, act
     return queryResult.rowCount;
 }
 
+/**
+ * 
+ * @param {string} username 
+ * @param {Date} date 
+ * @returns {LogEntry[]}
+ */
+async function getLogEntries(username, date) {
+    const queryResult = await db.query(
+        `SELECT li.username, le.status, le.timestamp, le.error, le.message, le.action, le.config_type as configType
+        FROM log_entry le JOIN login_info li ON le.login_info_id = li.id
+        WHERE li.username = $1 
+        AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}');`, [username])
+
+    return queryResult.rows.map(row => new LogEntry(row.username, row.staus, row.timestamp, row.error, row.message, row.action, row.configType));
+}
+
 async function anyLogEntryOfType(login_info_id, status, action, date) {
     const queryResult = await db.query(
         `SELECT count(1) as count
@@ -103,6 +121,16 @@ async function anyLogEntryOfType(login_info_id, status, action, date) {
     return +queryResult.rows[0].count > 0
 }
 
+/**
+ * 
+ * @param {string} username 
+ * @param {Date} date 
+ * @returns {WorkweekException[]}
+ */
+async function getWorkweekExceptions(username, date) {
+    return Promise.resolve([])
+}
+
 module.exports = {
     getUsers,
     getWeeklyConfig,
@@ -110,5 +138,7 @@ module.exports = {
     getDailyConfig,
     shouldExecute,
     addLogEntry,
+    getWorkweekExceptions,
+    getLogEntries,
     anyLogEntryOfType
 }

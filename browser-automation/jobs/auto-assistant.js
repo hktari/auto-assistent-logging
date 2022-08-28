@@ -1,10 +1,11 @@
-const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig } = require('../interface')
+const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig, CONFIG_TYPE } = require('../interface')
 const db = require('../dbFacade')
 const { executeAction, MDDSZApiError } = require('../mddsz-api');
 
 const logger = require('../util/logging')
 const { parentPort } = require('worker_threads');
 const { exit } = require('process');
+const { getActionsForDate } = require('../util/actions');
 
 // store boolean if the job is cancelled
 let isCancelled = false;
@@ -22,14 +23,21 @@ if (parentPort) {
 }
 
 
-function timeToExecute(dueDate, now) {
-    const thresholdMinutes = 5
-    const bufferInRangeMs = 5000; // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
-    const timeDiff = Math.abs(now.getTime() - dueDate.getTime())
 
-    return timeDiff <= bufferInRangeMs ||
-        // add a buffer of ${thresholdMinutes} after ${dueDate} in which the action is still executed
-        (now.getTime() >= dueDate.getTime() && timeDiff < (thresholdMinutes * 60 * 1000))
+// Filter out exceptions made for weekly configuration
+function filterOutExceptions(actionsList, exceptions) {
+    return actionsList.filter(action => {
+        return action.configType === CONFIG_TYPE.DAILY
+            || (action.configType === CONFIG_TYPE.WEEKLY && !exceptions.some(ex => ex.action === action.actionType))
+    })
+}
+
+function filterOutAlreadyExecuted(actionsList, logEntries) {
+    return actionsList.filter(action => {
+        return logEntries.some(le => {
+            return le.action === action.actionType && action.configType === le.configType
+        })
+    })
 }
 
 (async () => {
@@ -50,81 +58,44 @@ function timeToExecute(dueDate, now) {
             logger.debug(JSON.stringify(user))
             const now = new Date()
 
-            logger.debug('retrieving daily config...')
-            const dailyConfig = await db.getDailyConfig(user.username, now)
-            let selectedConfig = dailyConfig;
+            let actionsPlannedToday = await getActionsForDate(user.username, now)
 
-            if (dailyConfig) {
-                if (dailyConfig.automation_type === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE) {
-                    logger.debug(`user ${user.username} requested no automation for date: ${dailyConfig.date}`)
-                    actionPromises.push(new Promise((res, rej) => {
-                        res({
-                            user: user,
-                            workdayConfig: selectedConfig,
-                            action: WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE,
-                            result: 'Skipping automation as requested'
-                        })
-                    }))
-                    continue;
-                } else {
-                    logger.debug(`found ${dailyConfig}`)
-                }
-            } else {
-                logger.debug('retrieving weekly config...')
-                selectedConfig = await db.getWeeklyConfig(user.username, now)
-            }
+            const workweekExceptions = await db.getWorkweekExceptions(user.username, date)
+            logger.debug('filtering out actions with weekly exceptions');
+            actionsPlannedToday = filterOutExceptions(actionsPlannedToday, workweekExceptions)
+
+            const logEntriesToday = await db.getLogEntries(user.username, date)
+            logger.debug('filtering out already executed actions');
+            actionsPlannedToday = filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
 
             if (selectedConfig === null) {
                 logger.debug(`User ${user.username}. No configurations found`)
                 continue;
             }
 
-            let action = null;
-            let dueDate = null;
-            if (timeToExecute(selectedConfig.startAt, now)) {
-                action = AUTOMATE_ACTION.START_BTN;
-                dueDate = selectedConfig.startAt;
-            } else if (timeToExecute(selectedConfig.endAt, now)) {
-                action = AUTOMATE_ACTION.STOP_BTN;
-                dueDate = selectedConfig.endAt;
-            }
+            for (const action of actionsPlannedToday) {
 
-            if (action && dueDate) {
                 logger.debug('considering executing ' + action + ' ...')
-
-                if (await db.shouldExecute(user.username, action, dueDate)) {
-                    if (await db.checkForExecutionFailure(user.username, action, dueDate)) {
-                        // TOOD: notify user if not already
-
-                    } else {
-                        logger.debug(`Executing action ${action} for user ${user.username}.\n${selectedConfig}`)
-                        actionPromises.push(
-                            new Promise((resolve, reject) => {
-                                executeAction(user.username, user.password, action)
-                                    .then(result => {
-                                        resolve({
-                                            user: user,
-                                            action: action,
-                                            workdayConfig: selectedConfig,
-                                            result
-                                        })
+                if (action.timeToExecute(now)) {
+                    actionPromises.push(
+                        new Promise((resolve, reject) => {
+                            executeAction(user.username, user.password, action.actionType)
+                                .then(result => {
+                                    resolve({
+                                        user: user,
+                                        action: action,
+                                        result
                                     })
-                                    .catch(err => {
-                                        reject({
-                                            user: user,
-                                            action: action,
-                                            workdayConfig: selectedConfig,
-                                            err
-                                        })
+                                })
+                                .catch(err => {
+                                    reject({
+                                        user: user,
+                                        action: action,
+                                        err
                                     })
-                            }))
-                    }
+                                })
+                        }))
                 }
-                else {
-                    logger.debug(`NOT executing action ${action} for user ${user.username}.\nworkday: ${JSON.stringify(selectedConfig)}`)
-                }
-            } else {
-                logger.debug("waiting...")
             }
         }
 
@@ -134,7 +105,8 @@ function timeToExecute(dueDate, now) {
             const successful = actionResult.status === 'fulfilled'
             const curUser = successful ? actionResult.value.user : actionResult.reason.user;
 
-            logger.info(`processing job result: ${JSON.stringify(actionResult)}`)
+            logger.info(`processing job result`)
+            logger.debug(JSON.stringify(actionResult))
 
             let logEntryStatus, logEntryErr, logEntryMsg, logEntryAction = null
             const timestamp = new Date()
@@ -142,22 +114,15 @@ function timeToExecute(dueDate, now) {
                 if (actionResult.status === 'fulfilled') {
                     logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
                     logEntryMsg = actionResult.value.result
-                    logEntryAction = actionResult.value.action
+                    logEntryAction = actionResult.value.action.actionType
                 } else if (actionResult.reason.err instanceof MDDSZApiError) {
                     logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
                     logEntryMsg = `${actionResult.reason.err.message} (${actionResult.reason.err.failureReason})`
-                    logEntryAction = actionResult.reason.action
+                    logEntryAction = actionResult.reason.action.actionType
                 } else {
                     logEntryErr = actionResult.reason.err.toString()
                     logEntryStatus = LOG_ENTRY_STATUS.FAILED;
-                    logEntryAction = actionResult.reason.action
-                }
-
-                if (logEntryAction === WORKDAY_CONFIG_AUTOMATION_TYPE.NO_AUTOMATE &&
-                    db.anyLogEntryOfType(curUser.login_info_id, logEntryStatus, logEntryAction, timestamp)) {
-                    // make sure to add only one log entry of type 'no_automate'
-                    logger.debug('already added "no_automate" entry for today')
-                    continue;
+                    logEntryAction = actionResult.reason.action.actionType
                 }
 
                 logger.debug('adding log entry...')
@@ -165,12 +130,12 @@ function timeToExecute(dueDate, now) {
             } catch (error) {
                 logger.error('Error adding log entry')
                 logger.error(error)
-                throw error;
+                jobError = 'Error occured. Please check the log'
             }
         }
     } catch (err) {
-        console.error(err)
-        jobError = err.toString()
+        logger.error(err)
+        jobError = 'Error occured. Please check the log'
     }
     // signal to parent that the job is done
     if (parentPort) {
@@ -179,5 +144,7 @@ function timeToExecute(dueDate, now) {
         if (jobError) {
             exit(1)
         }
-    } else process.exit(0);
+    } else {
+        process.exit(0);
+    }
 })();

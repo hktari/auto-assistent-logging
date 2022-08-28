@@ -47,6 +47,9 @@ function createBrowser(debug) {
 }
 
 async function executeAction(username, password, action) {
+    logger.debug('Executing action: ', action)
+    logger.debug('endpoint: ' + ENDPOINT)
+
     const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
         .map(val => val[1])
         .includes(action);
