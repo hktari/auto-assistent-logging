@@ -14,6 +14,7 @@ services:
     environment:
       - API_HOST=auto-assistant-logging-backend
       - API_PORT=${BACKEND_PORT}
+      - DOMAIN=${DOMAIN}
   certbot:
     image: certbot/certbot:latest
     volumes:
