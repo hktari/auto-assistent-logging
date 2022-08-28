@@ -2,7 +2,7 @@ INSERT INTO
     account ("id", "email", "password", "automationEnabled") OVERRIDING SYSTEM VALUE
 VALUES
     (0, 'test@example.com', 'secret', true),
-    (1, 'test2@example.com', 'secret2', true);
+    (1, 'test2@example.com', 'secret2', false);
 
 INSERT INTO
     login_info (

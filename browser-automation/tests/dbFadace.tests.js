@@ -1,4 +1,5 @@
 const { assert, expect } = require("chai");
+const { DESTRUCTION } = require("dns");
 const { describe, it } = require("mocha");
 const { db } = require("../database");
 
@@ -29,14 +30,24 @@ describe('dbFacade', () => {
     it('should import without errors', () => {
     })
 
-    it('getUsers() should return two users', (done) => {
-        const db = require('../dbFacade')
+    describe('getUsers()', () => {
+        it('should return two users', (done) => {
+            db.getUsers(onlyAutomateEnabled = false).then((res) => {
+                assert(res.length === 2, 'users array contains two entries')
+                done()
+            }).catch(err => {
+                done(err)
+            })
+        })
 
-        db.getUsers().then((res) => {
-            assert(res.length === 2, 'users array contains two entries')
-            done()
-        }).catch(err => {
-            done(err)
+        it('should return a single user with automationEnabled', (done) => {
+            db.getUsers()
+                .then(usersList => {
+                    expect(usersList.length).to.equal(1)
+                    expect(usersList[0].automationEnabled).to.be.true
+                    done()
+                })
+                .catch(err => done(err))
         })
     })
 

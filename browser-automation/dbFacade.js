@@ -60,10 +60,15 @@ async function getWeeklyConfig(username, date) {
  * @param {boolean} onlyAutomateEnabled 
  */
 async function getUsers(onlyAutomateEnabled = true) {
-    const queryResult = await db.query(`SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, 
-                                        encode(li.password_cipher, 'hex') as password_cipher, encode(li.iv_cipher, 'hex') as iv_cipher
-                                        FROM account a JOIN login_info li on a.id = li.account_id
-                                        WHERE "automationEnabled" = ${onlyAutomateEnabled};`)
+    let queryStr = `SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, 
+    encode(li.password_cipher, 'hex') as password_cipher, encode(li.iv_cipher, 'hex') as iv_cipher
+    FROM account a JOIN login_info li on a.id = li.account_id`;
+    
+    if (onlyAutomateEnabled) {
+        queryStr += `\nWHERE "automationEnabled" = ${onlyAutomateEnabled}`
+    }
+
+    const queryResult = await db.query(queryStr)
 
     let users = queryResult.rows.map(row => {
         try {
@@ -76,7 +81,7 @@ async function getUsers(onlyAutomateEnabled = true) {
                 password: password
             }
         } catch (err) {
-            logger.error(`Failed to map user ${row.email}. Probably failure in decrypting password.`, err, JSON.stringify(row))
+            logger.error(`Failed to map user ${row.email}.Probably failure in decrypting password.`, err, JSON.stringify(row))
             return null;
         }
     });
@@ -87,8 +92,8 @@ async function getUsers(onlyAutomateEnabled = true) {
 }
 
 async function addLogEntry(login_info_id, status, timestamp, error, message, action) {
-    const queryResult = await db.query(`INSERT INTO log_entry (login_info_id, status, "timestamp", error, message, "action")
-                                        VALUES ($1, $2, $3, $4, $5, $6);`,
+    const queryResult = await db.query(`INSERT INTO log_entry(login_info_id, status, "timestamp", error, message, "action")
+    VALUES($1, $2, $3, $4, $5, $6); `,
         [login_info_id, status, timestamp.toUTCString(), error, message, action])
     logger.info('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
     return queryResult.rowCount;
@@ -105,7 +110,7 @@ async function getLogEntries(username, date) {
         `SELECT li.username, le.status, le.timestamp, le.error, le.message, le.action, le.config_type as configType
         FROM log_entry le JOIN login_info li ON le.login_info_id = li.id
         WHERE li.username = $1 
-        AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}');`, [username])
+        AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}'); `, [username])
 
     return queryResult.rows.map(row => new LogEntry(row.username, row.staus, row.timestamp, row.error, row.message, row.action, row.configType));
 }
@@ -117,7 +122,7 @@ async function anyLogEntryOfType(login_info_id, status, action, date) {
         WHERE le.login_info_id = $1 
         AND action = $2
         AND status = $3
-        AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}');`, [login_info_id, action, status])
+        AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}'); `, [login_info_id, action, status])
     return +queryResult.rows[0].count > 0
 }
 
