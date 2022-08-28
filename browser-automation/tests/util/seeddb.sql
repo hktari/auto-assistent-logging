@@ -32,5 +32,11 @@ VALUES
     )
 ;
 
---  id | account_id | username | password_cipher | iv_cipher 
--- public | account | table | hktari public | daily_config | table | hktari public | log_entry | table | hktari public | login_info | table | hktari public | work_week_config | table | hktari
+
+INSERT INTO daily_config ("id", "login_info_id", "date", "start_at", "end_at", "automation_type")
+OVERRIDING SYSTEM VALUE
+VALUES  (0, 0, '2022-05-01T00:00:00', '12:00', '20:00', '')
+
+-- id | login_info_id | date | start_at | end_at | automation_type 
+----+---------------+------+----------+--------+-----------------
+
