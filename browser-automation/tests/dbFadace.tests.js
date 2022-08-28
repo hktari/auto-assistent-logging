@@ -67,5 +67,23 @@ describe('dbFacade', () => {
                 done()
             }).catch(err => done(err))
         })
+
+        it('return value should be null when no entries', (done) => {
+            db.getDailyConfig('test2', new Date(Date.UTC(2022, 4, 1)))
+                .then(dailyConfig => {
+                    expect(dailyConfig).to.be.null
+                    done()
+                })
+                .catch(err => done(err))
+        })
+
+        it('return value should be null for another date', (done) => {
+            db.getDailyConfig('test', new Date(Date.UTC(2022, 4, 2)))
+                .then(dailyConfig => {
+                    expect(dailyConfig).to.be.null
+                    done()
+                })
+                .catch(err => done(err))
+        })
     })
 })

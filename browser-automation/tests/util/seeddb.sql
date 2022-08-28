@@ -33,9 +33,9 @@ VALUES
 ;
 
 
-INSERT INTO daily_config ("id", "login_info_id", "date", "start_at", "end_at", "automation_type")
+INSERT INTO daily_config ("id", "login_info_id", "date", "start_at", "end_at")
 OVERRIDING SYSTEM VALUE
-VALUES  (0, 0, '2022-05-01T00:00:00', '12:00', '20:00', '')
+VALUES  (0, 0, '2022-05-01T00:00:00', '12:00', '20:00')
 
 -- id | login_info_id | date | start_at | end_at | automation_type 
 ----+---------------+------+----------+--------+-----------------

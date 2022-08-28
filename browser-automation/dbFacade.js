@@ -22,7 +22,7 @@ async function shouldExecute(username, action, dueDate, now) {
 
 async function getDailyConfig(username, date) {
     logger.debug('retrieving daily config...')
-    const queryResult = await db.query(`SELECT dc.date, dc.start_at, dc.end_at, dc.automation_type, li.username
+    const queryResult = await db.query(`SELECT dc.date, dc.start_at, dc.end_at,  li.username
                     FROM daily_config dc JOIN login_info li ON dc.login_info_id = li.id
                     WHERE li.username = $1 
                     AND date_part('day', dc.date) = date_part('day', date '${date.toISOString()}');`, [username])
@@ -31,7 +31,7 @@ async function getDailyConfig(username, date) {
         return null;
     } else {
         const firstRow = queryResult.rows[0];
-        return new WorkdayConfig(firstRow.username, firstRow.start_at, firstRow.end_at, firstRow.date, firstRow.automation_type)
+        return new WorkdayConfig(firstRow.username, firstRow.start_at, firstRow.end_at, firstRow.date)
     }
 }
 
