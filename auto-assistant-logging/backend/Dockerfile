@@ -9,8 +9,6 @@ RUN npm install
 # RUN npm ci --only=production
 
 COPY src/ ./src/
-COPY .env ./
-
 RUN ls -la ./src/*
 
 CMD [ "node", "src/aal-server.js" ]

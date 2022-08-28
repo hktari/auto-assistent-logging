@@ -21,7 +21,6 @@ services:
       - ./certbot/www/:/var/www/certbot/:rw
       - ./certbot/conf/:/etc/letsencrypt/:rw
 
-      
   auto-assistant-logging-backend:
     build: ./auto-assistant-logging/backend
     image: hktari/assistant-logging_backend
@@ -29,9 +28,26 @@ services:
       - host.docker.internal:host-gateway
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
+    environment:
+      - PORT=${BACKEND_PORT}
+      - PGHOST=${PGHOST}
+      - PGUSER=${PGUSER}
+      - PGDATABASE=${PGDATABASE}
+      - PGPASSWORD=${PGPASSWORD}
+      - PGPORT=${PGPORT}
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN_HRS=${JWT_EXPIRES_IN_HRS}
+      - CRYPTO_KEY=${CRYPTO_KEY}
 
   browser-automation:
     build: ./browser-automation/
     image: hktari/assistant-logging_browser-automation
     extra_hosts:
       - host.docker.internal:host-gateway
+    environment:
+      - PGHOST=${PGHOST}
+      - PGUSER=${PGUSER}
+      - PGDATABASE=${PGDATABASE}
+      - PGPASSWORD=${PGPASSWORD}
+      - PGPORT=${PGPORT}
+      - CRYPTO_KEY=${CRYPTO_KEY}
