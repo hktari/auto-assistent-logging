@@ -22,19 +22,26 @@ describe('dbFacade', () => {
 
         const usersWithRequiredFields = [
             {
-                id: 1,
+                login_info_id: 1,
                 email: 'test@example.com',
                 automationEnabled: true,
                 username: 'test',
                 password: 'secret'
+            },
+            {
+                login_info_id: 2,
+                email: 'test2@example.com',
+                automationEnabled: true,
+                username: 'test2',
+                password: 'secret2'
             }
         ]
         db.getUsers().then(users => {
 
-            users.forEach((user, idx) =>{
+            users.forEach((user, idx) => {
                 expect(user).to.deep.equal(usersWithRequiredFields[idx])
             })
-            
+
             done()
         }).catch(err => done(err))
     })

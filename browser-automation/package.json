@@ -5,7 +5,9 @@
   "main": "main.js",
   "scripts": {
     "start": "node ./main.js",
-    "test": "NODE_ENV=development mocha tests/**/*.js -r dotenv/config"
+    "pretest": "chmod 766 tests/util/resetdb.sh && env-cmd -f ./tests/test.env ./tests/util/resetdb.sh",
+    "test": "env-cmd -f ./tests/test.env mocha tests/**/*.js",
+    "db:reset": "sudo psql -U hktari -d asistentapp -a -f \"./tests/util/resetdb.sql\"" 
   },
   "keywords": [],
   "author": "",
