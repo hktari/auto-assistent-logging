@@ -1,5 +1,7 @@
 const { Pool } = require('pg')
 
+console.log(`connecting to: ${process.env.PGHOST}:${process.env.PGPORT} DB: ${process.env.PGDATABASE} as ${process.env.PGUSER}`)
+
 const pool = new Pool({
     host: process.env.PGHOST,
     user: process.env.PGUSER,
@@ -9,7 +11,7 @@ const pool = new Pool({
     allowExitOnIdle: true
 })
 pool.on('connect', _ =>{
-    console.log(`connected to: ${process.env.PGHOST}:${process.env.PGPORT} DB: ${process.env.PGDATABASE} as ${process.env.PGUSER}`)
+    console.log(`connected !`)
 })
 
 module.exports = {
