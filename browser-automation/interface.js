@@ -52,21 +52,21 @@ class WorkdayConfig {
     constructor(username, startAt, endAt, date) {
         this.username = username;
 
-        this.startAt = this._parseDateAndTimeOrNull(date, startAt)
-        this.endAt = this._parseDateAndTimeOrNull(date, endAt);
-
         if (date instanceof Date) {
-            this.date = date
+            this.date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
         } else {
             this.date = new Date(Date.parse(date))
         }
+
+        this.startAt = this._parseDateAndTimeOrNull(date, startAt)
+        this.endAt = this._parseDateAndTimeOrNull(date, endAt);
     }
 
     _parseDateAndTimeOrNull(date, timeStr) {
         const [hours, min] = this._parseTimeOrNan(timeStr)
         if (!isNaN(hours) && !isNaN(min)) {
             // date is in local time, which is wrong. it should be in UTC, coz that's the database format
-            return Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), hours, min);
+            return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), hours, min));
         } else {
             return null;
         }
