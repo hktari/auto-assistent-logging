@@ -1,3 +1,5 @@
+const logger = require("./util/logging");
+
 const CONFIG_TYPE = Object.freeze({
     DAILY: 'CONFIG_TYPE_DAILY',
     WEEKLY: 'CONFIG_TYPE_WEEKLY'
@@ -59,12 +61,24 @@ class WorkdayConfig {
         }
 
         this.startAt = this._parseDateAndTimeOrNull(date, startAt)
-        this.endAt = this._parseDateAndTimeOrNull(date, endAt);
+
+        const startAtHrs = this._parseTimeOrNan(startAt)[0];
+        const endAtHrs = this._parseTimeOrNan(endAt)[0];
+
+        // when end at is greater than start at we have to increase the date
+        let dayAfter = null;
+        if (endAtHrs < startAtHrs) {
+            dayAfter = new Date(this.date.getTime())
+            dayAfter.setUTCDate(dayAfter.getUTCDate() + 1)
+        }
+
+        this.endAt = this._parseDateAndTimeOrNull(dayAfter ?? date, endAt);
     }
 
     _parseDateAndTimeOrNull(date, timeStr) {
         const [hours, min] = this._parseTimeOrNan(timeStr)
         if (!isNaN(hours) && !isNaN(min)) {
+
             // date is in local time, which is wrong. it should be in UTC, coz that's the database format
             return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), hours, min));
         } else {
