@@ -40,6 +40,6 @@ function clientErrorHandler(err, req, res, next) {
 app.use(logErrors);
 app.use(clientErrorHandler);
 
-app.listen(process.env.PORT, () => {
-    console.log(`Listening on port ${process.env.PORT}`)
+app.listen(process.env.BACKEND_PORT, () => {
+    console.log(`Listening on port ${process.env.BACKEND_PORT}`)
 })

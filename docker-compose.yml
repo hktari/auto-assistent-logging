@@ -1,0 +1,36 @@
+version: '3'
+
+services:
+  webserver:
+    build: ./nginx/
+    image: hktari/assistant-logging_webserver
+    ports:
+      - 80:80
+      - 443:443
+    restart: always
+    volumes:
+      - ./certbot/www:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
+    environment:
+      - API_HOST=auto-assistant-logging-backend
+      - API_PORT="${BACKEND_PORT}"
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
+
+      
+  auto-assistant-logging-backend:
+    build: ./auto-assistant-logging/backend
+    image: hktari/assistant-logging_backend
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+
+  browser-automation:
+    build: ./browser-automation/
+    image: hktari/assistant-logging_browser-automation
+    extra_hosts:
+      - host.docker.internal:host-gateway
