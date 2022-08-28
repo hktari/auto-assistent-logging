@@ -2,7 +2,6 @@
 const Bree = require('bree');
 // const Graceful = require('@ladjs/graceful');
 const Cabin = require('cabin');
-require('dotenv').config()
 const logger = require('./util/logging')
 let assistantJob = {
     name: 'auto-assistant',
@@ -11,6 +10,7 @@ let assistantJob = {
 }
 
 if (process.env.NODE_ENV === 'development') {
+    require('dotenv').config()
     assistantJob.interval = '5s';
 } else {
     assistantJob.cron = '*/5 * * * *';
