@@ -29,14 +29,28 @@ VALUES
             'hex'
         ),
         decode('d0374becc33bb6b4ebcf692d90a2e10a', 'hex')
-    )
-;
+    );
+
+INSERT INTO
+    daily_config (
+        "id",
+        "login_info_id",
+        "date",
+        "start_at",
+        "end_at"
+    ) OVERRIDING SYSTEM VALUE
+VALUES
+    (0, 0, '2022-05-01T00:00:00', '12:00', '20:00');
 
 
-INSERT INTO daily_config ("id", "login_info_id", "date", "start_at", "end_at")
-OVERRIDING SYSTEM VALUE
-VALUES  (0, 0, '2022-05-01T00:00:00', '12:00', '20:00')
 
--- id | login_info_id | date | start_at | end_at | automation_type 
-----+---------------+------+----------+--------+-----------------
+INSERT INTO
+    work_week_config ("login_info_id", "day", "start_at", "end_at")
+VALUES
+    (0, 'mon', '12:00', '20:00'),
+    (0, 'tue', '14:00', '24:00'),
+    (0, 'wed', '12:00', '20:00'),
+    (0, 'thu', '20:00', '04:00'),
+    (0, 'fri', '12:00', '20:00');
 
+--  id | login_info_id | day | start_at | end_at 1

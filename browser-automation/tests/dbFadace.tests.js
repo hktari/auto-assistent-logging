@@ -86,4 +86,97 @@ describe('dbFacade', () => {
                 .catch(err => done(err))
         })
     })
+
+
+    describe('getWeeklyConfig()', () => {
+        const weeklyConfigPerUser = {
+            'test': [
+                {
+                    date: new Date(Date.UTC(2022, 7, 1)),
+                    config: {
+                        username: 'test',
+                        startAt: new Date(Date.UTC(2022, 7, 1, 12, 0)),
+                        endAt: new Date(Date.UTC(2022, 7, 1, 20, 0)),
+                        date: new Date(Date.UTC(2022, 7, 1))
+                    }
+                },
+                {
+                    date: new Date(Date.UTC(2022, 7, 2)),
+                    config: {
+                        username: 'test',
+                        startAt: new Date(Date.UTC(2022, 7, 2, 14, 0)),
+                        endAt: new Date(Date.UTC(2022, 7, 2, 24, 0)),
+                        date: new Date(Date.UTC(2022, 7, 2))
+                    }
+                },
+                {
+                    date: new Date(Date.UTC(2022, 7, 3)),
+                    config: {
+                        username: 'test',
+                        startAt: new Date(Date.UTC(2022, 7, 3, 12, 0)),
+                        endAt: new Date(Date.UTC(2022, 7, 3, 20, 0)),
+                        date: new Date(Date.UTC(2022, 7, 3))
+                    }
+                },
+                {
+                    date: new Date(Date.UTC(2022, 7, 4)),
+                    config: {
+                        username: 'test',
+                        startAt: new Date(Date.UTC(2022, 7, 4, 20, 0)),
+                        endAt: new Date(Date.UTC(2022, 7, 5, 4, 0)),
+                        date: new Date(Date.UTC(2022, 7, 4))
+                    }
+                },
+                {
+                    date: new Date(Date.UTC(2022, 7, 5)),
+                    config: {
+                        username: 'test',
+                        startAt: new Date(Date.UTC(2022, 7, 5, 12, 0)),
+                        endAt: new Date(Date.UTC(2022, 7, 5, 20, 0)),
+                        date: new Date(Date.UTC(2022, 7, 5))
+                    }
+                },
+                {
+                    date: new Date(Date.UTC(2022, 7, 6)),
+                    config: null
+                },
+                {
+                    date: new Date(Date.UTC(2022, 7, 7)),
+                    config: null
+                }
+            ]
+        }
+
+
+        it('return value should contain properties', (done) => {
+            db.getWeeklyConfig('test', new Date(Date.UTC(2022, 7, 1)))
+                .then(weeklyConfig => {
+                    expect(weeklyConfig).to.deep.equal(weeklyConfigPerUser['test'][0].config)
+                    done()
+                })
+                .catch(err => done(err))
+        })
+
+        it('return value should be null', (done) => {
+            db.getWeeklyConfig('test2', new Date(Date.UTC(2022, 7, 1)))
+                .then(weeklyConfig => {
+                    expect(weeklyConfig).to.be.null
+                    done()
+                })
+                .catch(err => done(err))
+        })
+
+        let t = new Date();
+        weeklyConfigPerUser['test'].forEach(item => {
+            const expectedConfig = item.config
+            it('return value for weekday: ' + item.date.getDay() + ' should be equal', (done) => {
+                db.getWeeklyConfig('test', item.date)
+                    .then(weeklyConfig => {
+                        expect(weeklyConfig).to.deep.equal(expectedConfig)
+                        done()
+                    })
+                    .catch(err => done(err))
+            })
+        })
+    })
 })

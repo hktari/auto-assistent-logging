@@ -48,7 +48,7 @@ async function getWeeklyConfig(username, date) {
                                         WHERE li.username = $1 AND LOWER(wwc.day) = $2;`, [username, today])
     if (queryResult.rowCount > 0) {
         const firstRow = queryResult.rows[0];
-        return new WorkdayConfig(firstRow.username, firstRow.start_at, firstRow.end_at, date, WORKDAY_CONFIG_AUTOMATION_TYPE.AUTOMATE);
+        return new WorkdayConfig(firstRow.username, firstRow.start_at, firstRow.end_at, date);
     } else {
         return null;
     }
