@@ -104,11 +104,9 @@ VALUES
         'CONFIG_TYPE_DAILY'
     );
 
-
 /* -------------------------------------------------------------------------- */
 /*                            auto-assistant-test-data                        */
 /* -------------------------------------------------------------------------- */
-
 INSERT INTO
     daily_config (
         "login_info_id",
@@ -123,8 +121,9 @@ INSERT INTO
     work_week_exception ("work_week_config_id", "date", "action")
 VALUES
     (0, '2022-08-17T00:00:00', 'start_btn'),
-    (0, '2022-08-17T00:00:00', 'stop_btn');
-
+    (0, '2022-08-17T00:00:00', 'stop_btn'),
+    (0, '2022-08-18T00:00:00', 'start_btn'),
+    (0, '2022-08-18T00:00:00', 'stop_btn');
 
 INSERT INTO
     log_entry (
