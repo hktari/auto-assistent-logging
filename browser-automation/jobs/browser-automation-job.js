@@ -1,11 +1,6 @@
-const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig, CONFIG_TYPE } = require('../interface')
 const db = require('../dbFacade')
-const { executeAction, MDDSZApiError } = require('../mddsz-api');
-
 const logger = require('../util/logging')
 const { parentPort } = require('worker_threads');
-const { exit } = require('process');
-const { getActionsForDate, AutomationActionResult } = require('../util/actions');
 const { handleAutomationForUser, logAutomationResult } = require('../auto-assistant');
 
 // store boolean if the job is cancelled
@@ -66,7 +61,7 @@ if (parentPort) {
         logger.info('end')
         parentPort.postMessage(jobError ?? 'done');
         if (jobError) {
-            exit(1)
+            process.exit(1)
         }
     } else {
         process.exit(0);
