@@ -113,7 +113,7 @@ async function getLogEntries(username, date) {
         `SELECT li.username, le.status, le.timestamp, le.error, le.message, le.action, le.config_type
         FROM log_entry le JOIN login_info li ON le.login_info_id = li.id
         WHERE li.username = $1 
-        AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}'); `, [username])
+        AND DATE_TRUNC('day', le.timestamp) = DATE_TRUNC('day', date '${date.toISOString()}'); `, [username])
 
     return queryResult.rows.map(row => new LogEntry(row.username, row.status, row.timestamp, row.error, row.message, row.action, row.config_type));
 }
@@ -126,7 +126,7 @@ async function anyLogEntryOfType(login_info_id, status, action, date) {
         WHERE le.login_info_id = $1 
         AND action = $2
         AND status = $3
-        AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}'); `, [login_info_id, action, status])
+        AND DATE_TRUNC('day', le.timestamp) = DATE_TRUNC('day', date '${date.toISOString()}'); `, [login_info_id, action, status])
     return +queryResult.rows[0].count > 0
 }
 

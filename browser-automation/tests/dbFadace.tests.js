@@ -347,6 +347,15 @@ describe('dbFacade', () => {
                 })
                 .catch(err => done(err))
         })
+
+        it('different month, same day returns empty', (done) => {
+            db.getLogEntries('test', new Date(Date.UTC(2022, 2, 1)))
+                .then(logEntries => {
+                    expect(logEntries).to.be.empty
+                    done()
+                })
+                .catch(err => done(err))
+        })
     })
 
     describe('addLogEntry()', () => {
