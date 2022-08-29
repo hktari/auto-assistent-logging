@@ -2,24 +2,22 @@ const db = require('../dbFacade')
 const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface')
 
 class AutomationAction {
-    // todo: remove message
-    constructor(user, action, configType, dueAt, message) {
+    constructor(user, action, configType, dueAt) {
         this.user = user;
         this.actionType = action;
         this.configType = configType;
         this.dueAt = dueAt;
-        this.message = message
     }
 
 
     timeToExecute(time) {
         const thresholdMinutes = 5
         const bufferInRangeMs = 5000; // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
-        const timeDiff = Math.abs(time.getTime() - dueDate.getTime())
+        const timeDiff = Math.abs(time.getTime() - this.dueAt.getTime())
 
         return timeDiff <= bufferInRangeMs ||
             // add a buffer of ${thresholdMinutes} after ${dueDate} in which the action is still executed
-            (time.getTime() >= dueDate.getTime() && timeDiff < (thresholdMinutes * 60 * 1000))
+            (time.getTime() >= this.dueAt.getTime() && timeDiff < (thresholdMinutes * 60 * 1000))
     }
 }
 
@@ -46,8 +44,17 @@ async function getActionsForDate(username, date) {
 }
 
 class AutomationActionResult extends AutomationAction {
-    constructor(automationAction, message, error) {
-        super(automationAction.username, automationAction.action, automationAction.configType, automationAction.dueAt)
+
+    /**
+     * @param {getUsers() return} user 
+     * @param {AUTOMATE_ACTION} action 
+     * @param {CONFIG_TYPE} configType 
+     * @param {Date} dueAt 
+     * @param {string} message 
+     * @param {string} error 
+     */
+    constructor(user, action, configType, dueAt, message, error) {
+        super(user, action, configType, dueAt)
         this.message = message;
         this.error = error
     }

@@ -3,7 +3,7 @@ const logger = require('./util/logging')
 const { getActionsForDate, AutomationActionResult } = require('./util/actions');
 const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig, CONFIG_TYPE } = require('./interface')
 
-
+const db = require('./dbFacade')
 
 // Filter out exceptions made for weekly configuration
 function _filterThroughExceptions(actionsList, exceptions) {
@@ -27,7 +27,7 @@ function _filterOutAlreadyExecuted(actionsList, logEntries) {
  * @param {Date} time the current time
  * @returns {Promise<AutomationActionResult>[]}
  */
-function handleAutomationForUser(user, time) {
+async function handleAutomationForUser(user, time) {
     logger.info('\n' + '*'.repeat(50))
     logger.debug('processing user: ' + user.email)
     let actionsPlannedToday = await getActionsForDate(user.username, time)
@@ -40,6 +40,11 @@ function handleAutomationForUser(user, time) {
     logger.debug('filtering out already executed actions');
     actionsPlannedToday = _filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
 
+    // todo: if time < 8:00 AM retrieve config for prev. day as well
+
+
+    // todo: 
+
     let actionPromises = [];
     for (const action of actionsPlannedToday) {
         logger.debug('considering executing ' + action + ' ...')
@@ -48,7 +53,7 @@ function handleAutomationForUser(user, time) {
                 new Promise((resolve, reject) => {
                     executeAction(user.username, user.password, action.actionType)
                         .then(result => {
-                            resolve(new AutomationActionResult(action, result, null))
+                            resolve(new AutomationActionResult(action.user, action.action, action.configType, action.dueAt, result, null))
                         })
                         .catch(err => {
                             reject(new AutomationActionResult(action, null, err))
@@ -57,7 +62,10 @@ function handleAutomationForUser(user, time) {
         }
     }
 
-    return actionPromises;
+    const actionResults = await Promise.allSettled(actionPromises)
+
+    // extract AutomationActionResult
+    return actionResults.map(result => result.status === 'fulfilled' ? result.value : result.reason)
 }
 
 
