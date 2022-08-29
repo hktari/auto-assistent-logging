@@ -190,11 +190,11 @@ describe('auto-assistant.js', () => {
                 AUTOMATE_ACTION.STOP_BTN,
                 CONFIG_TYPE.WEEKLY,
                 new Date(Date.UTC(2022, 7, 26, 4, 0)),
-                null,
+                'Successfuly executed stop_btn action',
                 null);
 
             executeActionStub.reset()
-            executeActionStub.returns(Promise.resolve('success'))
+            executeActionStub.returns(Promise.resolve(yesterdayWeeklyAction.message))
 
             autoAssistant.handleAutomationForUser(testUser, yesterdayWeeklyAction.dueAt)
                 .then(actionResults => {

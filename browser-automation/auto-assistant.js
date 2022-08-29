@@ -27,36 +27,45 @@ function _filterOutAlreadyExecuted(actionsList, logEntries) {
     })
 }
 
-/**
- * Checks the database for any pending automation actions for the given user and time.
- * @param {User} user the user object
- * @param {Date} time the current time
- * @returns {Promise<AutomationActionResult>[]}
- */
-async function handleAutomationForUser(user, time) {
-    logger.info('\n' + '*'.repeat(50))
-    logger.debug('processing user: ' + user.email)
-    let actionsPlannedToday = await getActionsForDate(user, time)
 
-    const workweekExceptions = await db.getWorkweekExceptions(user.username, time)
+async function _getAndFilterActionsForDate(user, datetime) {
+    let actionsPlannedToday = await getActionsForDate(user, datetime)
+
+    const workweekExceptions = await db.getWorkweekExceptions(user.username, datetime)
     logger.debug('filtering out actions with weekly exceptions');
     actionsPlannedToday = _filterThroughExceptions(actionsPlannedToday, workweekExceptions)
     logger.debug(actionsPlannedToday.length + ' left')
 
-    const logEntriesToday = await db.getLogEntries(user.username, time)
+    const logEntriesToday = await db.getLogEntries(user.username, datetime)
     logger.debug('filtering out already executed actions');
     actionsPlannedToday = _filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
     logger.debug(actionsPlannedToday.length + ' left')
 
-    // todo: if time < 8:00 AM retrieve config for prev. day as well
+    return actionsPlannedToday
+}
 
+/**
+ * Checks the database for any pending automation actions for the given user and time.
+ * @param {User} user the user object
+ * @param {Date} datetime the current time
+ * @returns {Promise<AutomationActionResult>[]}
+ */
+async function handleAutomationForUser(user, datetime) {
+    logger.info('\n' + '*'.repeat(50))
+    logger.debug('processing user: ' + user.email)
 
-    // todo: 
+    let actionsPlannedToday = await _getAndFilterActionsForDate(user, datetime)
+
+    if (datetime.getUTCHours() <= 8) {
+        const yesterday = new Date(datetime)
+        yesterday.setUTCDate(yesterday.getUTCDate() - 1)
+        actionsPlannedToday = actionsPlannedToday.concat(await _getAndFilterActionsForDate(user, yesterday))
+    }
 
     let actionPromises = [];
     for (const action of actionsPlannedToday) {
         logger.debug('considering executing ' + action + ' ...')
-        if (action.timeToExecute(time)) {
+        if (action.timeToExecute(datetime)) {
             actionPromises.push(
                 new Promise((resolve, reject) => {
                     executeAction(user.username, user.password, action.actionType)
