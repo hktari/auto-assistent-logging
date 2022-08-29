@@ -5,7 +5,8 @@ const { executeAction, MDDSZApiError } = require('../mddsz-api');
 const logger = require('../util/logging')
 const { parentPort } = require('worker_threads');
 const { exit } = require('process');
-const { getActionsForDate } = require('../util/actions');
+const { getActionsForDate, AutomationActionResult } = require('../util/actions');
+const { handleAutomationForUser } = require('../auto-assistant');
 
 // store boolean if the job is cancelled
 let isCancelled = false;
@@ -23,97 +24,32 @@ if (parentPort) {
 }
 
 
-
-// Filter out exceptions made for weekly configuration
-function filterThroughExceptions(actionsList, exceptions) {
-    return actionsList.filter(action => {
-        return action.configType === CONFIG_TYPE.DAILY
-            || (action.configType === CONFIG_TYPE.WEEKLY && !exceptions.some(ex => ex.action === action.actionType))
-    })
-}
-
-function filterOutAlreadyExecuted(actionsList, logEntries) {
-    return actionsList.filter(action => {
-        return logEntries.some(le => {
-            return le.action === action.actionType && action.configType === le.configType
-        })
-    })
-}
-
-/**
- * Checks the database for any pending automation actions for the given user and time.
- * @param {User} user the user object
- * @param {Date} time the current time
- * @returns {Promise<AutomationAction>[]}
- */
-function handleAutomationForUser(user, time) {
-
-}
-
 (async () => {
     let jobError = null;
     try {
         logger.info(`${'-'.repeat(50)}`)
         logger.info('start')
+
         const usersToAutomate = await db.getUsers();
         logger.info(`got ${usersToAutomate.length} users`)
 
-        let actionPromises = [];
-        logger.info("time: " + new Date().toUTCString())
+        const curTime = new Date();
+        logger.info("time: " + curTime.toUTCString())
 
+
+        const automationActionsList = []
         for (const user of usersToAutomate) {
-
-            // todo: move this code into a function
-
-            logger.info('\n' + '*'.repeat(50))
-            logger.debug('processing user: ' + user.email)
-            logger.debug(JSON.stringify(user))
-            const now = new Date()
-
-            let actionsPlannedToday = await getActionsForDate(user.username, now)
-
-            const workweekExceptions = await db.getWorkweekExceptions(user.username, date)
-            logger.debug('filtering out actions with weekly exceptions');
-            actionsPlannedToday = filterThroughExceptions(actionsPlannedToday, workweekExceptions)
-
-            const logEntriesToday = await db.getLogEntries(user.username, date)
-            logger.debug('filtering out already executed actions');
-            actionsPlannedToday = filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
-
-            if (selectedConfig === null) {
+            const automationActionsForUser = handleAutomationForUser(user, curTime)
+            if (automationActionsForUser.length === 0) {
                 logger.debug(`User ${user.username}. No configurations found`)
-                continue;
-            }
-
-            for (const action of actionsPlannedToday) {
-
-                logger.debug('considering executing ' + action + ' ...')
-                if (action.timeToExecute(now)) {
-                    actionPromises.push(
-                        new Promise((resolve, reject) => {
-                            executeAction(user.username, user.password, action.actionType)
-                                .then(result => {
-                                    resolve({
-                                        user: user,
-                                        action: action,
-                                        result
-                                    })
-                                })
-                                .catch(err => {
-                                    reject({
-                                        user: user,
-                                        action: action,
-                                        err
-                                    })
-                                })
-                        }))
-                }
+            } else {
+                automationActionsList.push(automationActionsForUser)
             }
         }
 
         // todo: map PromiseSettledResult to AutomationActionResult 
 
-        const actionResults = await Promise.allSettled(actionPromises)
+        const actionResults = await Promise.allSettled(automationActionsList)
 
         for (const actionResult of actionResults) {
             const successful = actionResult.status === 'fulfilled'

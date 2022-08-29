@@ -3,8 +3,8 @@ const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface')
 
 class AutomationAction {
     // todo: remove message
-    constructor(username, action, configType, dueAt, message) {
-        this.username = username;
+    constructor(user, action, configType, dueAt, message) {
+        this.user = user;
         this.actionType = action;
         this.configType = configType;
         this.dueAt = dueAt;
@@ -60,5 +60,6 @@ class AutomationActionResult extends AutomationAction {
 
 module.exports = {
     AutomationAction,
+    AutomationActionResult,
     getActionsForDate
 }

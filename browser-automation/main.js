@@ -4,7 +4,7 @@ const Bree = require('bree');
 const Cabin = require('cabin');
 const logger = require('./util/logging')
 let assistantJob = {
-    name: 'auto-assistant',
+    name: 'browser-automation-job',
     // run on start as well
     // timeout: 0
 }
