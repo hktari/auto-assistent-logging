@@ -139,9 +139,18 @@ VALUES
     (
         0,
         'successful',
-        '2022-08-16T12:00:00',
+        '2022-08-16T14:00:00',
         NULL,
         'Sucessfully executed start_btn action',
         'start_btn',
+        'CONFIG_TYPE_WEEKLY'
+    ),
+    (
+        0,
+        'successful',
+        '2022-09-02T04:00:00',
+        NULL,
+        'Sucessfully executed stop_btn action',
+        'stop_btn',
         'CONFIG_TYPE_WEEKLY'
     );

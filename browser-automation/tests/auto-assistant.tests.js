@@ -101,7 +101,7 @@ describe('auto-assistant.js', () => {
             new AutomationAction(testUser, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY, new Date(Date.UTC(2022, 7, 15, 12, 0))),
             new AutomationAction(testUser, AUTOMATE_ACTION.STOP_BTN, CONFIG_TYPE.DAILY, new Date(Date.UTC(2022, 7, 15, 20, 0))),
         ]
-        const logEntries = [new LogEntry('test', LOG_ENTRY_STATUS.SUCCESSFUL, new Date(Date.UTC(2022, 7, 15, 12, 0)), null, 'successful', AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY)]
+        const logEntries = [new LogEntry('test', LOG_ENTRY_STATUS.SUCCESSFUL, new Date(2022, 7, 15, 12, 0), null, 'successful', AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY)]
 
         it('should not return the entry existing in both lists', () => {
             const filtered = autoAssistant._filterOutAlreadyExecuted(actions, logEntries)
@@ -184,26 +184,49 @@ describe('auto-assistant.js', () => {
         })
 
 
-        it('when time is less than 8AM, weekly stop_btn action from previous day is returned', (done) => {
-            const yesterdayWeeklyAction = new AutomationActionResult(
-                testUser,
-                AUTOMATE_ACTION.STOP_BTN,
-                CONFIG_TYPE.WEEKLY,
-                new Date(Date.UTC(2022, 7, 26, 4, 0)),
-                'Successfuly executed stop_btn action',
-                null);
+        describe('when time is less than 8AM', () => {
+            it('weekly stop_btn action from previous day is returned', (done) => {
+                const yesterdayWeeklyAction = new AutomationActionResult(
+                    testUser,
+                    AUTOMATE_ACTION.STOP_BTN,
+                    CONFIG_TYPE.WEEKLY,
+                    new Date(Date.UTC(2022, 7, 26, 4, 0)),
+                    'Successfuly executed stop_btn action',
+                    null);
 
-            executeActionStub.reset()
-            executeActionStub.returns(Promise.resolve(yesterdayWeeklyAction.message))
+                executeActionStub.reset()
+                executeActionStub.returns(Promise.resolve(yesterdayWeeklyAction.message))
 
-            autoAssistant.handleAutomationForUser(testUser, yesterdayWeeklyAction.dueAt)
-                .then(actionResults => {
-                    expect(executeActionStub.calledOnce, 'executeAction() was called').to.be.true
-                    expect(actionResults).to.have.lengthOf(1)
-                    expect(actionResults[0]).to.deep.equal(yesterdayWeeklyAction)
-                    done()
-                })
-                .catch(err => done(err))
+                autoAssistant.handleAutomationForUser(testUser, yesterdayWeeklyAction.dueAt)
+                    .then(actionResults => {
+                        expect(executeActionStub.calledOnce, 'executeAction() was called').to.be.true
+                        expect(actionResults).to.have.lengthOf(1)
+                        expect(actionResults[0]).to.deep.equal(yesterdayWeeklyAction)
+                        done()
+                    })
+                    .catch(err => done(err))
+            })
+
+            it('and already executed stop_btn from previous day, empty is returned', (done) => {
+                const yesterdayWeeklyActionExecuted = new AutomationActionResult(
+                    testUser,
+                    AUTOMATE_ACTION.STOP_BTN,
+                    CONFIG_TYPE.WEEKLY,
+                    new Date(Date.UTC(2022, 8, 2, 4, 0)),
+                    null,
+                    null);
+
+                executeActionStub.reset()
+                executeActionStub.returns(Promise.resolve(yesterdayWeeklyActionExecuted.message))
+
+                autoAssistant.handleAutomationForUser(testUser, yesterdayWeeklyActionExecuted.dueAt)
+                    .then(actionResults => {
+                        expect(executeActionStub.calledOnce, 'executeAction() was called').to.be.false
+                        expect(actionResults).to.have.lengthOf(0)
+                        done()
+                    })
+                    .catch(err => done(err))
+            })
         })
 
         // it('for date when daily automation action exists, it should return daily automation action', (done) => {

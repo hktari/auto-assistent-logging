@@ -13,6 +13,11 @@ function _filterThroughExceptions(actionsList, exceptions) {
     })
 }
 
+function _datetimeRangeCompare(datetimeFirst, datetimeSecond, rangeMs = 60000) {
+    logger.debug(`comparing  ${datetimeFirst.toUTCString()} : ${datetimeSecond.toUTCString()} `)
+    return Math.abs(datetimeFirst.getTime() - datetimeSecond.getTime()) <= rangeMs
+}
+
 /**
  * filters the @param actionsList based on whether there is an entry inside @param logEntries
  * @param {AutomationAction[]} actionsList 
@@ -22,26 +27,22 @@ function _filterThroughExceptions(actionsList, exceptions) {
 function _filterOutAlreadyExecuted(actionsList, logEntries) {
     return actionsList.filter(action => {
         return !logEntries.some(le => {
-            return le.action === action.actionType && action.configType === le.configType
+            return le.action === action.actionType && action.configType === le.configType && _datetimeRangeCompare(action.dueAt, le.timestamp)
         })
     })
 }
 
 
 async function _getAndFilterActionsForDate(user, datetime) {
-    let actionsPlannedToday = await getActionsForDate(user, datetime)
+    logger.debug('processing for datetime: ' + datetime.toUTCString())
+    let actionsForDate = await getActionsForDate(user, datetime)
 
     const workweekExceptions = await db.getWorkweekExceptions(user.username, datetime)
     logger.debug('filtering out actions with weekly exceptions');
-    actionsPlannedToday = _filterThroughExceptions(actionsPlannedToday, workweekExceptions)
-    logger.debug(actionsPlannedToday.length + ' left')
+    actionsForDate = _filterThroughExceptions(actionsForDate, workweekExceptions)
+    logger.debug(actionsForDate.length + ' left')
 
-    const logEntriesToday = await db.getLogEntries(user.username, datetime)
-    logger.debug('filtering out already executed actions');
-    actionsPlannedToday = _filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
-    logger.debug(actionsPlannedToday.length + ' left')
-
-    return actionsPlannedToday
+    return actionsForDate
 }
 
 /**
@@ -61,6 +62,13 @@ async function handleAutomationForUser(user, datetime) {
         yesterday.setUTCDate(yesterday.getUTCDate() - 1)
         actionsPlannedToday = actionsPlannedToday.concat(await _getAndFilterActionsForDate(user, yesterday))
     }
+
+
+    let logEntriesToday = await db.getLogEntries(user.username, datetime)
+    logger.debug('filtering out already executed actions');
+    actionsPlannedToday = _filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
+    logger.debug(actionsPlannedToday.length + ' left')
+
 
     let actionPromises = [];
     for (const action of actionsPlannedToday) {
