@@ -1,5 +1,6 @@
 const db = require('../dbFacade')
-const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface')
+const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface');
+const logger = require('./logging');
 
 class AutomationAction {
     constructor(user, action, configType, dueAt) {
@@ -19,25 +20,30 @@ class AutomationAction {
             // add a buffer of ${thresholdMinutes} after ${dueDate} in which the action is still executed
             (time.getTime() >= this.dueAt.getTime() && timeDiff < (thresholdMinutes * 60 * 1000))
     }
+
+    toString(){
+        return `\t${this.user.username}\t${this.actionType}\t${this.configType}\t${this.dueAt.toUTCString()}`
+    }
 }
 
-async function getActionsForDate(username, date) {
+async function getActionsForDate(user, date) {
     const actionsList = []
 
-    const dailyConfig = await db.getDailyConfig(username, date)
-    if (dailyConfig?.startAt !== null) {
-        actionsList.push(new AutomationAction(dailyConfig.username, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY, dailyConfig.startAt, undefined))
+    const dailyConfig = await db.getDailyConfig(user.username, date)
+    logger.debug(JSON.stringify(dailyConfig))
+    if (dailyConfig?.startAt) {
+        actionsList.push(new AutomationAction(user, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY, dailyConfig.startAt, undefined))
     }
-    if (dailyConfig?.endAt !== null) {
-        actionsList.push(new AutomationAction(dailyConfig.username, AUTOMATE_ACTION.STOP_BTN, CONFIG_TYPE.DAILY, dailyConfig.endAt, undefined))
+    if (dailyConfig?.endAt) {
+        actionsList.push(new AutomationAction(user, AUTOMATE_ACTION.STOP_BTN, CONFIG_TYPE.DAILY, dailyConfig.endAt, undefined))
     }
 
-    const weeklyConfig = await db.getWeeklyConfig(username, date)
-    if (weeklyConfig?.startAt !== null) {
-        actionsList.push(new AutomationAction(weeklyConfig.username, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.WEEKLY, weeklyConfig.startAt, undefined))
+    const weeklyConfig = await db.getWeeklyConfig(user.username, date)
+    if (weeklyConfig?.startAt) {
+        actionsList.push(new AutomationAction(user, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.WEEKLY, weeklyConfig.startAt, undefined))
     }
-    if (weeklyConfig?.endAt !== null) {
-        actionsList.push(new AutomationAction(weeklyConfig.username, AUTOMATE_ACTION.STOP_BTN, CONFIG_TYPE.WEEKLY, weeklyConfig.endAt, undefined))
+    if (weeklyConfig?.endAt) {
+        actionsList.push(new AutomationAction(user, AUTOMATE_ACTION.STOP_BTN, CONFIG_TYPE.WEEKLY, weeklyConfig.endAt, undefined))
     }
 
     return actionsList;
