@@ -110,12 +110,12 @@ async function addLogEntry(login_info_id, status, timestamp, error, message, act
  */
 async function getLogEntries(username, date) {
     const queryResult = await db.query(
-        `SELECT li.username, le.status, le.timestamp, le.error, le.message, le.action, le.config_type as configType
+        `SELECT li.username, le.status, le.timestamp, le.error, le.message, le.action, le.config_type
         FROM log_entry le JOIN login_info li ON le.login_info_id = li.id
         WHERE li.username = $1 
         AND date_part('day', le.timestamp) = date_part('day', date '${date.toISOString()}'); `, [username])
 
-    return queryResult.rows.map(row => new LogEntry(row.username, row.staus, row.timestamp, row.error, row.message, row.action, row.configType));
+    return queryResult.rows.map(row => new LogEntry(row.username, row.status, row.timestamp, row.error, row.message, row.action, row.config_type));
 }
 
 /** NO TEST */

@@ -63,4 +63,45 @@ VALUES
     (0, '2022-08-07T00:00:00', 'start_btn'),
     (0, '2022-08-07T00:00:00', 'stop_btn'),
     (1, '2022-08-08T00:00:00', 'start_btn'),
-    (1, '2022-08-08T00:00:00', 'stop_btn')
+    (1, '2022-08-08T00:00:00', 'stop_btn');
+
+INSERT INTO
+    log_entry (
+        "login_info_id",
+        "status",
+        "timestamp",
+        "error",
+        "message",
+        "action",
+        "config_type"
+    )
+VALUES
+    (
+        0,
+        'successful',
+        '2022-08-01T14:00:00',
+        NULL,
+        'Sucessfully executed start_btn action',
+        'start_btn',
+        'CONFIG_TYPE_WEEKLY'
+    ),
+    (
+        0,
+        'successful',
+        '2022-08-01T22:00:00',
+        NULL,
+        'Sucessfully executed stop_btn action',
+        'stop_btn',
+        'CONFIG_TYPE_WEEKLY'
+    ),
+    (
+        0,
+        'failed',
+        '2022-08-02T14:00:00',
+        'Failed to execute start_btn action',
+        null,
+        'start_btn',
+        'CONFIG_TYPE_DAILY'
+    );
+
+--  id | login_info_id | status | timestamp | error | message | action | config_type

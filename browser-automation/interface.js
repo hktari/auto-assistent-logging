@@ -15,11 +15,6 @@ const LOG_ENTRY_STATUS = Object.freeze({
     FAILED: 'failed'
 })
 
-const WORKDAY_CONFIG_AUTOMATION_TYPE = Object.freeze({
-    AUTOMATE: 'automate',
-    NO_AUTOMATE: 'no_automate' // don't do automation for that day despite weekly config
-})
-
 class WorkweekException {
     constructor(username, date, action) {
         this.username = username;
@@ -36,11 +31,16 @@ class LogEntry {
     constructor(username, status, timestamp, error, message, action, configType) {
         this.username = username
         this.status = status
-        this.timestamp = timestamp
         this.error = error
         this.message = message
         this.action = action
         this.configType = configType
+        
+        if (timestamp instanceof Date) {
+            this.timestamp = new Date(Date.UTC(timestamp.getFullYear(), timestamp.getMonth(), timestamp.getDate(), timestamp.getHours(), timestamp.getMinutes(), timestamp.getSeconds()))
+        } else {
+            this.timestamp = new Date(Date.parse(timestamp))
+        }
     }
 }
 class WorkdayConfig {
@@ -108,7 +108,6 @@ class WorkdayConfig {
 module.exports = {
     AUTOMATE_ACTION,
     LOG_ENTRY_STATUS,
-    WORKDAY_CONFIG_AUTOMATION_TYPE,
     CONFIG_TYPE,
     WorkweekException,
     LogEntry,

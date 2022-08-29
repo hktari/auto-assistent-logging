@@ -1,8 +1,11 @@
+const chai = require('chai')
 const { assert, expect } = require("chai");
 const { DESTRUCTION } = require("dns");
 const { describe, it } = require("mocha");
 const { db } = require("../database");
-const { AUTOMATE_ACTION } = require("../interface");
+const { AUTOMATE_ACTION, LOG_ENTRY_STATUS, CONFIG_TYPE } = require("../interface");
+
+chai.config.truncateThreshold = 0
 
 describe('dbFacade', () => {
 
@@ -253,9 +256,54 @@ describe('dbFacade', () => {
     })
 
     describe('getLogEntry()', () => {
+        const logEntriesPerUser = {
+            'test': [
+                {
+                    username: 'test',
+                    status: LOG_ENTRY_STATUS.SUCCESSFUL,
+                    error: null,
+                    message: 'Sucessfully executed start_btn action',
+                    action: AUTOMATE_ACTION.START_BTN,
+                    configType: CONFIG_TYPE.WEEKLY,
+                    timestamp: new Date(Date.UTC(2022, 7, 1, 14, 0)),
+                },
+                {
+                    username: 'test',
+                    status: LOG_ENTRY_STATUS.SUCCESSFUL,
+                    error: null,
+                    message: 'Sucessfully executed stop_btn action',
+                    action: AUTOMATE_ACTION.STOP_BTN,
+                    configType: CONFIG_TYPE.WEEKLY,
+                    timestamp: new Date(Date.UTC(2022, 7, 1, 22, 0)),
+                },
+                {
+                    username: 'test',
+                    status: LOG_ENTRY_STATUS.FAILED,
+                    timestamp: new Date(Date.UTC(2022, 7, 2, 8, 0)),
+                    error: 'Failed to execute start_btn action',
+                    message: null,
+                    action: AUTOMATE_ACTION.START_BTN,
+                    configType: CONFIG_TYPE.DAILY
+                },
+            ]
+        }
 
         it('should return an object with all properties', (done) => {
-            assert(false)
+            const time = new Date(Date.UTC(2022, 7, 1))
+            db.getLogEntries('test', time)
+                .then(logEntries => {
+                    expect(logEntries).to.have.lengthOf(2)
+
+                    const startBtnLE = logEntries.filter(le => le.action === AUTOMATE_ACTION.START_BTN)
+                    expect(startBtnLE).to.deep.include(logEntriesPerUser['test'][0])
+
+                    const stopBtnLE = logEntries.filter(le => le.action === AUTOMATE_ACTION.STOP_BTN)
+                    expect(stopBtnLE).to.deep.include(logEntriesPerUser['test'][1])
+
+
+                    done()
+                })
+                .catch(err => done(err))
         })
 
         it('should return the newly added log entry', (done) => {
@@ -264,6 +312,12 @@ describe('dbFacade', () => {
 
         it('should return an empty array for another user', (done) => {
             assert(false)
+        })
+    })
+
+    describe('addLogEntry()', () => {
+        it('should return a rowcount of 1', (done) => {
+            done()
         })
     })
 })
