@@ -98,7 +98,6 @@ async function handleAutomationForUser(user, datetime) {
  * @param {AutomationActionResult} automationResult 
  */
 async function logAutomationResult(automationResult) {
-    let insertCnt = 0;
     let logEntryStatus = null;
 
     if (!automationResult.error) {
@@ -110,15 +109,14 @@ async function logAutomationResult(automationResult) {
     }
 
     logger.debug('adding log entry...')
-    insertCnt += await db.addLogEntry(
+    return db.addLogEntry(
         automationResult.user.login_info_id,
         logEntryStatus,
         automationResult.dueAt,
-        automationResult.error.toString(),
+        automationResult.error?.toString(),
         automationResult.message,
-        automationResult.actionType)
-
-    return insertCnt
+        automationResult.actionType,
+        automationResult.configType)
 }
 
 

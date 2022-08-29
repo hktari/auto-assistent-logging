@@ -263,4 +263,57 @@ describe('auto-assistant.js', () => {
                 .catch(err => done(err))
         })
     })
+
+    describe('logAutomationResult()', () => {
+        it('should return 1 when valid', (done) => {
+            const validAutomationResult = new AutomationActionResult(testUser, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.WEEKLY, new Date(Date.UTC(2022, 10, 1, 12, 0)), 'Successfuly executed start_btn action')
+
+            autoAssistant.logAutomationResult(validAutomationResult)
+                .then(insertCnt => {
+                    expect(insertCnt).to.equal(1)
+                    done()
+                })
+                .catch(err => done(err))
+        })
+        it('expect logEntries() to return newly added', (done) => {
+            const newlyAdded = new LogEntry(
+                testUser.username,
+                LOG_ENTRY_STATUS.SUCCESSFUL,
+                new Date(Date.UTC(2022, 10, 2, 12, 0)),
+                null,
+                'Successfuly executed start_btn action',
+                AUTOMATE_ACTION.START_BTN,
+                CONFIG_TYPE.WEEKLY,
+            )
+
+            const db = require('../dbFacade')
+            autoAssistant.logAutomationResult(new AutomationActionResult(testUser, newlyAdded.action, newlyAdded.configType, newlyAdded.timestamp, newlyAdded.message, newlyAdded.error))
+                .then(_ => {
+                    return db.getLogEntries(testUser.username, newlyAdded.timestamp)
+                        .then(logEntries => {
+                            expect(logEntries).to.deep.contain(newlyAdded)
+                            done()
+                        })
+                })
+                .catch(err => done(err))
+        })
+        // todo: implement
+        // it('should throw error when invalid', (done) => {
+        //     const invalidAutomationResult = new AutomationActionResult(
+        //         testUser,
+        //         AUTOMATE_ACTION.START_BTN,
+        //         CONFIG_TYPE.WEEKLY,
+        //         new Date(Date.UTC(2022, 10, 1, 12, 0)),
+        //         'Successfuly executed start_btn action')
+
+        //     autoAssistant.logAutomationResult(invalidAutomationResult)
+        //         .then(insertCnt => {
+        //             expect(insertCnt, 'expecting exception').to.equal(0)
+        //             done(true)
+        //         })
+        //         .catch(err => {
+        //             done()
+        //         })
+        // })
+    })
 })
