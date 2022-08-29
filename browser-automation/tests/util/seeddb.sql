@@ -104,4 +104,46 @@ VALUES
         'CONFIG_TYPE_DAILY'
     );
 
---  id | login_info_id | status | timestamp | error | message | action | config_type
+
+/* -------------------------------------------------------------------------- */
+/*                            auto-assistant-test-data                        */
+/* -------------------------------------------------------------------------- */
+
+-- INSERT INTO
+--     daily_config (
+--         "id",
+--         "login_info_id",
+--         "date",
+--         "start_at",
+--         "end_at"
+--     ) OVERRIDING SYSTEM VALUE
+-- VALUES
+--     (0, 0, '2022-05-01T00:00:00', '12:00', '20:00');
+
+INSERT INTO
+    work_week_exception ("work_week_config_id", "date", "action")
+VALUES
+    (0, '2022-08-17T00:00:00', 'start_btn'),
+    (0, '2022-08-17T00:00:00', 'stop_btn');
+
+
+INSERT INTO
+    log_entry (
+        "login_info_id",
+        "status",
+        "timestamp",
+        "error",
+        "message",
+        "action",
+        "config_type"
+    )
+VALUES
+    (
+        0,
+        'successful',
+        '2022-08-16T12:00:00',
+        NULL,
+        'Sucessfully executed start_btn action',
+        'start_btn',
+        'CONFIG_TYPE_WEEKLY'
+    );

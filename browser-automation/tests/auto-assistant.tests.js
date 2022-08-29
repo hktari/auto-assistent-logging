@@ -106,17 +106,6 @@ describe('auto-assistant.js', () => {
                 .catch(err => done(err))
         })
 
-        // it('for date when no automation action exists, it should return an empty array', (done) => {
-
-        // })
-
-        // it('for date when weekly exception, it should not return weekly automation action', (done) => {
-
-        // })
-
-        // it('for date when action already executed, it should not return automation action', (done) => {
-
-        // })
 
         // it('for date when daily automation action exists, it should return daily automation action', (done) => {
 
@@ -129,5 +118,35 @@ describe('auto-assistant.js', () => {
         // it('for date when daily and weekly automation action exist, it should return daily automation action', (done) => {
 
         // })
+
+        it('for date when no automation action exists, it should return an empty array', (done) => {
+            const noAutomationDatetime = new Date(Date.UTC(2022, 7, 20)) // saturday
+            autoAssistant.handleAutomationForUser(testUser, noAutomationDatetime)
+                .then(actionResults => {
+                    expect(actionResults).to.have.lengthOf(0)
+                    done()
+                })
+                .catch(err => done(err))
+        })
+
+        it('for date when weekly exception, it should not return weekly automation action', (done) => {
+            const exceptionDatetime = new Date(Date.UTC(2022, 7, 17, 12, 0))
+            autoAssistant.handleAutomationForUser(testUser, exceptionDatetime)
+                .then(actionResults => {
+                    expect(actionResults, 'no actions returned').to.have.lengthOf(0)
+                    done()
+                })
+                .catch(err => done(err))
+        })
+
+        it('for date when action already executed, it should not return automation action', (done) => {
+            const alreadyExecutedDatetime = new Date(Date.UTC(2022, 7, 16, 14, 0))
+            autoAssistant.handleAutomationForUser(testUser, alreadyExecutedDatetime)
+                .then(actionResults => {
+                    expect(actionResults).to.have.lengthOf(0)
+                    done()
+                })
+                .catch(err => done(err))
+        })
     })
 })
