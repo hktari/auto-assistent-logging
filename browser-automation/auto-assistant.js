@@ -93,9 +93,37 @@ async function handleAutomationForUser(user, datetime) {
     return actionResults.map(result => result.status === 'fulfilled' ? result.value : result.reason)
 }
 
+/**
+ * Adds entries into the log_entry table
+ * @param {AutomationActionResult} automationResult 
+ */
+async function logAutomationResult(automationResult) {
+    let insertCnt = 0;
+    let logEntryStatus = null;
+
+    if (!automationResult.error) {
+        logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
+    } else if (automationResult.error instanceof MDDSZApiError) {
+        logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
+    } else {
+        logEntryStatus = LOG_ENTRY_STATUS.FAILED;
+    }
+
+    logger.debug('adding log entry...')
+    insertCnt += await db.addLogEntry(
+        automationResult.user.login_info_id,
+        logEntryStatus,
+        automationResult.dueAt,
+        automationResult.error.toString(),
+        automationResult.message,
+        automationResult.actionType)
+
+    return insertCnt
+}
 
 
 module.exports = {
     handleAutomationForUser,
+    logAutomationResult,
     _filterOutAlreadyExecuted
 }

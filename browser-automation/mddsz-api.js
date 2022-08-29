@@ -17,6 +17,10 @@ class MDDSZApiError extends Error {
         this.action = action;
         this.failureReason = failureReason
     }
+
+    toString() {
+        return `${this.action}:(${this.failureReason})\t${this.message}`
+    }
 }
 
 function delay(waitTime) {

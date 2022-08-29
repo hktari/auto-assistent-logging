@@ -6,7 +6,7 @@ const logger = require('../util/logging')
 const { parentPort } = require('worker_threads');
 const { exit } = require('process');
 const { getActionsForDate, AutomationActionResult } = require('../util/actions');
-const { handleAutomationForUser } = require('../auto-assistant');
+const { handleAutomationForUser, logAutomationResult } = require('../auto-assistant');
 
 // store boolean if the job is cancelled
 let isCancelled = false;
@@ -37,46 +37,19 @@ if (parentPort) {
         logger.info("time: " + curTime.toUTCString())
 
 
-        const automationActionsList = []
+        const automationResults = []
         for (const user of usersToAutomate) {
-            const automationActionsForUser = handleAutomationForUser(user, curTime)
+            const automationActionsForUser = await handleAutomationForUser(user, curTime)
             if (automationActionsForUser.length === 0) {
-                logger.debug(`User ${user.username}. No configurations found`)
+                logger.debug(`User ${user.username}. Nothing to do...`)
             } else {
-                automationActionsList.push(automationActionsForUser)
+                automationResults.push(automationActionsForUser)
             }
         }
 
-        // todo: map PromiseSettledResult to AutomationActionResult 
-
-        const actionResults = await Promise.allSettled(automationActionsList)
-
-        for (const actionResult of actionResults) {
-            const successful = actionResult.status === 'fulfilled'
-            const curUser = successful ? actionResult.value.user : actionResult.reason.user;
-
-            logger.info(`processing job result`)
-            logger.debug(JSON.stringify(actionResult))
-
-            let logEntryStatus, logEntryErr, logEntryMsg, logEntryAction = null
-            const timestamp = new Date()
+        for (const result of automationResults) {
             try {
-                if (actionResult.status === 'fulfilled') {
-                    logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
-                    logEntryMsg = actionResult.value.result
-                    logEntryAction = actionResult.value.action.actionType
-                } else if (actionResult.reason.err instanceof MDDSZApiError) {
-                    logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
-                    logEntryMsg = `${actionResult.reason.err.message} (${actionResult.reason.err.failureReason})`
-                    logEntryAction = actionResult.reason.action.actionType
-                } else {
-                    logEntryErr = actionResult.reason.err.toString()
-                    logEntryStatus = LOG_ENTRY_STATUS.FAILED;
-                    logEntryAction = actionResult.reason.action.actionType
-                }
-
-                logger.debug('adding log entry...')
-                await db.addLogEntry(curUser.login_info_id, logEntryStatus, timestamp, logEntryErr, logEntryMsg, logEntryAction)
+                await logAutomationResult(result)
             } catch (error) {
                 logger.error('Error adding log entry')
                 logger.error(error)
@@ -87,9 +60,10 @@ if (parentPort) {
         logger.error(err)
         jobError = 'Error occured. Please check the log'
     }
+
     // signal to parent that the job is done
     if (parentPort) {
-        logger.debug('end')
+        logger.info('end')
         parentPort.postMessage(jobError ?? 'done');
         if (jobError) {
             exit(1)
