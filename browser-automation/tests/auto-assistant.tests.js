@@ -65,13 +65,37 @@ describe('auto-assistant.js', () => {
                                 CONFIG_TYPE.DAILY,
                                 new Date(Date.UTC(2022, 7, 18, 14, 0)),
                                 'Successfully executed stop_btn action',
-                                null)
+                                null),
+                            new AutomationActionResult(
+                                testUser,
+                                AUTOMATE_ACTION.START_BTN,
+                                CONFIG_TYPE.WEEKLY,
+                                new Date(Date.UTC(2022, 7, 18, 20, 0)),
+                                null,
+                                null),
+                            new AutomationActionResult(
+                                testUser,
+                                AUTOMATE_ACTION.STOP_BTN,
+                                CONFIG_TYPE.WEEKLY,
+                                new Date(Date.UTC(2022, 7, 19, 4, 0)),
+                                null,
+                                null),
 
                         ]
                 },
 
             ]
     }
+
+    function getActionsByDate(date, configType = null) {
+        let matches = automationActionsForUser['test'].filter(i => i.date.getTime() === date.getTime())[0].actions
+        if (configType) {
+            matches = matches.filter(a => a.configType === configType)
+        }
+
+        return matches;
+    }
+
     describe('filterOutAlreadyExecuted', () => {
         const actions = [
             new AutomationAction(testUser, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY, new Date(Date.UTC(2022, 7, 15, 12, 0))),
@@ -92,90 +116,104 @@ describe('auto-assistant.js', () => {
 
     describe('handleAutomationForUser()', () => {
 
-        it('should return an array of AutomationActionResult', (done) => {
-            const automationAction = automationActionsForUser['test'][0].actions[0]
-            executeActionStub.reset()
-            executeActionStub.returns(Promise.resolve(automationAction.message))
+        // it('should return an array of AutomationActionResult', (done) => {
+        //     const automationAction = automationActionsForUser['test'][0].actions[0]
+        //     executeActionStub.reset()
+        //     executeActionStub.returns(Promise.resolve(automationAction.message))
 
-            autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
-                .then(actionResults => {
-                    expect(executeActionStub.calledOnce, 'stub is called').to.be.true
-                    expect(actionResults).to.have.lengthOf(1, 'should return a single action')
-                    expect(actionResults[0]).to.deep.equal(automationAction)
-                    done()
-                })
-                .catch(err => done(err))
-        })
+        //     autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
+        //         .then(actionResults => {
+        //             expect(executeActionStub.calledOnce, 'stub is called').to.be.true
+        //             expect(actionResults).to.have.lengthOf(1, 'should return a single action')
+        //             expect(actionResults[0]).to.deep.equal(automationAction)
+        //             done()
+        //         })
+        //         .catch(err => done(err))
+        // })
 
-        it('for date when weekly automation action exists, it should return weekly automation action', (done) => {
-            const weeklyActionDate = new Date(Date.UTC(2022, 15, 7, 12, 0))
-            const automationAction = automationActionsForUser['test'][0].actions[0]
-            executeActionStub.reset()
-            executeActionStub.returns(Promise.resolve(automationAction.message))
+        // it('for date when weekly automation action exists, it should return weekly automation action', (done) => {
+        //     const weeklyActionDate = new Date(Date.UTC(2022, 15, 7, 12, 0))
+        //     const automationAction = automationActionsForUser['test'][0].actions[0]
+        //     executeActionStub.reset()
+        //     executeActionStub.returns(Promise.resolve(automationAction.message))
 
-            autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
-                .then(actionResults => {
-                    expect(executeActionStub.calledOnce).to.be.true
-                    expect(actionResults).to.have.lengthOf(1)
-                    expect(actionResults[0]).to.deep.equal(automationAction)
-                    done()
-                })
-                .catch(err => done(err))
-        })
+        //     autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
+        //         .then(actionResults => {
+        //             expect(executeActionStub.calledOnce).to.be.true
+        //             expect(actionResults).to.have.lengthOf(1)
+        //             expect(actionResults[0]).to.deep.equal(automationAction)
+        //             done()
+        //         })
+        //         .catch(err => done(err))
+        // })
 
         describe('for date when daily and weekly automation action exist', () => {
-            const dailyActionDate = new Date(Date.UTC(2022, 7, 18))
-            const [startAction, stopAction] = automationActionsForUser['test'].filter(i => i.date.getTime() === dailyActionDate.getTime())[0].actions
+            const date = new Date(Date.UTC(2022, 7, 18))
 
-            it('it should return daily start at automation action', (done) => {
-                executeActionStub.reset()
-                executeActionStub.returns(Promise.resolve(startAction.message))
-                const dueAt = new Date(dailyActionDate)
-                dueAt.setUTCHours(6)
+            for (const dailyAction of getActionsByDate(date, CONFIG_TYPE.DAILY)) {
+                it(`it should return daily automation action for ${dailyAction.actionType}`, (done) => {
+                    executeActionStub.reset()
+                    executeActionStub.returns(Promise.resolve(dailyAction.message))
 
-                autoAssistant.handleAutomationForUser(testUser, dueAt)
-                    .then(actionResults => {
-                        expect(executeActionStub.calledOnce).to.be.true
-                        expect(actionResults).to.have.lengthOf(1)
-                        expect(actionResults[0]).to.deep.equal(startAction)
-                        done()
-                    })
-                    .catch(err => done(err))
-            })
+                    autoAssistant.handleAutomationForUser(testUser, dailyAction.dueAt)
+                        .then(actionResults => {
+                            expect(executeActionStub.calledOnce).to.be.true
+                            expect(actionResults).to.have.lengthOf(1)
+                            expect(actionResults[0]).to.deep.equal(dailyAction)
+                            done()
+                        })
+                        .catch(err => done(err))
+                })
+            }
+
+            for (const weeklyAction of getActionsByDate(date, CONFIG_TYPE.WEEKLY)) {
+                it(`should not return weekly automation action for ${weeklyAction.actionType}`, () => {
+                    autoAssistant.handleAutomationForUser(testUser, weeklyAction.dueAt)
+                        .then(actionResults => {
+                            executeActionStub.reset()
+
+                            expect(executeActionStub.calledOnce).to.be.false
+                            expect(actionResults).to.have.lengthOf(0)
+                            done()
+                        })
+                        .catch(err => done(err))
+                })
+            }
+
 
         })
         // it('for date when daily automation action exists, it should return daily automation action', (done) => {
         //     const 
         // })
 
-        it('for date when no automation action exists, it should return an empty array', (done) => {
-            const noAutomationDatetime = new Date(Date.UTC(2022, 7, 20)) // saturday
-            autoAssistant.handleAutomationForUser(testUser, noAutomationDatetime)
-                .then(actionResults => {
-                    expect(actionResults).to.have.lengthOf(0)
-                    done()
-                })
-                .catch(err => done(err))
-        })
+        // it('for date when no automation action exists, it should return an empty array', (done) => {
+        //     const noAutomationDatetime = new Date(Date.UTC(2022, 7, 20)) // saturday
+        //     autoAssistant.handleAutomationForUser(testUser, noAutomationDatetime)
+        //         .then(actionResults => {
+        //             expect(actionResults).to.have.lengthOf(0)
+        //             done()
+        //         })
+        //         .catch(err => done(err))
+        // })
 
-        it('for date when weekly exception, it should not return weekly automation action', (done) => {
-            const exceptionDatetime = new Date(Date.UTC(2022, 7, 17, 12, 0))
-            autoAssistant.handleAutomationForUser(testUser, exceptionDatetime)
-                .then(actionResults => {
-                    expect(actionResults, 'no actions returned').to.have.lengthOf(0)
-                    done()
-                })
-                .catch(err => done(err))
-        })
+        // it('for date when weekly exception, it should not return weekly automation action', (done) => {
+        //     const exceptionDatetime = new Date(Date.UTC(2022, 7, 17, 12, 0))
+        //     autoAssistant.handleAutomationForUser(testUser, exceptionDatetime)
+        //         .then(actionResults => {
+        //             expect(actionResults, 'no actions returned').to.have.lengthOf(0)
+        //             done()
+        //         })
+        //         .catch(err => done(err))
+        // })
 
-        it('for date when action already executed, it should not return automation action', (done) => {
-            const alreadyExecutedDatetime = new Date(Date.UTC(2022, 7, 16, 14, 0))
-            autoAssistant.handleAutomationForUser(testUser, alreadyExecutedDatetime)
-                .then(actionResults => {
-                    expect(actionResults).to.have.lengthOf(0)
-                    done()
-                })
-                .catch(err => done(err))
-        })
+        // it('for date when action already executed, it should not return automation action', (done) => {
+        //     const alreadyExecutedDatetime = new Date(Date.UTC(2022, 7, 16, 14, 0))
+        //     autoAssistant.handleAutomationForUser(testUser, alreadyExecutedDatetime)
+        //         .then(actionResults => {
+        //             expect(actionResults).to.have.lengthOf(0)
+        //             done()
+        //         })
+        //         .catch(err => done(err))
+        // })
     })
 })
