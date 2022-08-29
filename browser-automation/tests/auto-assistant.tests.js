@@ -1,4 +1,7 @@
 const sinon = require('sinon')
+const mddszApi = require('../mddsz-api')
+const executeActionStub = sinon.stub(mddszApi, "executeAction");
+
 const chai = require('chai')
 const { expect, assert } = require("chai");
 const { describe, it } = require("mocha");
@@ -7,7 +10,6 @@ const { AUTOMATE_ACTION, CONFIG_TYPE, LogEntry, LOG_ENTRY_STATUS } = require("..
 const { AutomationAction, AutomationActionResult } = require("../util/actions");
 const deepEqualInAnyOrder = require('deep-equal-in-any-order');
 
-const mddszApi = require('../mddsz-api')
 
 
 chai.use(deepEqualInAnyOrder);
@@ -89,16 +91,16 @@ describe('auto-assistant.js', () => {
     })
 
     describe('handleAutomationForUser()', () => {
-        const stub = sinon.stub(mddszApi, "executeAction")
-            .returns(Promise.resolve('Successfully executed action !'));
 
         it('should return an array of AutomationActionResult', (done) => {
-            const dateAutomationExists = new Date(Date.UTC(2022, 7, 15))
-            autoAssistant.handleAutomationForUser(testUser, new Date(Date.UTC(2022, 7, 15, 12, 0)))
+            const automationAction = automationActionsForUser['test'][0].actions[0]
+            executeActionStub.returns(Promise.resolve(automationAction.message))
+
+            autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
                 .then(actionResults => {
-                    expect(stub.calledTwice, 'stub is called').to.be.true
+                    // expect(executeActionStub.calledTwice, 'stub is called').to.be.true
                     expect(actionResults).to.have.lengthOf(1, 'should return a single action')
-                    expect(actionResults[0]).to.deep.equal(automationActionsForUser['test'][0].actions[0])
+                    expect(actionResults[0]).to.deep.equal(automationAction)
                     done()
                 })
                 .catch(err => done(err))

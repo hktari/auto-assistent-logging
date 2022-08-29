@@ -1,4 +1,4 @@
-if(process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'){
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
     require('dotenv').config()
 }
 
@@ -135,5 +135,9 @@ async function executeAction(username, password, action) {
     }
 }
 
-module.exports.executeAction = executeAction
-module.exports.MDDSZApiError = MDDSZApiError
+const api = {
+    executeAction,
+    MDDSZApiError
+}
+
+module.exports = api
