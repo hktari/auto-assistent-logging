@@ -49,21 +49,21 @@ describe('auto-assistant.js', () => {
                         ]
                 },
                 {
-                    date: new Date(Date.UTC(2022, 7, 2)),
+                    date: new Date(Date.UTC(2022, 7, 18)),
                     actions:
                         [
                             new AutomationActionResult(
                                 testUser,
                                 AUTOMATE_ACTION.START_BTN,
-                                CONFIG_TYPE.WEEKLY,
-                                new Date(Date.UTC(2022, 7, 15, 14, 0)),
+                                CONFIG_TYPE.DAILY,
+                                new Date(Date.UTC(2022, 7, 18, 6, 0)),
                                 'Successfully executed start_btn action',
                                 null),
                             new AutomationActionResult(
                                 testUser,
                                 AUTOMATE_ACTION.STOP_BTN,
-                                CONFIG_TYPE.WEEKLY,
-                                new Date(Date.UTC(2022, 7, 15, 24, 0)),
+                                CONFIG_TYPE.DAILY,
+                                new Date(Date.UTC(2022, 7, 18, 14, 0)),
                                 'Successfully executed stop_btn action',
                                 null)
 
@@ -94,6 +94,7 @@ describe('auto-assistant.js', () => {
 
         it('should return an array of AutomationActionResult', (done) => {
             const automationAction = automationActionsForUser['test'][0].actions[0]
+            executeActionStub.reset()
             executeActionStub.returns(Promise.resolve(automationAction.message))
 
             autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
@@ -106,17 +107,45 @@ describe('auto-assistant.js', () => {
                 .catch(err => done(err))
         })
 
+        it('for date when weekly automation action exists, it should return weekly automation action', (done) => {
+            const weeklyActionDate = new Date(Date.UTC(2022, 15, 7, 12, 0))
+            const automationAction = automationActionsForUser['test'][0].actions[0]
+            executeActionStub.reset()
+            executeActionStub.returns(Promise.resolve(automationAction.message))
 
+            autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
+                .then(actionResults => {
+                    expect(executeActionStub.calledOnce).to.be.true
+                    expect(actionResults).to.have.lengthOf(1)
+                    expect(actionResults[0]).to.deep.equal(automationAction)
+                    done()
+                })
+                .catch(err => done(err))
+        })
+
+        describe('for date when daily and weekly automation action exist', () => {
+            const dailyActionDate = new Date(Date.UTC(2022, 7, 18))
+            const [startAction, stopAction] = automationActionsForUser['test'].filter(i => i.date.getTime() === dailyActionDate.getTime())[0].actions
+
+            it('it should return daily start at automation action', (done) => {
+                executeActionStub.reset()
+                executeActionStub.returns(Promise.resolve(startAction.message))
+                const dueAt = new Date(dailyActionDate)
+                dueAt.setUTCHours(6)
+
+                autoAssistant.handleAutomationForUser(testUser, dueAt)
+                    .then(actionResults => {
+                        expect(executeActionStub.calledOnce).to.be.true
+                        expect(actionResults).to.have.lengthOf(1)
+                        expect(actionResults[0]).to.deep.equal(startAction)
+                        done()
+                    })
+                    .catch(err => done(err))
+            })
+
+        })
         // it('for date when daily automation action exists, it should return daily automation action', (done) => {
-
-        // })
-
-        // it('for date when weekly automation action exists, it should return weekly automation action', (done) => {
-
-        // })
-
-        // it('for date when daily and weekly automation action exist, it should return daily automation action', (done) => {
-
+        //     const 
         // })
 
         it('for date when no automation action exists, it should return an empty array', (done) => {

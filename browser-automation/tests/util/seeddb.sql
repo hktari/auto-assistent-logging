@@ -109,16 +109,15 @@ VALUES
 /*                            auto-assistant-test-data                        */
 /* -------------------------------------------------------------------------- */
 
--- INSERT INTO
---     daily_config (
---         "id",
---         "login_info_id",
---         "date",
---         "start_at",
---         "end_at"
---     ) OVERRIDING SYSTEM VALUE
--- VALUES
---     (0, 0, '2022-05-01T00:00:00', '12:00', '20:00');
+INSERT INTO
+    daily_config (
+        "login_info_id",
+        "date",
+        "start_at",
+        "end_at"
+    ) OVERRIDING SYSTEM VALUE
+VALUES
+    (0, '2022-08-18T00:00:00', '06:00', '14:00');
 
 INSERT INTO
     work_week_exception ("work_week_config_id", "date", "action")
