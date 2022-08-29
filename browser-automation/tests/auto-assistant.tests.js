@@ -98,7 +98,7 @@ describe('auto-assistant.js', () => {
 
             autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
                 .then(actionResults => {
-                    // expect(executeActionStub.calledTwice, 'stub is called').to.be.true
+                    expect(executeActionStub.calledOnce, 'stub is called').to.be.true
                     expect(actionResults).to.have.lengthOf(1, 'should return a single action')
                     expect(actionResults[0]).to.deep.equal(automationAction)
                     done()
