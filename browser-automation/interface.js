@@ -1,3 +1,4 @@
+const { isNullOrUndefined } = require("util");
 const logger = require("./util/logging");
 
 const CONFIG_TYPE = Object.freeze({
@@ -35,7 +36,7 @@ class LogEntry {
         this.message = message
         this.action = action
         this.configType = configType
-        
+
         if (timestamp instanceof Date) {
             this.timestamp = new Date(Date.UTC(timestamp.getFullYear(), timestamp.getMonth(), timestamp.getDate(), timestamp.getHours(), timestamp.getMinutes(), timestamp.getSeconds()))
         } else {
@@ -76,6 +77,8 @@ class WorkdayConfig {
     }
 
     _parseDateAndTimeOrNull(date, timeStr) {
+        if (date === null || date === undefined) { return null }
+        
         const [hours, min] = this._parseTimeOrNan(timeStr)
         if (!isNaN(hours) && !isNaN(min)) {
 

@@ -1,49 +1,104 @@
+const sinon = require('sinon')
 const chai = require('chai')
 const { expect, assert } = require("chai");
 const { describe, it } = require("mocha");
-const { handleAutomationForUser } = require("../auto-assistant");
-const { AUTOMATE_ACTION, CONFIG_TYPE } = require("../interface");
+const autoAssistant = require("../auto-assistant");
+const { AUTOMATE_ACTION, CONFIG_TYPE, LogEntry, LOG_ENTRY_STATUS } = require("../interface");
 const { AutomationAction, AutomationActionResult } = require("../util/actions");
 const deepEqualInAnyOrder = require('deep-equal-in-any-order');
 
+const mddszApi = require('../mddsz-api')
+
+
 chai.use(deepEqualInAnyOrder);
+chai.config.truncateThreshold = 0
 
 describe('auto-assistant.js', () => {
-    describe('handleAutomationForUser()', () => {
+    const testUser = {
+        login_info_id: 0,
+        email: 'test@example.com',
+        automationEnabled: true,
+        username: 'test',
+        password: 'secret'
+    }
 
-        const testUser = {
-            login_info_id: 0,
-            email: 'test@example.com',
-            automationEnabled: true,
-            username: 'test',
-            password: 'secret'
-        }
+    const automationActionsForUser = {
+        'test':
+            [
+                {
+                    date: new Date(Date.UTC(2022, 7, 15)),
+                    actions:
+                        [
+                            new AutomationActionResult(
+                                testUser,
+                                AUTOMATE_ACTION.START_BTN,
+                                CONFIG_TYPE.WEEKLY,
+                                new Date(Date.UTC(2022, 7, 15, 12, 0)),
+                                'Successfully executed start_btn action',
+                                null),
+                            new AutomationActionResult(
+                                testUser,
+                                AUTOMATE_ACTION.STOP_BTN,
+                                CONFIG_TYPE.WEEKLY,
+                                new Date(Date.UTC(2022, 7, 15, 20, 0)),
+                                'Successfully executed stop_btn action',
+                                null)
 
-        const dateAutomationExists = new Date(Date.UTC(2022, 7, 1))
-        const automationActionsForUser = {
-            'test': [
-                new AutomationActionResult(
-                    testUser,
-                    AUTOMATE_ACTION.START_BTN,
-                    CONFIG_TYPE.WEEKLY,
-                    new Date(Date.UTC(2022, 7, 1, 12, 0)),
-                    'Successfully executed start_btn action',
-                    null),
-                new AutomationActionResult(
-                    testUser,
-                    AUTOMATE_ACTION.STOP_BTN,
-                    CONFIG_TYPE.WEEKLY,
-                    new Date(Date.UTC(2022, 7, 1, 20, 0)),
-                    'Successfully executed stop_btn action',
-                    null)
+                        ]
+                },
+                {
+                    date: new Date(Date.UTC(2022, 7, 2)),
+                    actions:
+                        [
+                            new AutomationActionResult(
+                                testUser,
+                                AUTOMATE_ACTION.START_BTN,
+                                CONFIG_TYPE.WEEKLY,
+                                new Date(Date.UTC(2022, 7, 15, 14, 0)),
+                                'Successfully executed start_btn action',
+                                null),
+                            new AutomationActionResult(
+                                testUser,
+                                AUTOMATE_ACTION.STOP_BTN,
+                                CONFIG_TYPE.WEEKLY,
+                                new Date(Date.UTC(2022, 7, 15, 24, 0)),
+                                'Successfully executed stop_btn action',
+                                null)
+
+                        ]
+                },
 
             ]
-        }
+    }
+    describe('filterOutAlreadyExecuted', () => {
+        const actions = [
+            new AutomationAction(testUser, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY, new Date(Date.UTC(2022, 7, 15, 12, 0))),
+            new AutomationAction(testUser, AUTOMATE_ACTION.STOP_BTN, CONFIG_TYPE.DAILY, new Date(Date.UTC(2022, 7, 15, 20, 0))),
+        ]
+        const logEntries = [new LogEntry('test', LOG_ENTRY_STATUS.SUCCESSFUL, new Date(Date.UTC(2022, 7, 15, 12, 0)), null, 'successful', AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY)]
+
+        it('should not return the entry existing in both lists', () => {
+            const filtered = autoAssistant._filterOutAlreadyExecuted(actions, logEntries)
+            expect(filtered).to.have.lengthOf(1)
+            expect(filtered).to.not.deep.include(actions[0])
+        })
+
+        it('should return the entry existing only inside the actions list', () => {
+            expect(autoAssistant._filterOutAlreadyExecuted(actions, logEntries)).to.deep.include(actions[1])
+        })
+    })
+
+    describe('handleAutomationForUser()', () => {
+        const stub = sinon.stub(mddszApi, "executeAction")
+            .returns(Promise.resolve('Successfully executed action !'));
 
         it('should return an array of AutomationActionResult', (done) => {
-            handleAutomationForUser(testUser, dateAutomationExists)
+            const dateAutomationExists = new Date(Date.UTC(2022, 7, 15))
+            autoAssistant.handleAutomationForUser(testUser, new Date(Date.UTC(2022, 7, 15, 12, 0)))
                 .then(actionResults => {
-                    expect(actionResults).to.deep.equalInAnyOrder(automationActionsForUser)
+                    expect(stub.calledTwice, 'stub is called').to.be.true
+                    expect(actionResults).to.have.lengthOf(1, 'should return a single action')
+                    expect(actionResults[0]).to.deep.equal(automationActionsForUser['test'][0].actions[0])
                     done()
                 })
                 .catch(err => done(err))
