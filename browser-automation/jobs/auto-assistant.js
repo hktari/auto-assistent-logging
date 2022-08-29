@@ -25,7 +25,7 @@ if (parentPort) {
 
 
 // Filter out exceptions made for weekly configuration
-function filterOutExceptions(actionsList, exceptions) {
+function filterThroughExceptions(actionsList, exceptions) {
     return actionsList.filter(action => {
         return action.configType === CONFIG_TYPE.DAILY
             || (action.configType === CONFIG_TYPE.WEEKLY && !exceptions.some(ex => ex.action === action.actionType))
@@ -38,6 +38,16 @@ function filterOutAlreadyExecuted(actionsList, logEntries) {
             return le.action === action.actionType && action.configType === le.configType
         })
     })
+}
+
+/**
+ * Checks the database for any pending automation actions for the given user and time.
+ * @param {User} user the user object
+ * @param {Date} time the current time
+ * @returns {Promise<AutomationAction>[]}
+ */
+function handleAutomationForUser(user, time) {
+
 }
 
 (async () => {
@@ -53,6 +63,8 @@ function filterOutAlreadyExecuted(actionsList, logEntries) {
 
         for (const user of usersToAutomate) {
 
+            // todo: move this code into a function
+
             logger.info('\n' + '*'.repeat(50))
             logger.debug('processing user: ' + user.email)
             logger.debug(JSON.stringify(user))
@@ -62,7 +74,7 @@ function filterOutAlreadyExecuted(actionsList, logEntries) {
 
             const workweekExceptions = await db.getWorkweekExceptions(user.username, date)
             logger.debug('filtering out actions with weekly exceptions');
-            actionsPlannedToday = filterOutExceptions(actionsPlannedToday, workweekExceptions)
+            actionsPlannedToday = filterThroughExceptions(actionsPlannedToday, workweekExceptions)
 
             const logEntriesToday = await db.getLogEntries(user.username, date)
             logger.debug('filtering out already executed actions');
@@ -98,6 +110,8 @@ function filterOutAlreadyExecuted(actionsList, logEntries) {
                 }
             }
         }
+
+        // todo: map PromiseSettledResult to AutomationActionResult 
 
         const actionResults = await Promise.allSettled(actionPromises)
 

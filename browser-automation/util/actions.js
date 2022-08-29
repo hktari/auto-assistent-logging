@@ -2,6 +2,7 @@ const db = require('../dbFacade')
 const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface')
 
 class AutomationAction {
+    // todo: remove message
     constructor(username, action, configType, dueAt, message) {
         this.username = username;
         this.actionType = action;
@@ -44,6 +45,18 @@ async function getActionsForDate(username, date) {
     return actionsList;
 }
 
+class AutomationActionResult extends AutomationAction {
+    constructor(automationAction, message, error) {
+        super(automationAction.username, automationAction.action, automationAction.configType, automationAction.dueAt)
+        this.message = message;
+        this.error = error
+    }
+
+    isSuccessful() {
+        // todo: implement
+        return false;
+    }
+}
 
 module.exports = {
     AutomationAction,

@@ -251,4 +251,19 @@ describe('dbFacade', () => {
                 .catch(err => done(err))
         })
     })
+
+    describe('getLogEntry()', () => {
+
+        it('should return an object with all properties', (done) => {
+            assert(false)
+        })
+
+        it('should return the newly added log entry', (done) => {
+            assert(false)
+        })
+
+        it('should return an empty array for another user', (done) => {
+            assert(false)
+        })
+    })
 })
