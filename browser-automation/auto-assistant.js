@@ -13,9 +13,15 @@ function _filterThroughExceptions(actionsList, exceptions) {
     })
 }
 
+/**
+ * filters the @param actionsList based on whether there is an entry inside @param logEntries
+ * @param {AutomationAction[]} actionsList 
+ * @param {LogEntry[]} logEntries 
+ * @returns 
+ */
 function _filterOutAlreadyExecuted(actionsList, logEntries) {
     return actionsList.filter(action => {
-        return logEntries.some(le => {
+        return !logEntries.some(le => {
             return le.action === action.actionType && action.configType === le.configType
         })
     })
@@ -30,15 +36,17 @@ function _filterOutAlreadyExecuted(actionsList, logEntries) {
 async function handleAutomationForUser(user, time) {
     logger.info('\n' + '*'.repeat(50))
     logger.debug('processing user: ' + user.email)
-    let actionsPlannedToday = await getActionsForDate(user.username, time)
+    let actionsPlannedToday = await getActionsForDate(user, time)
 
     const workweekExceptions = await db.getWorkweekExceptions(user.username, time)
     logger.debug('filtering out actions with weekly exceptions');
     actionsPlannedToday = _filterThroughExceptions(actionsPlannedToday, workweekExceptions)
+    logger.debug(actionsPlannedToday.length + ' left')
 
     const logEntriesToday = await db.getLogEntries(user.username, time)
     logger.debug('filtering out already executed actions');
     actionsPlannedToday = _filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
+    logger.debug(actionsPlannedToday.length + ' left')
 
     // todo: if time < 8:00 AM retrieve config for prev. day as well
 
@@ -71,5 +79,6 @@ async function handleAutomationForUser(user, time) {
 
 
 module.exports = {
-    handleAutomationForUser
+    handleAutomationForUser,
+    _filterOutAlreadyExecuted
 }
