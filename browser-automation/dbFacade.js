@@ -26,7 +26,7 @@ async function getDailyConfig(username, date) {
     const queryResult = await db.query(`SELECT dc.date, dc.start_at, dc.end_at,  li.username
                     FROM daily_config dc JOIN login_info li ON dc.login_info_id = li.id
                     WHERE li.username = $1 
-                    AND date_part('day', dc.date) = date_part('day', date '${date.toISOString()}');`, [username])
+                    AND DATE_TRUNC('day', dc.date) = DATE_TRUNC('day', date '${date.toISOString()}');`, [username])
 
     if (queryResult.rowCount === 0) {
         return null;

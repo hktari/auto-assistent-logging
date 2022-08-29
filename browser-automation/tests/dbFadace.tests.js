@@ -101,6 +101,14 @@ describe('dbFacade', () => {
                 })
                 .catch(err => done(err))
         })
+        it('different month, same day returns null', (done) => {
+            db.getDailyConfig('test', new Date(Date.UTC(2022, 8, 1)))
+                .then(dailyConfig => {
+                    expect(dailyConfig).to.be.null
+                    done()
+                })
+                .catch(err => done(err))
+        })
     })
 
 
