@@ -3,7 +3,7 @@ const { assert, expect } = require("chai");
 const { DESTRUCTION } = require("dns");
 const { describe, it } = require("mocha");
 const { db } = require("../database");
-const { AUTOMATE_ACTION, LOG_ENTRY_STATUS, CONFIG_TYPE } = require("../interface");
+const { AUTOMATE_ACTION, LOG_ENTRY_STATUS, CONFIG_TYPE, LogEntry } = require("../interface");
 
 chai.config.truncateThreshold = 0
 
@@ -307,17 +307,49 @@ describe('dbFacade', () => {
         })
 
         it('should return the newly added log entry', (done) => {
-            assert(false)
+
+            const time = new Date(Date.UTC(2022, 7, 3, 14, 0))
+            const newLE = new LogEntry(
+                'test',
+                LOG_ENTRY_STATUS.SUCCESSFUL,
+                time,
+                null,
+                'Successfully executed start_btn actionSSS',
+                AUTOMATE_ACTION.START_BTN,
+                CONFIG_TYPE.DAILY)
+
+
+            db.addLogEntry(0, newLE.status, newLE.timestamp, newLE.err, newLE.message, newLE.action, newLE.configType)
+                .then(_ => {
+                    db.getLogEntries('test', time)
+                        .then(logEntries => {
+                            expect(logEntries).to.deep.include(newLE)
+                            done()
+                        })
+                })
+                .catch(err => done(err))
         })
 
         it('should return an empty array for another user', (done) => {
-            assert(false)
+            const time = new Date(Date.UTC(2022, 7, 1))
+            db.getLogEntries('test2', time)
+                .then(logEntries => {
+                    expect(logEntries).to.be.empty
+                    done()
+                })
+                .catch(err => done(err))
         })
     })
 
     describe('addLogEntry()', () => {
         it('should return a rowcount of 1', (done) => {
-            done()
+            const time = new Date(Date.UTC(2022, 7, 3, 14, 0))
+            db.addLogEntry(0, LOG_ENTRY_STATUS.SUCCESSFUL, time, null, 'Successfully executed start_btn action', AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.WEEKLY)
+                .then(rowCount => {
+                    expect(rowCount).to.equal(1, 'Should add one row')
+                    done()
+                })
+                .catch(err => done(err))
         })
     })
 })

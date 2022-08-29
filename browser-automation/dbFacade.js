@@ -94,11 +94,11 @@ async function getUsers(onlyAutomateEnabled = true) {
     return users
 }
 
-async function addLogEntry(login_info_id, status, timestamp, error, message, action) {
-    const queryResult = await db.query(`INSERT INTO log_entry(login_info_id, status, "timestamp", error, message, "action")
-    VALUES($1, $2, $3, $4, $5, $6); `,
-        [login_info_id, status, timestamp.toUTCString(), error, message, action])
-    logger.info('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
+async function addLogEntry(login_info_id, status, timestamp, error, message, action, configType) {
+    const queryResult = await db.query(`INSERT INTO log_entry(login_info_id, status, "timestamp", error, message, "action", config_type)
+    VALUES($1, $2, $3, $4, $5, $6, $7); `,
+        [login_info_id, status, timestamp.toUTCString(), error, message, action, configType])
+    logger.debug('[AUTOMATION]: inserted ' + queryResult.rowCount + ' rows');
     return queryResult.rowCount;
 }
 
