@@ -2,6 +2,9 @@ const db = require('../dbFacade')
 const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface');
 const logger = require('./logging');
 
+const THRESHOLD_MINUTES = 5
+const BUFFER_IN_RANGE_MS = 5000; // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
+
 class AutomationAction {
     constructor(user, action, configType, dueAt) {
         this.user = user;
@@ -12,16 +15,15 @@ class AutomationAction {
 
 
     timeToExecute(time) {
-        const thresholdMinutes = 5
-        const bufferInRangeMs = 5000; // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
         const timeDiff = Math.abs(time.getTime() - this.dueAt.getTime())
+        logger.debug(`dueAt: ${this.dueAt.toUTCString()}\ttime: ${time.toUTCString()}\ttime diff: ${timeDiff}`)
 
-        return timeDiff <= bufferInRangeMs ||
+        return timeDiff <= BUFFER_IN_RANGE_MS ||
             // add a buffer of ${thresholdMinutes} after ${dueDate} in which the action is still executed
-            (time.getTime() >= this.dueAt.getTime() && timeDiff < (thresholdMinutes * 60 * 1000))
+            (time.getTime() >= this.dueAt.getTime() && timeDiff <= (THRESHOLD_MINUTES * 60 * 1000))
     }
 
-    toString(){
+    toString() {
         return `\t${this.user.username}\t${this.actionType}\t${this.configType}\t${this.dueAt.toUTCString()}`
     }
 }
@@ -30,19 +32,22 @@ async function getActionsForDate(user, date) {
     const actionsList = []
 
     const dailyConfig = await db.getDailyConfig(user.username, date)
-    logger.debug(JSON.stringify(dailyConfig))
     if (dailyConfig?.startAt) {
+        logger.debug('found start action')
         actionsList.push(new AutomationAction(user, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.DAILY, dailyConfig.startAt, undefined))
     }
     if (dailyConfig?.endAt) {
+        logger.debug('found stop action')
         actionsList.push(new AutomationAction(user, AUTOMATE_ACTION.STOP_BTN, CONFIG_TYPE.DAILY, dailyConfig.endAt, undefined))
     }
 
     const weeklyConfig = await db.getWeeklyConfig(user.username, date)
     if (weeklyConfig?.startAt) {
+        logger.debug('found start action')
         actionsList.push(new AutomationAction(user, AUTOMATE_ACTION.START_BTN, CONFIG_TYPE.WEEKLY, weeklyConfig.startAt, undefined))
     }
     if (weeklyConfig?.endAt) {
+        logger.debug('found stop action')
         actionsList.push(new AutomationAction(user, AUTOMATE_ACTION.STOP_BTN, CONFIG_TYPE.WEEKLY, weeklyConfig.endAt, undefined))
     }
 
@@ -74,5 +79,7 @@ class AutomationActionResult extends AutomationAction {
 module.exports = {
     AutomationAction,
     AutomationActionResult,
-    getActionsForDate
+    getActionsForDate,
+    THRESHOLD_MINUTES,
+    BUFFER_IN_RANGE_MS
 }
