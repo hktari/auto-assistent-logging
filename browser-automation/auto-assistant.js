@@ -61,7 +61,7 @@ async function handleAutomationForUser(user, time) {
                 new Promise((resolve, reject) => {
                     executeAction(user.username, user.password, action.actionType)
                         .then(result => {
-                            resolve(new AutomationActionResult(action.user, action.action, action.configType, action.dueAt, result, null))
+                            resolve(new AutomationActionResult(action.user, action.actionType, action.configType, action.dueAt, result, null))
                         })
                         .catch(err => {
                             reject(new AutomationActionResult(action, null, err))
