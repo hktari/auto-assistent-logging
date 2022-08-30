@@ -4,9 +4,15 @@ services:
     build: ./frontend/
     image: hktari/asistent-logging:mock-frontend
     ports:
-      - "8000:80"
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    environment:
+      - REACT_APP_BACKEND_PORT=${BACKEND_PORT}
+      - REACT_APP_BACKEND_HOST=${BACKEND_HOST}
   mock-mddsz-backend:
     build: ./backend/
     image: hktari/asistent-logging:mock-backend
     ports:
-      - "5983:5983"
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    environment:
+      - HOST=${BACKEND_LISTEN_INTERFACE}
+      - PORT=${BACKEND_PORT}
