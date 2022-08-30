@@ -7,7 +7,7 @@ services:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
       - REACT_APP_BACKEND_PORT=${BACKEND_PORT}
-      - REACT_APP_BACKEND_HOST=${BACKEND_HOST}
+      - REACT_APP_BACKEND_HOST=mock-mddsz-backend
   mock-mddsz-backend:
     build: ./backend/
     image: hktari/asistent-logging:mock-backend
