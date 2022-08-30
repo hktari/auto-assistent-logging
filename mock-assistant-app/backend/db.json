@@ -4,30 +4,14 @@
       "id": "eda7f348-4726-4341-b43a-9d35d74025ce",
       "username": "bostjankamnik45",
       "password": "secret",
-      "action": "start",
-      "logs": [
-        {
-          "id": "fc7374ce-6ad2-4cf3-9fa1-ba79d17f1523",
-          "action": "start",
-          "timestamp": "2022-08-07T15:16:58.894Z"
-        },
-        {
-          "id": "2d30ec-e07e-166e-cd3-33e3b3b8465c",
-          "action": "stop",
-          "timestamp": "2022-08-25T07:42:40.614Z"
-        },
-        {
-          "id": "3d28af1-d158-bd2c-6f83-8f80dd66e510",
-          "action": "start",
-          "timestamp": "2022-08-25T07:52:19.106Z"
-        }
-      ]
+      "action": "stop",
+      "logs": []
     },
     {
       "id": "eca7f348-4726-4341-b43a-9d35d74025ce",
       "username": "ivankrivec",
       "password": "secret",
-      "action": "start",
+      "action": "stop",
       "logs": []
     }
   ]
