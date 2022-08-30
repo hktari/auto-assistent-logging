@@ -69,11 +69,6 @@ class AutomationActionResult extends AutomationAction {
         this.message = message;
         this.error = error
     }
-
-    isSuccessful() {
-        // todo: implement
-        return false;
-    }
 }
 
 module.exports = {
