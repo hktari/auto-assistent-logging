@@ -29,6 +29,7 @@ services:
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     environment:
+      - NODE_ENV=${NODE_ENV}
       - PORT=${BACKEND_PORT}
       - PGHOST=${PGHOST}
       - PGUSER=${PGUSER}
@@ -45,6 +46,7 @@ services:
     extra_hosts:
       - host.docker.internal:host-gateway
     environment:
+      - NODE_ENV=${NODE_ENV}
       - PGHOST=${PGHOST}
       - PGUSER=${PGUSER}
       - PGDATABASE=${PGDATABASE}
@@ -52,3 +54,4 @@ services:
       - PGPORT=${PGPORT}
       - CRYPTO_KEY=${CRYPTO_KEY}
       - MDDSZ_WEBAPP_ENDPOINT=${MDDSZ_WEBAPP_ENDPOINT}
+      - TIME_TO_EXEC_THRESHOLD_MIN=${TIME_TO_EXEC_THRESHOLD_MIN}
