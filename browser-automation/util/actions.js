@@ -2,8 +2,8 @@ const db = require('../dbFacade')
 const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface');
 const logger = require('./logging');
 
-const THRESHOLD_MINUTES = 5
-const BUFFER_IN_RANGE_MS = 5000; // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
+const THRESHOLD_MINUTES = process.env.TIME_TO_EXEC_THRESHOLD_MIN ?? 5
+const BUFFER_IN_RANGE_MS = process.env.TIME_TO_EXEC_BUFFER_MS ?? 5000; // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
 
 class AutomationAction {
     constructor(user, action, configType, dueAt) {
