@@ -38,7 +38,7 @@ if (parentPort) {
             if (automationActionsForUser.length === 0) {
                 logger.debug(`User ${user.username}. Nothing to do...`)
             } else {
-                automationResults.push(automationActionsForUser)
+                automationResults = automationResults.concat(automationActionsForUser)
             }
         }
 
