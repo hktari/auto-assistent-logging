@@ -1,7 +1,7 @@
 const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig, WorkweekException, LogEntry } = require('./interface')
 const { db } = require('./database');
 const crypto = require('./util/crypto');
-const { dayOfWeekToAbbrv } = require('./util');
+const { dayOfWeekToAbbrv } = require('./util/util');
 const logger = require('./util/logging')
 
 /** NO TEST */

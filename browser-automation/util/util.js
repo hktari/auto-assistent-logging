@@ -25,7 +25,12 @@ function abbrevToDayOfWeek(abbrev) {
     }
 }
 
+function getEnvVariableOrDefault(key, defaultVal){
+    return !process.env[key] ? defaultVal : process.env[key];
+}
+
 module.exports = {
     dayOfWeekToAbbrv,
-    abbrevToDayOfWeek
+    abbrevToDayOfWeek,
+    getEnvVariableOrDefault
 }
