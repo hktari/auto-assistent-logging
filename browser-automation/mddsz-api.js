@@ -51,8 +51,9 @@ function createBrowser(debug) {
 }
 
 async function executeAction(username, password, action) {
-    logger.debug('Executing action: ', action)
     logger.debug('endpoint: ' + ENDPOINT)
+    logger.debug('Executing action: ', action)
+    logger.debug('ENV:', process.env.NODE_ENV)
 
     const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
         .map(val => val[1])
@@ -61,10 +62,6 @@ async function executeAction(username, password, action) {
     if (!VALID_ACTION) {
         throw new Error(`Unhandled type of action ${action}`);
     }
-
-    logger.debug('endpoint: ' + ENDPOINT)
-    logger.debug('Executing action: ', action)
-    logger.debug('ENV:', process.env.NODE_ENV)
 
     const browser = await createBrowser(process.env.NODE_ENV === 'development')
 
@@ -84,24 +81,26 @@ async function executeAction(username, password, action) {
         logger.debug('logging in..');
 
         const loginBtn = await page.$('.t-Login-buttons button')
-        loginBtn.click()
+        await loginBtn.click()
 
 
         // if buttons invisible
-        const openUserSelectionBtn = '#P13_UPORABNIK_OA_SI_CI_ID'
-        // const openUserSelectionBtn = '#P13_UPORABNIK_OA_SI_CI_ID_lov_btn'
-        await page.waitForSelector(openUserSelectionBtn)
+        const openUserSelectionInput = await page.waitForSelector('input#P13_UPORABNIK_OA_SI_CI_ID')
+        await openUserSelectionInput.focus()
+        await openUserSelectionInput.click()
+
+        const openUserSelectionBtn = '#P13_UPORABNIK_OA_SI_CI_ID_lov_btn'
+        const openUserSelectBtn = await page.waitForSelector(openUserSelectionBtn)
+
 
         await delay(2000)
-
-        const openUserSelectBtn = await page.$(openUserSelectionBtn)
-        openUserSelectBtn.click()
-        openUserSelectBtn.focus()
+        await openUserSelectBtn.hover()
+        await openUserSelectBtn.click()
 
         const selectFirstRow = 'div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr'
         const firstRow = await page.waitForSelector(selectFirstRow)
-        firstRow.focus()
-        firstRow.click()
+        await firstRow.focus()
+        await firstRow.click()
 
 
         const startBtnSelector = 'button.t-Button--success';

@@ -8,7 +8,7 @@ describe('mddsz-api', function () {
     this.timeout(60000);
     
     it('executeAction', (done) => {
-        executeAction('bostjankamnik45', `secret`, AUTOMATE_ACTION.START_BTN)
+        executeAction(process.env.MDDSZ_USERNAME, process.env.MDDSZ_PASSWORD, AUTOMATE_ACTION.START_BTN)
             .then(res => done())
             .catch(err => done(err))
     })
