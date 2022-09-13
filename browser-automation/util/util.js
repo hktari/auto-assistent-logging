@@ -25,6 +25,7 @@ function abbrevToDayOfWeek(abbrev) {
     }
 }
 
+// handle when environment variable is '' or undefined
 function getEnvVariableOrDefault(key, defaultVal){
     return !process.env[key] ? defaultVal : process.env[key];
 }

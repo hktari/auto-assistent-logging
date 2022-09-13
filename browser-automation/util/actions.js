@@ -1,9 +1,12 @@
 const db = require('../dbFacade')
 const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface');
 const logger = require('./logging');
+const { getEnvVariableOrDefault } = require('./util')
 
-const THRESHOLD_MINUTES = process.env.TIME_TO_EXEC_THRESHOLD_MIN ?? 5
-const BUFFER_IN_RANGE_MS = process.env.TIME_TO_EXEC_BUFFER_MS ?? 5000; // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
+const THRESHOLD_MINUTES = +getEnvVariableOrDefault(process.env.TIME_TO_EXEC_THRESHOLD_MIN, 5);
+
+// add buffer so ${duaDate} and ${now} don't need to overlap perfectly
+const BUFFER_IN_RANGE_MS = +getEnvVariableOrDefault(process.env.TIME_TO_EXEC_BUFFER_MS, 5000);
 
 class AutomationAction {
     constructor(user, action, configType, dueAt) {
@@ -16,8 +19,12 @@ class AutomationAction {
 
     timeToExecute(time) {
         const timeDiff = Math.abs(time.getTime() - this.dueAt.getTime())
-        logger.debug(`dueAt: ${this.dueAt.toUTCString()}\ttime: ${time.toUTCString()}\ttime diff: ${timeDiff}`)
 
+        logger.debug(`dueAt: ${this.dueAt.toUTCString()}\ttime: ${time.toUTCString()}\ttime diff: ${timeDiff}`)
+        if (isNaN(THRESHOLD_MINUTES) || isNaN(BUFFER_IN_RANGE_MS)) {
+            logger.warn(`TIME_TO_EXEC_THRESHOLD_MIN=${THRESHOLD_MINUTES} or TIME_TO_EXEC_BUFFER_MS=${BUFFER_IN_RANGE_MS} is NaN`)
+        }
+        
         return timeDiff <= BUFFER_IN_RANGE_MS ||
             // add a buffer of ${thresholdMinutes} after ${dueDate} in which the action is still executed
             (time.getTime() >= this.dueAt.getTime() && timeDiff <= (THRESHOLD_MINUTES * 60 * 1000))
