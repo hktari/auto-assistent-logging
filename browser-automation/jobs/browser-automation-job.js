@@ -47,20 +47,26 @@ if (parentPort) {
                 await logAutomationResult(result)
             } catch (err) {
                 jobError = 'Error occured when adding log entry: ' + err?.toString()
+                logger.error(err?.toString())
             }
         }
     } catch (err) {
         jobError = 'Error occured: ' + err?.toString()
+        logger.error(err?.toString())
     }
 
-    // signal to parent that the job is done
-    if (parentPort) {
-        logger.info('end')
-        parentPort.postMessage(jobError ?? 'done');
-        if (jobError) {
-            process.exit(1)
+    logger.info('end')
+    logger.end()
+    logger.on('finish', () => {
+        if (parentPort) {
+            parentPort.postMessage(jobError ?? 'done');
+            if (jobError) {
+                process.exit(1)
+            } else {
+                process.exit(0)
+            }
+        } else {
+            process.exit(0);
         }
-    } else {
-        process.exit(0);
-    }
+    })
 })();

@@ -2,7 +2,6 @@
 const Bree = require('bree');
 // const Graceful = require('@ladjs/graceful');
 const Cabin = require('cabin');
-const logger = require('./util/logging')
 let assistantJob = {
     name: 'browser-automation-job',
     // run on start as well
@@ -17,7 +16,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 const bree = new Bree({
-    logger: logger,
     jobs: [
         assistantJob
     ]

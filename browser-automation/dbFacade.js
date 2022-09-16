@@ -84,7 +84,7 @@ async function getUsers(onlyAutomateEnabled = true) {
                 password: password
             }
         } catch (err) {
-            logger.error(`Failed to map user ${row.email}.Probably failure in decrypting password.`, err, JSON.stringify(row))
+            logger.error(`Failed to map user ${row.email}.Probably failure in decrypting password. ${err?.toString()}`)
             return null;
         }
     });
