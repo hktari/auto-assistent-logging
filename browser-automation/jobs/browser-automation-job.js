@@ -45,15 +45,12 @@ if (parentPort) {
         for (const result of automationResults) {
             try {
                 await logAutomationResult(result)
-            } catch (error) {
-                logger.error('Error adding log entry')
-                logger.error(error?.toString())
-                jobError = 'Error occured when adding log entry. Please check the log'
+            } catch (err) {
+                jobError = 'Error occured when adding log entry: ' + err?.toString()
             }
         }
     } catch (err) {
-        logger.error(err?.toString())
-        jobError = 'Error occured. Please check the log'
+        jobError = 'Error occured: ' + err?.toString()
     }
 
     // signal to parent that the job is done

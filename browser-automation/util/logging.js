@@ -35,7 +35,7 @@ var config = {
     awsSecretKey: process.env.CLOUDWATCH_SECRET_ACCESS_KEY,
     awsRegion: process.env.CLOUDWATCH_REGION,
     messageFormatter: function (item) {
-        return item.level + ': ' + item.message + ' ' + JSON.stringify(item.meta)
+        return item.level + ': ' + item.message + ' ' + (item ? JSON.stringify(item.meta) : '')
     }
 }
 
