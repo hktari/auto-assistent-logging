@@ -2,15 +2,28 @@ var winston = require('winston'),
     WinstonCloudWatch = require('winston-cloudwatch');
 
 var NODE_ENV = process.env.NODE_ENV || 'development';
+const { format } = require('logform');
 
+const alignedWithColorsAndTime = format.combine(
+    format.colorize(),
+    format.timestamp(),
+    format.align(),
+    format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
+);
 const logger = winston.createLogger({
     transports: [
-        new (winston.transports.Console)({
-            timestamp: true,
-            colorize: true,
-        })
     ]
 });
+
+
+if (NODE_ENV !== 'test') {
+    logger.add(new (winston.transports.Console)({
+        timestamp: true,
+        colorize: true,
+        format: alignedWithColorsAndTime
+    }))
+}
+
 
 var config = {
     logGroupName: process.env.CLOUDWATCH_LOG_GROUP,
@@ -26,7 +39,7 @@ var config = {
     }
 }
 
-if (NODE_ENV != 'development') {
+if (NODE_ENV === 'production') {
     logger.add(new WinstonCloudWatch(config));
 }
 
