@@ -52,7 +52,7 @@ async function _getAndFilterActionsForDate(user, datetime) {
  * @returns {Promise<AutomationActionResult>[]}
  */
 async function handleAutomationForUser(user, datetime) {
-    logger.info('\n' + '*'.repeat(50))
+    logger.debug('\n' + '*'.repeat(50))
     logger.debug('processing user: ' + user.email)
 
     let actionsPlannedToday = await _getAndFilterActionsForDate(user, datetime)
@@ -74,6 +74,7 @@ async function handleAutomationForUser(user, datetime) {
     for (const action of actionsPlannedToday) {
         logger.debug('considering executing ' + action + ' ...')
         if (action.timeToExecute(datetime)) {
+            logger.debug('ok')
             actionPromises.push(
                 new Promise((resolve, reject) => {
                     executeAction(user.username, user.password, action.actionType)

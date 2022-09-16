@@ -36,7 +36,7 @@ if (parentPort) {
         for (const user of usersToAutomate) {
             const automationActionsForUser = await handleAutomationForUser(user, curTime)
             if (automationActionsForUser.length === 0) {
-                logger.debug(`User ${user.username}. Nothing to do...`)
+                logger.info(`User ${user.username}. Nothing to do...`)
             } else {
                 automationResults = automationResults.concat(automationActionsForUser)
             }
@@ -47,12 +47,12 @@ if (parentPort) {
                 await logAutomationResult(result)
             } catch (error) {
                 logger.error('Error adding log entry')
-                logger.error(error)
-                jobError = 'Error occured. Please check the log'
+                logger.error(error?.toString())
+                jobError = 'Error occured when adding log entry. Please check the log'
             }
         }
     } catch (err) {
-        logger.error(err)
+        logger.error(err?.toString())
         jobError = 'Error occured. Please check the log'
     }
 
