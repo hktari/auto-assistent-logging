@@ -1,48 +1,41 @@
-const winston = require('winston')
-const dailyRotate = require("winston-daily-rotate-file");
+var winston = require('winston'),
+    WinstonCloudWatch = require('winston-cloudwatch');
 
-const { format } = require('logform');
-
-const alignedWithColorsAndTime = format.combine(
-    format.colorize(),
-    format.timestamp(),
-    format.align(),
-    format.printf(info => `${info.timestamp} ${info.level}: ${info.message}`)
-);
-
-const options = {
-    errFile: new winston.transports.DailyRotateFile({
-        filename: 'logs/error-%DATE%.log',
-        datePattern: 'YYYY-MM-DD-HH',
-        level: 'error',
-
-    }),
-    logFile: new winston.transports.DailyRotateFile({
-        filename: 'logs/all-%DATE%.log',
-        datePattern: 'YYYY-MM-DD-HH',
-        level: 'debug'
-    }),
-    console: new winston.transports.Console({
-        level: 'debug',
-        handleExceptions: true,
-        json: false,
-        colorize: true,
-        format: alignedWithColorsAndTime
-    }),
-};
+var NODE_ENV = process.env.NODE_ENV || 'development';
 
 const logger = winston.createLogger({
-    level: 'info',
     transports: [
-        options.logFile,
-        options.errFile,
-    ],
-    exitOnError: false
-})
+        new (winston.transports.Console)({
+            timestamp: true,
+            colorize: true,
+        })
+    ]
+});
 
-// If we're not in production then log to the `console`  
-if (process.env.NODE_ENV !== 'production') {
-    logger.add(options.console);
+var config = {
+    logGroupName: process.env.CLOUDWATCH_LOG_GROUP,
+    logStreamName: NODE_ENV,
+    createLogGroup: false,
+    createLogStream: true,
+    uploadRate: 2000,
+    awsAccessKeyId: process.env.CLOUDWATCH_ACCESS_KEY_ID,
+    awsSecretKey: process.env.CLOUDWATCH_SECRET_ACCESS_KEY,
+    awsRegion: process.env.CLOUDWATCH_REGION,
+    messageFormatter: function (item) {
+        return item.level + ': ' + item.message + ' ' + JSON.stringify(item.meta)
+    }
 }
 
-module.exports = logger
+if (NODE_ENV != 'development') {
+    logger.add(new WinstonCloudWatch(config));
+}
+
+logger.level = process.env.LOG_LEVEL || "silly";
+//
+// Handle errors originating in the logger itself
+//
+logger.on('error', function (err) {
+    console.log('winston error: ' + err)
+});
+
+module.exports = logger;

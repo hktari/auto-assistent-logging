@@ -16,6 +16,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3.171.0",
     "bree": "^9.1.2",
     "cabin": "^9.1.2",
     "chalk": "^4.1.0",
@@ -25,7 +26,8 @@
     "p-map": "^5.5.0",
     "pg": "^8.7.3",
     "puppeteer": "^16.0.0",
-    "winston": "^3.8.1",
+    "winston": "^3.8.2",
+    "winston-cloudwatch": "^6.1.1",
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
