@@ -52,8 +52,8 @@ function createBrowser(debug) {
 
 async function executeAction(username, password, action) {
     logger.debug('endpoint: ' + ENDPOINT)
-    logger.debug('Executing action: ', action)
-    logger.debug('ENV:', process.env.NODE_ENV)
+    logger.debug('Executing action: ' + action)
+    logger.debug('ENV: ' + process.env.NODE_ENV)
 
     const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
         .map(val => val[1])
@@ -84,8 +84,9 @@ async function executeAction(username, password, action) {
         await loginBtn.click()
 
 
-        // if buttons invisible
         const openUserSelectionInput = await page.waitForSelector('input#P13_UPORABNIK_OA_SI_CI_ID')
+        logger.debug('opening user selection...')
+
         await openUserSelectionInput.focus()
         await openUserSelectionInput.click()
 
@@ -94,11 +95,14 @@ async function executeAction(username, password, action) {
 
 
         await delay(2000)
+
         await openUserSelectBtn.hover()
         await openUserSelectBtn.click()
 
         const selectFirstRow = 'div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr'
         const firstRow = await page.waitForSelector(selectFirstRow)
+        logger.debug('selecting user...')
+        
         await firstRow.focus()
         await firstRow.click()
 
@@ -107,9 +111,9 @@ async function executeAction(username, password, action) {
         const stopBtnSelector = 'button.t-Button--danger';
         // make sure start button is enabled
 
-        logger.debug('wait for login...')
         const btnSelector = action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
         const btn = await page.waitForSelector(btnSelector)
+        logger.debug('waiting for button...')
 
         await delay(3000)
 
@@ -119,18 +123,19 @@ async function executeAction(username, password, action) {
             throw new MDDSZApiError(action, ExecuteFailureReason.ButtonDisabled, `Can't click button: ${btnSelector}. \nDisabled`);
         }
 
-        btn.click()
+        await btn.click()
+        logger.debug('clicking...')
 
         // h2 Zapis uspešno dodan.
         const successBannerSelector = ".fos-Alert--success"
         await page.waitForSelector(successBannerSelector)
+        logger.debug('waiting for success banner...')
 
         await delay(5000);
-        // await page.screenshot({ path: 'example.png' });
         await browser.close();
         return "Finished successfully !"
     } catch (error) {
-        logger.error(error)
+        logger.error(error.toString())
         throw error;
     }
     finally {
