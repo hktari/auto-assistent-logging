@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const express = require('express');
 const { requireAuthentication } = require('./middleware/auth');
 const app = express()
@@ -40,6 +38,5 @@ function clientErrorHandler(err, req, res, next) {
 app.use(logErrors);
 app.use(clientErrorHandler);
 
-app.listen(process.env.PORT, () => {
-    console.log(`Listening on port ${process.env.PORT}`)
-})
+
+module.exports = app
