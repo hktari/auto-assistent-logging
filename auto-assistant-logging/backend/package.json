@@ -9,9 +9,8 @@
     "db:create": "sudo -u postgres createdb asistentapp_test",
     "db:reset": "sudo -u postgres psql -d asistentapp_test -f ../../db/reset.sql",
     "db:seed": "sudo -u postgres psql -d asistentapp_test -f ../../db/test.seed.sql",
-    "pretest": "npm run db:seed",
-    "test": "jest",
-    "posttest": "npm run db:reset"
+    "pretest": "npm run db:reset && npm run db:seed",
+    "test": "env-cmd -f ./.env jest"
   },
   "keywords": [],
   "author": "",

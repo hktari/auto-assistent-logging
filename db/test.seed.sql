@@ -1,8 +1,21 @@
 INSERT INTO
     ACCOUNT (id, email, password, "automationEnabled") OVERRIDING SYSTEM VALUE
 VALUES
-    (0, 'existing.user@example.com', 'secret', true),
-    (1, 'another.user@exampl.com', 'secret2', true);
+    (
+        0,
+        'existing.user@example.com',
+        '$2b$10$5u9E0/TaK47TQfGuwpbHieIe.zjxMDeu6iH2pfUJT8AzbMGXryANK',
+        true
+    ),
+    /*secret*/
+    (
+        1,
+        'another.user@exampl.com',
+        '$2b$10$W.OeQ0i3P8eJ6pNl3VeGB.B3pI9L7ErpKqHIjLu8rPRiOS.WtenuG',
+        true
+    );
+
+/*secret2*/
 
 INSERT INTO
     LOGIN_INFO (
