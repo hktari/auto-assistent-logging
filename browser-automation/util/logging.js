@@ -16,13 +16,11 @@ const logger = winston.createLogger({
 });
 
 
-if (NODE_ENV !== 'test') {
-    logger.add(new (winston.transports.Console)({
-        timestamp: true,
-        colorize: true,
-        format: alignedWithColorsAndTime
-    }))
-}
+logger.add(new (winston.transports.Console)({
+    timestamp: true,
+    colorize: true,
+    format: alignedWithColorsAndTime
+}))
 
 
 var config = {
@@ -39,11 +37,13 @@ var config = {
     }
 }
 
-if (NODE_ENV === 'production') {
+if (NODE_ENV === 'production' || NODE_ENV === 'test') {
     logger.add(new WinstonCloudWatch(config));
 }
 
+console.log('setting log level to: ' + (process.env.LOG_LEVEL || "silly"))
 logger.level = process.env.LOG_LEVEL || "silly";
+
 //
 // Handle errors originating in the logger itself
 //

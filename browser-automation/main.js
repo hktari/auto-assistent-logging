@@ -8,7 +8,9 @@ let assistantJob = {
     // timeout: 0
 }
 
-if (process.env.NODE_ENV === 'development') {
+console.log('node environment: ' + process.env.NODE_ENV)
+
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
     require('dotenv').config()
     assistantJob.interval = '5s';
 } else {
