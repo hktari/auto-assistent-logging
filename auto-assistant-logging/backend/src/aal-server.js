@@ -22,6 +22,7 @@ app.use(requireAuthentication, require('./routers/accountRouter'));
 app.use(require('./routers/loginInfoRouter'));
 app.use(require('./routers/workweekConfigRouter'))
 app.use(require('./routers/workdayConfigRouter'))
+app.use(require('./routers/workweekExceptionRouter'))
 
 function logErrors(err, req, res, next) {
     log(error(err.stack))
