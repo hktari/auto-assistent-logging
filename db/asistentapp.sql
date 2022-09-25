@@ -122,7 +122,7 @@ ALTER TABLE IF EXISTS public.work_week_exception
     ADD CONSTRAINT work_week_config FOREIGN KEY (work_week_config_id)
     REFERENCES public.work_week_config (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
+    ON DELETE CASCADE
     NOT VALID;
 
 END;
