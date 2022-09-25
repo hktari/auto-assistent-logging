@@ -27,3 +27,6 @@ DELETE FROM
     account
 where
     1 = 1;
+
+
+ALTER SEQUENCE daily_config_id_seq RESTART WITH 1

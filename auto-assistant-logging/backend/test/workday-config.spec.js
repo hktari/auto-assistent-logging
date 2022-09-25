@@ -44,4 +44,28 @@ describe('workday config', () => {
         })
     })
 
+    describe('POST /workday-config', () => {
+        it('should return 200 and workday object', async () => {
+            const addWorkdayConfig = {
+                login_info_id: "0",
+                date: '2022-08-09',
+                start_at: '14:00',
+                end_at: '22:00'
+            }
+
+            const result = [{
+                id: '1',
+                ...addWorkdayConfig,
+            }]
+
+            const response = await request(app)
+                .post('/account/0/workday')
+                .send(addWorkdayConfig)
+                .auth(accessToken, { type: 'bearer' })
+
+            expect(response.status).to.eq(200)
+            expect(response.body).to.eql(result)
+        })
+    })
+
 })
