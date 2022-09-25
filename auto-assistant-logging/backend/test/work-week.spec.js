@@ -112,6 +112,24 @@ describe('work week', () => {
             expect(response.statusCode).to.eq(200)
         })
 
+        it('should return 400 when workweek object already exists', async () => {
+            const addDuplicateWorkweek = [
+                {
+                    "day": "mon",
+                    "start_at": "12:00",
+                    "end_at": "20:00"
+                },
+            ]
+
+            const response = await request(app)
+                .post('/account/0/workweek')
+                .send({
+                    days: addDuplicateWorkweek
+                })
+                .auth(accessToken, { type: 'bearer' })
+
+            expect(response.statusCode).to.eq(500)
+        })
 
     })
 
