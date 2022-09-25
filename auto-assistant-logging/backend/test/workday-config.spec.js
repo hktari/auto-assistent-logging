@@ -68,4 +68,13 @@ describe('workday config', () => {
         })
     })
 
+    describe('DELETE /workday-config', () => {
+        it('should return 200 and OK for existing entry', async () => {
+            const response = await request(app)
+                .delete('/account/0/workday/0')
+                .auth(accessToken, { type: 'bearer' })
+
+            expect(response.status).to.eq(200)
+        })
+    })
 })
