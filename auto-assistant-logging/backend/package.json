@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./src/aal-server",
     "db:drop": "sudo -u postgres dropdb asistentapp_test",
-    "db:create": "sudo -u postgres createdb asistentapp_test",
+    "db:create": "sudo -u postgres createdb asistentapp_test && sudo -u postgres psql -d asistentapp_test -f ../../db/asistentapp.sql",
     "db:reset": "sudo -u postgres psql -d asistentapp_test -f ../../db/reset.sql",
     "db:seed": "sudo -u postgres psql -d asistentapp_test -f ../../db/test.seed.sql",
     "pretest": "npm run db:reset && npm run db:seed",

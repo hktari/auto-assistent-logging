@@ -16,7 +16,6 @@ VALUES
     );
 
 /*secret2*/
-
 INSERT INTO
     LOGIN_INFO (
         id,
@@ -38,3 +37,118 @@ INSERT INTO
     DAILY_CONFIG (id, login_info_id, date, start_at, end_at) OVERRIDING SYSTEM VALUE
 VALUES
     (0, 0, '2022-08-08', '12:00', '20:00');
+
+
+
+INSERT INTO
+    work_week_config (
+        "id",
+        "login_info_id",
+        "day",
+        "start_at",
+        "end_at"
+    ) OVERRIDING SYSTEM VALUE
+VALUES
+    (0, 0, 'mon', '12:00', '20:00'),
+    (1, 0, 'tue', '14:00', '24:00'),
+    (2, 0, 'wed', '12:00', '20:00'),
+    (3, 0, 'thu', '20:00', '04:00'),
+    (4, 0, 'fri', '12:00', '20:00');
+
+INSERT INTO
+    work_week_exception ("work_week_config_id", "date", "action")
+VALUES
+    (0, '2022-08-07T00:00:00', 'start_btn'),
+    (0, '2022-08-07T00:00:00', 'stop_btn'),
+    (1, '2022-08-08T00:00:00', 'start_btn'),
+    (1, '2022-08-08T00:00:00', 'stop_btn');
+
+INSERT INTO
+    log_entry (
+        "login_info_id",
+        "status",
+        "timestamp",
+        "error",
+        "message",
+        "action",
+        "config_type"
+    )
+VALUES
+    (
+        0,
+        'successful',
+        '2022-08-01T14:00:00',
+        NULL,
+        'Sucessfully executed start_btn action',
+        'start_btn',
+        'CONFIG_TYPE_WEEKLY'
+    ),
+    (
+        0,
+        'successful',
+        '2022-08-01T22:00:00',
+        NULL,
+        'Sucessfully executed stop_btn action',
+        'stop_btn',
+        'CONFIG_TYPE_WEEKLY'
+    ),
+    (
+        0,
+        'failed',
+        '2022-08-02T14:00:00',
+        'Failed to execute start_btn action',
+        null,
+        'start_btn',
+        'CONFIG_TYPE_DAILY'
+    );
+
+/* -------------------------------------------------------------------------- */
+/*                            auto-assistant-test-data                        */
+/* -------------------------------------------------------------------------- */
+INSERT INTO
+    daily_config (
+        "login_info_id",
+        "date",
+        "start_at",
+        "end_at"
+    ) OVERRIDING SYSTEM VALUE
+VALUES
+    (0, '2022-08-18T00:00:00', '06:00', '14:00');
+
+INSERT INTO
+    work_week_exception ("work_week_config_id", "date", "action")
+VALUES
+    (0, '2022-08-17T00:00:00', 'start_btn'),
+    (0, '2022-08-17T00:00:00', 'stop_btn'),
+    (0, '2022-08-18T00:00:00', 'start_btn'),
+    (0, '2022-08-18T00:00:00', 'stop_btn');
+
+INSERT INTO
+    log_entry (
+        "login_info_id",
+        "status",
+        "timestamp",
+        "error",
+        "message",
+        "action",
+        "config_type"
+    )
+VALUES
+    (
+        0,
+        'successful',
+        '2022-08-16T14:00:00',
+        NULL,
+        'Sucessfully executed start_btn action',
+        'start_btn',
+        'CONFIG_TYPE_WEEKLY'
+    ),
+    (
+        0,
+        'successful',
+        '2022-09-02T04:00:00',
+        NULL,
+        'Sucessfully executed stop_btn action',
+        'stop_btn',
+        'CONFIG_TYPE_WEEKLY'
+    );
