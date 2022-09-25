@@ -28,11 +28,19 @@ describe('workday config', () => {
 
     describe('GET /workday-config', () => {
         it('should should return 200 and a workday object', async () => {
+            const result = [{
+                id: "0",
+                date: "2022-08-08",
+                start_at: '12:00',
+                end_at: '20:00'
+            }]
+
             const response = await request(app)
                 .get('/account/0/workday')
                 .auth(accessToken, { type: 'bearer' })
 
             expect(response.status).to.eq(200)
+            expect(response.body).to.eql(result)
         })
     })
 

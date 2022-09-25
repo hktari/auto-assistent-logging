@@ -9,7 +9,7 @@ router.param('id', loadLoginInfoID);
 
 router.route('/account/:id/workday')
     .get((req, res, next) => {
-        db.query(`SELECT dc.id, date, start_at, end_at, automation_type
+        db.query(`SELECT dc.id, date::text, start_at, end_at
                     FROM daily_config dc JOIN login_info li ON dc.login_info_id = li.id 
                     WHERE li.id = $1`, [req.loginInfoID])
             .then(result => res.status(200).json(result.rows))
