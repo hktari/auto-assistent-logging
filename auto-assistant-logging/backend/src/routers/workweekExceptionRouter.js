@@ -20,21 +20,25 @@ router.route('/account/:id/workweek-exception')
             .catch(err => next(err))
     })
     .post(async (req, res, next) => {
-        const workWeekConfigId = await getWorkweekConfigIDByDay(req.params.id, req.body.day)
+        try {
+            const workWeekConfigId = await getWorkweekConfigIDByDay(req.params.id, req.body.day)
 
-        const queryResult = await db.query(`INSERT INTO work_week_exception (work_week_config_id, date, action)
-                        VALUES ($1, $2, $3)
-                        RETURNING id, date::text, action`, [workWeekConfigId, req.body.date, req.body.action])
+            const queryResult = await db.query(`INSERT INTO work_week_exception (work_week_config_id, date, action)
+                            VALUES ($1, $2, $3)
+                            RETURNING id, date::text, action`, [workWeekConfigId, req.body.date, req.body.action])
 
-        if (queryResult.rowCount > 0) {
-            const { id, date, action } = queryResult.rows[0]
-            res.status(200).send({
-                id,
-                date,
-                action
-            })
-        } else {
-            res.sendStatus(400)
+            if (queryResult.rowCount > 0) {
+                const { id, date, action } = queryResult.rows[0]
+                res.status(200).send({
+                    id,
+                    date,
+                    action
+                })
+            } else {
+                res.sendStatus(400)
+            }
+        } catch (error) {
+            next(error)
         }
     })
 
