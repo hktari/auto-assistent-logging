@@ -12,7 +12,7 @@ console.log('node environment: ' + process.env.NODE_ENV)
 
 if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
     require('dotenv').config()
-    assistantJob.interval = '5s';
+    assistantJob.interval = '10s';
 } else {
     assistantJob.cron = '*/5 * * * *';
 }

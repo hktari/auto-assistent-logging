@@ -6,6 +6,16 @@ const { handleAutomationForUser, logAutomationResult } = require('../auto-assist
 // store boolean if the job is cancelled
 let isCancelled = false;
 
+process.on('uncaughtException', function (err) {
+    // use `winston` or your own Logger instance as appropriate
+    logger.error("Uncaught Exception", err);
+    if (parentPort) {
+        parentPort.postMessage(err);
+    }
+    process.exitCode = 1
+    logger.end()
+})
+
 // handle cancellation (this is a very simple example)
 if (parentPort) {
     parentPort.once('message', (message) => {
@@ -32,7 +42,7 @@ if (parentPort) {
         logger.info("time: " + curTime.toUTCString())
 
 
-        const automationResults = []
+        let automationResults = []
         for (const user of usersToAutomate) {
             const automationActionsForUser = await handleAutomationForUser(user, curTime)
             if (automationActionsForUser.length === 0) {
@@ -55,18 +65,18 @@ if (parentPort) {
         logger.error(err?.toString())
     }
 
-    logger.info('end')
-    logger.end()
     logger.on('finish', () => {
         if (parentPort) {
             parentPort.postMessage(jobError ?? 'done');
             if (jobError) {
-                process.exit(1)
+                process.exitCode = 1
             } else {
-                process.exit(0)
+                process.exitCode = 0
             }
         } else {
-            process.exit(0);
+            process.exitCode = 0
         }
     })
+    logger.info('end')
+    logger.end()
 })();
