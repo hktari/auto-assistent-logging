@@ -10,7 +10,7 @@ VALUES
     /*secret*/
     (
         1,
-        'another.user@exampl.com',
+        'another.user@example.com',
         '$2b$10$W.OeQ0i3P8eJ6pNl3VeGB.B3pI9L7ErpKqHIjLu8rPRiOS.WtenuG',
         true
     );
@@ -31,7 +31,16 @@ VALUES
         'existinguser',
         'secret_cipher',
         'iv_cipher'
+    ),
+    (
+        1,
+        1,
+        'anotheruser',
+        'secret_cipher',
+        'iv_cipher'
     );
+
+;
 
 INSERT INTO
     DAILY_CONFIG (id, login_info_id, date, start_at, end_at) OVERRIDING SYSTEM VALUE

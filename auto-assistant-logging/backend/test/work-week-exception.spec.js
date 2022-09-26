@@ -29,7 +29,7 @@ describe('workweek exception', () => {
                     "action": "start_btn"
                 },
                 {
-                    "id": "0",
+                    "id": "1",
                     "day": "mon",
                     "date": "2022-08-07",
                     "start_at": "12:00",
