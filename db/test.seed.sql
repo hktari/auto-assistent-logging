@@ -38,8 +38,6 @@ INSERT INTO
 VALUES
     (0, 0, '2022-08-08', '12:00', '20:00');
 
-
-
 INSERT INTO
     work_week_config (
         "id",
@@ -53,15 +51,20 @@ VALUES
     (1, 0, 'tue', '14:00', '24:00'),
     (2, 0, 'wed', '12:00', '20:00'),
     (3, 0, 'thu', '20:00', '04:00'),
-    (4, 0, 'fri', '12:00', '20:00');
+    (4, 0, 'fri', '12:00', '20:00'),
+    (5, 1, 'mon', '20:00', '04:00'),
+    (6, 1, 'tue', '20:00', '04:00'),
+    (7, 1, 'wed', '20:00', '04:00'),
+    (8, 1, 'thu', '20:00', '04:00'),
+    (9, 1, 'fri', '20:00', '04:00');
 
 INSERT INTO
-    work_week_exception ("work_week_config_id", "date", "action")
+    work_week_exception ("id", "work_week_config_id", "date", "action") OVERRIDING SYSTEM VALUE
 VALUES
-    (0, '2022-08-07T00:00:00', 'start_btn'),
-    (0, '2022-08-07T00:00:00', 'stop_btn'),
-    (1, '2022-08-08T00:00:00', 'start_btn'),
-    (1, '2022-08-08T00:00:00', 'stop_btn');
+    (0, 0, '2022-08-07T00:00:00', 'start_btn'),
+    (1, 0, '2022-08-07T00:00:00', 'stop_btn'),
+    (2, 5, '2022-08-08T00:00:00', 'start_btn'),
+    (3, 5, '2022-08-08T00:00:00', 'stop_btn');
 
 INSERT INTO
     log_entry (

@@ -19,14 +19,24 @@ describe('workweek exception', () => {
 
     describe('GET /account/0/workweek-exception', () => {
         it('should 200 and workweek-exception object', async () => {
-            const result = [{
-                "id": "0",
-                "day": "mon",
-                "date": "2022-08-08",
-                "start_at": "12:00",
-                "end_at": "20:00",
-                "action": "start_btn"
-            }]
+            const result = [
+                {
+                    "id": "0",
+                    "day": "mon",
+                    "date": "2022-08-07",
+                    "start_at": "12:00",
+                    "end_at": "20:00",
+                    "action": "start_btn"
+                },
+                {
+                    "id": "0",
+                    "day": "mon",
+                    "date": "2022-08-07",
+                    "start_at": "12:00",
+                    "end_at": "20:00",
+                    "action": "stop_btn"
+                },
+            ]
 
             const response = await request(app)
                 .get('/account/0/workweek-exception')
