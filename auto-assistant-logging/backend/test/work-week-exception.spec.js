@@ -43,7 +43,7 @@ describe('workweek exception', () => {
                 .auth(accessToken, { type: 'bearer' })
 
             expect(response.statusCode).to.eq(200)
-            expect(response.body).to.eql(result)
+            expect(response.body.sort(sortByIdAsc)).to.eql(result.sort(sortByIdAsc))
         })
     })
 
@@ -56,12 +56,8 @@ describe('workweek exception', () => {
                     "action": action
                 }
                 const result = {
-                    "id": "1",
-                    "day": "mon",
                     "date": "2022-10-08",
                     "action": action,
-                    "start_at": "12:00",
-                    "end_at": "20:00"
                 }
 
                 const response = await request(app)
@@ -70,7 +66,9 @@ describe('workweek exception', () => {
                     .auth(accessToken, { type: 'bearer' })
 
                 expect(response.statusCode).to.eq(200)
-                expect(response.body).to.eql(result)
+                expect(response.body).to.have.property('id')
+                expect(response.body.date).to.eql(result.date)
+                expect(response.body.action).to.eql(result.action)
             })
         }
 
@@ -101,3 +99,10 @@ describe('workweek exception', () => {
     })
 
 })
+
+// utility
+
+// sort by id ASC
+function sortByIdAsc(a, b){
+    return +a.id - +b.id
+}

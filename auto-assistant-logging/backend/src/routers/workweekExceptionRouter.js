@@ -26,7 +26,16 @@ router.route('/account/:id/workweek-exception')
                         VALUES ($1, $2, $3)
                         RETURNING id, date::text, action`, [workWeekConfigId, req.body.date, req.body.action])
 
-        res.sendStatus(queryResult.rowCount > 0 ? 200 : 400)
+        if (queryResult.rowCount > 0) {
+            const { id, date, action } = queryResult.rows[0]
+            res.status(200).send({
+                id,
+                date,
+                action
+            })
+        } else {
+            res.sendStatus(400)
+        }
     })
 
 // updating an entry requires to give a valid 'date' - 'day' combination
@@ -48,7 +57,7 @@ async function getWorkweekConfigIDByDay(accountId, day) {
                                         JOIN account a ON a.id = li.account_id
                                         where a.id = $1 and day = $2`, [accountId, day])
     if (queryResult.rowCount > 0) {
-        return queryResult.rows[0]
+        return queryResult.rows[0].id
     }
     else {
         throw new Error('Failed to find workweek config for day ' + day)

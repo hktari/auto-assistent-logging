@@ -67,6 +67,8 @@ VALUES
     (8, 1, 'thu', '20:00', '04:00'),
     (9, 1, 'fri', '20:00', '04:00');
 
+ALTER SEQUENCE work_week_config_id_seq RESTART WITH 10;
+
 INSERT INTO
     work_week_exception ("id", "work_week_config_id", "date", "action") OVERRIDING SYSTEM VALUE
 VALUES
@@ -74,6 +76,8 @@ VALUES
     (1, 0, '2022-08-07T00:00:00', 'stop_btn'),
     (2, 5, '2022-08-08T00:00:00', 'start_btn'),
     (3, 5, '2022-08-08T00:00:00', 'stop_btn');
+
+ALTER SEQUENCE work_week_exception_id_seq RESTART WITH 4;
 
 INSERT INTO
     log_entry (
@@ -112,55 +116,4 @@ VALUES
         null,
         'start_btn',
         'CONFIG_TYPE_DAILY'
-    );
-
-/* -------------------------------------------------------------------------- */
-/*                            auto-assistant-test-data                        */
-/* -------------------------------------------------------------------------- */
-INSERT INTO
-    daily_config (
-        "login_info_id",
-        "date",
-        "start_at",
-        "end_at"
-    ) OVERRIDING SYSTEM VALUE
-VALUES
-    (0, '2022-08-18T00:00:00', '06:00', '14:00');
-
-INSERT INTO
-    work_week_exception ("work_week_config_id", "date", "action")
-VALUES
-    (0, '2022-08-17T00:00:00', 'start_btn'),
-    (0, '2022-08-17T00:00:00', 'stop_btn'),
-    (0, '2022-08-18T00:00:00', 'start_btn'),
-    (0, '2022-08-18T00:00:00', 'stop_btn');
-
-INSERT INTO
-    log_entry (
-        "login_info_id",
-        "status",
-        "timestamp",
-        "error",
-        "message",
-        "action",
-        "config_type"
-    )
-VALUES
-    (
-        0,
-        'successful',
-        '2022-08-16T14:00:00',
-        NULL,
-        'Sucessfully executed start_btn action',
-        'start_btn',
-        'CONFIG_TYPE_WEEKLY'
-    ),
-    (
-        0,
-        'successful',
-        '2022-09-02T04:00:00',
-        NULL,
-        'Sucessfully executed stop_btn action',
-        'stop_btn',
-        'CONFIG_TYPE_WEEKLY'
     );
