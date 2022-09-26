@@ -74,8 +74,8 @@ INSERT INTO
 VALUES
     (0, 0, '2022-08-07T00:00:00', 'start_btn'),
     (1, 0, '2022-08-07T00:00:00', 'stop_btn'),
-    (2, 5, '2022-08-08T00:00:00', 'start_btn'),
-    (3, 5, '2022-08-08T00:00:00', 'stop_btn');
+    (2, 6, '2022-08-08T00:00:00', 'start_btn'),
+    (3, 6, '2022-08-08T00:00:00', 'stop_btn');
 
 ALTER SEQUENCE work_week_exception_id_seq RESTART WITH 4;
 

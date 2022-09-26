@@ -17,29 +17,29 @@ describe('workweek exception', () => {
         console.log('accessToken', accessToken)
     })
 
-    describe('GET /account/0/workweek-exception', () => {
+    describe('GET /account/1/workweek-exception', () => {
         it('should 200 and workweek-exception object', async () => {
             const result = [
                 {
-                    "id": "0",
-                    "day": "mon",
-                    "date": "2022-08-07",
-                    "start_at": "12:00",
-                    "end_at": "20:00",
+                    "id": "2",
+                    "day": "tue",
+                    "date": "2022-08-08",
+                    "start_at": "20:00",
+                    "end_at": "04:00",
                     "action": "start_btn"
                 },
                 {
-                    "id": "1",
-                    "day": "mon",
-                    "date": "2022-08-07",
-                    "start_at": "12:00",
-                    "end_at": "20:00",
+                    "id": "3",
+                    "day": "tue",
+                    "date": "2022-08-08",
+                    "start_at": "20:00",
+                    "end_at": "04:00",
                     "action": "stop_btn"
                 },
             ]
 
             const response = await request(app)
-                .get('/account/0/workweek-exception')
+                .get('/account/1/workweek-exception')
                 .auth(accessToken, { type: 'bearer' })
 
             expect(response.statusCode).to.eq(200)
@@ -47,7 +47,7 @@ describe('workweek exception', () => {
         })
     })
 
-    describe('POST /account/0/workweek-exception', () => {
+    describe('POST /account/1/workweek-exception', () => {
         for (const action of ['start_btn', 'stop_btn']) {
             it('should return 200 and workweek-exception object when adding ' + action, async () => {
                 const addWorkweekException = {
@@ -61,7 +61,7 @@ describe('workweek exception', () => {
                 }
 
                 const response = await request(app)
-                    .post('/account/0/workweek-exception')
+                    .post('/account/1/workweek-exception')
                     .send(addWorkweekException)
                     .auth(accessToken, { type: 'bearer' })
 
@@ -80,7 +80,7 @@ describe('workweek exception', () => {
             }
 
             const response = await request(app)
-                .post('/account/0/workweek-exception')
+                .post('/account/1/workweek-exception')
                 .send(addDuplicateWorkweekException)
                 .auth(accessToken, { type: 'bearer' })
 
@@ -88,10 +88,10 @@ describe('workweek exception', () => {
         })
     })
 
-    describe('DELETE /account/0/workweek-exception/0', () => {
+    describe('DELETE /account/1/workweek-exception/4', () => {
         it('should return 200 when object exists', async () => {
             const response = await request(app)
-                .delete('/account/0/workweek-exception/0')
+                .delete('/account/1/workweek-exception/4')
                 .auth(accessToken, { type: 'bearer' })
 
             expect(response.statusCode).to.eq(200)
