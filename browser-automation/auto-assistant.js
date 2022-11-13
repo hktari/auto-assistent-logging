@@ -45,6 +45,11 @@ async function _getAndFilterActionsForDate(user, datetime) {
     return actionsForDate
 }
 
+function _sortByDatetimeAsc(actions){
+    let tmp = [...actions]
+    return tmp.sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
+}
+
 /**
  * Checks the database for any pending automation actions for the given user and time.
  * @param {User} user the user object
@@ -69,6 +74,8 @@ async function handleAutomationForUser(user, datetime) {
     actionsPlannedToday = _filterOutAlreadyExecuted(actionsPlannedToday, logEntriesToday);
     logger.debug(actionsPlannedToday.length + ' left')
 
+    // sort by datetime
+    actionsPlannedToday = _sortByDatetimeAsc(actionsPlannedToday)
 
     let actionPromises = [];
     for (const action of actionsPlannedToday) {
@@ -124,5 +131,7 @@ async function logAutomationResult(automationResult) {
 module.exports = {
     handleAutomationForUser,
     logAutomationResult,
+    _sortByDatetimeAsc,
     _filterOutAlreadyExecuted
+    
 }

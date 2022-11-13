@@ -316,4 +316,21 @@ describe('auto-assistant.js', () => {
         //         })
         // })
     })
+
+    describe('_sortByDatetimeAsc', () => {
+        it('should sort by dueAt ascending order', () => {
+
+            const now = Date.now()
+            const last = new AutomationAction(null, null, null, new Date(now + 1000))
+            const second = new AutomationAction(null, null, null, new Date(now))
+            const first = new AutomationAction(null, null, null, new Date(now - 1000))
+            const actions = [last, second, first]
+
+            const sorted = autoAssistant._sortByDatetimeAsc(actions)
+            
+            expect(sorted[0]).to.equal(first)
+            expect(sorted[1]).to.equal(second)
+            expect(sorted[2]).to.equal(last)
+        })
+    })
 })
