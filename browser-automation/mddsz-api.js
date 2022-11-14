@@ -99,7 +99,7 @@ async function executeAction(username, password, action) {
         await openUserSelectBtn.hover()
         await openUserSelectBtn.click()
 
-        const selectFirstRow = 'div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr'
+        const selectFirstRow = 'div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr > td'
         const firstRow = await page.waitForSelector(selectFirstRow)
         logger.debug('selecting user...')
         
@@ -112,8 +112,8 @@ async function executeAction(username, password, action) {
         // make sure start button is enabled
 
         const btnSelector = action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
-        const btn = await page.waitForSelector(btnSelector)
         logger.debug('waiting for button...')
+        const btn = await page.waitForSelector(btnSelector)
 
         await delay(3000)
 
