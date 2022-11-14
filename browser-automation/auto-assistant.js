@@ -34,7 +34,7 @@ function _filterOutAlreadyExecuted(actionsList, logEntries) {
         const logEntryMatchesAction = logEntries.some(le => {
             return le.action === action.actionType
                 && action.configType === le.configType
-                && _datetimeRangeCompare(action.dueAt, le.timestamp)
+                && _isSameDay(action.dueAt, le.timestamp)
                 && le.status === LOG_ENTRY_STATUS.SUCCESSFUL
         })
         return !logEntryMatchesAction
@@ -63,7 +63,7 @@ function _sortByDatetimeAsc(actions) {
  * Checks the database for any pending automation actions for the given user and time.
  * @param {User} user the user object
  * @param {Date} datetime the current time
- * @returns {Promise<AutomationActionResult[]>}
+ * @returns {Promise<AutomationActionResult | null>}
  */
 async function handleAutomationForUser(user, datetime) {
     logger.debug('\n' + '*'.repeat(50))
@@ -86,28 +86,30 @@ async function handleAutomationForUser(user, datetime) {
     // sort by datetime
     actionsPlannedToday = _sortByDatetimeAsc(actionsPlannedToday)
 
-    let actionPromises = [];
+    // take the first action to be executed
+    let actionToExecute;
     for (const action of actionsPlannedToday) {
         logger.debug('considering executing ' + action + ' ...')
         if (action.timeToExecute(datetime)) {
             logger.debug('ok')
-            actionPromises.push(
-                new Promise((resolve, reject) => {
-                    executeAction(user.username, user.password, action.actionType)
-                        .then(result => {
-                            resolve(new AutomationActionResult(action.user, action.actionType, action.configType, action.dueAt, result, null))
-                        })
-                        .catch(err => {
-                            reject(new AutomationActionResult(action, null, err))
-                        })
-                }))
+            actionToExecute = new Promise((resolve, reject) => {
+                executeAction(user.username, user.password, action.actionType)
+                    .then(result => {
+                        resolve(new AutomationActionResult(action.user, action.actionType, action.configType, action.dueAt, result, null))
+                    })
+                    .catch(err => {
+                        reject(new AutomationActionResult(action.user, action.actionType, action.configType, action.dueAt, null, err))
+                    })
+            })
+            break;
         }
     }
 
-    const actionResults = await Promise.allSettled(actionPromises)
-
-    // extract AutomationActionResult
-    return actionResults.map(result => result.status === 'fulfilled' ? result.value : result.reason)
+    if (actionToExecute) {
+        return await actionToExecute
+    } else {
+        return null
+    }
 }
 
 /**
@@ -118,8 +120,6 @@ async function logAutomationResult(automationResult) {
     let logEntryStatus = null;
 
     if (!automationResult.error) {
-        logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
-    } else if (automationResult.error instanceof MDDSZApiError) {
         logEntryStatus = LOG_ENTRY_STATUS.SUCCESSFUL;
     } else {
         logEntryStatus = LOG_ENTRY_STATUS.FAILED;
