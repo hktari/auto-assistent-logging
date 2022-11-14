@@ -106,7 +106,7 @@ async function addLogEntry(login_info_id, status, timestamp, error, message, act
  * 
  * @param {string} username 
  * @param {Date} date 
- * @returns {LogEntry[]}
+ * @returns {Promise<LogEntry[]>}
  */
 async function getLogEntries(username, date) {
     const queryResult = await db.query(
@@ -134,7 +134,7 @@ async function anyLogEntryOfType(login_info_id, status, action, date) {
  * 
  * @param {string} username 
  * @param {Date} date 
- * @returns {WorkweekException[]}
+ * @returns {Promise<WorkweekException[]>}
  */
 async function getWorkweekExceptions(username, date) {
     const queryResult = await db.query(
