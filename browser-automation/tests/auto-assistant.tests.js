@@ -327,10 +327,29 @@ describe('auto-assistant.js', () => {
             const actions = [last, second, first]
 
             const sorted = autoAssistant._sortByDatetimeAsc(actions)
-            
+
             expect(sorted[0]).to.equal(first)
             expect(sorted[1]).to.equal(second)
             expect(sorted[2]).to.equal(last)
         })
+    })
+
+    describe('_isSameDay', () => {
+        it('should throw if invalid arguments passed', () => {
+            expect(() => autoAssistant._isSameDay('2022-02-02', '2022-02-02')).to.throw
+        })
+        it('should return false when dates are different', () => {
+            const monday = new Date(2022, 10, 14)
+            const tuesday = new Date(2022, 10, 15)
+
+            expect(autoAssistant._isSameDay(monday, tuesday)).to.be.false
+        })
+
+        it('should return true when dates are same and hours different', () => { 
+            const oneAmMonday = new Date(2022, 10, 14, 1)
+            const twoPmMonday = new Date(2022, 10, 14, 14)
+
+            expect(autoAssistant._isSameDay(oneAmMonday, twoPmMonday)).to.be.true
+         })
     })
 })

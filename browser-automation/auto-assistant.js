@@ -13,22 +13,31 @@ function _filterThroughExceptions(actionsList, exceptions) {
     })
 }
 
+function _isSameDay(datetimeFirst, datetimeSecond) {
+    return datetimeFirst.toISOString().substring(0, 10) == datetimeSecond.toISOString().substring(0, 10)
+}
+
 function _datetimeRangeCompare(datetimeFirst, datetimeSecond, rangeMs = 60000) {
     logger.debug(`comparing  ${datetimeFirst.toUTCString()} : ${datetimeSecond.toUTCString()} `)
+
     return Math.abs(datetimeFirst.getTime() - datetimeSecond.getTime()) <= rangeMs
 }
 
 /**
- * filters the @param actionsList based on whether there is an entry inside @param logEntries
+ * filters the @param actionsList based on whether there is a successful entry inside @param logEntries
  * @param {AutomationAction[]} actionsList 
  * @param {LogEntry[]} logEntries 
  * @returns 
  */
 function _filterOutAlreadyExecuted(actionsList, logEntries) {
     return actionsList.filter(action => {
-        return !logEntries.some(le => {
-            return le.action === action.actionType && action.configType === le.configType && _datetimeRangeCompare(action.dueAt, le.timestamp)
+        const logEntryMatchesAction = logEntries.some(le => {
+            return le.action === action.actionType
+                && action.configType === le.configType
+                && _datetimeRangeCompare(action.dueAt, le.timestamp)
+                && le.status === LOG_ENTRY_STATUS.SUCCESSFUL
         })
+        return !logEntryMatchesAction
     })
 }
 
@@ -45,7 +54,7 @@ async function _getAndFilterActionsForDate(user, datetime) {
     return actionsForDate
 }
 
-function _sortByDatetimeAsc(actions){
+function _sortByDatetimeAsc(actions) {
     let tmp = [...actions]
     return tmp.sort((a, b) => a.dueAt.getTime() - b.dueAt.getTime())
 }
@@ -54,7 +63,7 @@ function _sortByDatetimeAsc(actions){
  * Checks the database for any pending automation actions for the given user and time.
  * @param {User} user the user object
  * @param {Date} datetime the current time
- * @returns {Promise<AutomationActionResult>[]}
+ * @returns {Promise<AutomationActionResult[]>}
  */
 async function handleAutomationForUser(user, datetime) {
     logger.debug('\n' + '*'.repeat(50))
@@ -132,6 +141,7 @@ module.exports = {
     handleAutomationForUser,
     logAutomationResult,
     _sortByDatetimeAsc,
+    _isSameDay,
     _filterOutAlreadyExecuted
-    
+
 }
