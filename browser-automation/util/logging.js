@@ -15,8 +15,11 @@ const logger = winston.createLogger({
     ]
 });
 
+console.log('setting log level to: ' + (process.env.LOG_LEVEL || "silly"))
+logger.level = process.env.LOG_LEVEL || "silly";
 
-logger.add(new (winston.transports.Console)({
+
+logger.add(new winston.transports.Console({
     timestamp: true,
     colorize: true,
     format: alignedWithColorsAndTime
@@ -29,6 +32,7 @@ var config = {
     createLogGroup: false,
     createLogStream: true,
     uploadRate: 2000,
+    level: logger.level,
     awsAccessKeyId: process.env.CLOUDWATCH_ACCESS_KEY_ID,
     awsSecretKey: process.env.CLOUDWATCH_SECRET_ACCESS_KEY,
     awsRegion: process.env.CLOUDWATCH_REGION,
@@ -41,8 +45,6 @@ if (NODE_ENV === 'production' || NODE_ENV === 'test') {
     logger.add(new WinstonCloudWatch(config));
 }
 
-console.log('setting log level to: ' + (process.env.LOG_LEVEL || "silly"))
-logger.level = process.env.LOG_LEVEL || "silly";
 
 //
 // Handle errors originating in the logger itself
