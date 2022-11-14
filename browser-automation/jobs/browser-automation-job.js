@@ -32,38 +32,34 @@ if (parentPort) {
         logger.info("time: " + curTime.toUTCString())
 
 
-        const automationResults = []
+        let automationResults = []
         for (const user of usersToAutomate) {
-            const automationActionsForUser = await handleAutomationForUser(user, curTime)
-            if (automationActionsForUser.length === 0) {
+            const autoActionForUser = await handleAutomationForUser(user, curTime)
+            if (autoActionForUser === null) {
                 logger.info(`User ${user.username}. Nothing to do...`)
             } else {
-                automationResults = automationResults.concat(automationActionsForUser)
+                automationResults.push(autoActionForUser)
             }
         }
 
         for (const result of automationResults) {
             try {
                 await logAutomationResult(result)
-            } catch (error) {
-                logger.error('Error adding log entry')
-                logger.error(error?.toString())
-                jobError = 'Error occured when adding log entry. Please check the log'
+            } catch (err) {
+                jobError = 'Error occured when adding log entry: ' + err?.toString()
+                logger.error(err?.toString())
             }
         }
     } catch (err) {
+        jobError = 'Error occured: ' + err?.toString()
         logger.error(err?.toString())
-        jobError = 'Error occured. Please check the log'
     }
 
-    // signal to parent that the job is done
     if (parentPort) {
-        logger.info('end')
         parentPort.postMessage(jobError ?? 'done');
-        if (jobError) {
-            process.exit(1)
-        }
-    } else {
-        process.exit(0);
     }
+
+    logger.info('end')
+    logger.end()
+    process.exit(jobError ? 1 : 0)
 })();

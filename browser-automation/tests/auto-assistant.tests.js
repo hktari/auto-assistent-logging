@@ -116,7 +116,7 @@ describe('auto-assistant.js', () => {
 
     describe('handleAutomationForUser()', () => {
 
-        it('should return an array of AutomationActionResult', (done) => {
+        it('should return an instance of AutomationActionResult', (done) => {
             const automationAction = automationActionsForUser['test'][0].actions[0]
             executeActionStub.reset()
             executeActionStub.returns(Promise.resolve(automationAction.message))
@@ -124,8 +124,7 @@ describe('auto-assistant.js', () => {
             autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
                 .then(actionResults => {
                     expect(executeActionStub.calledOnce, 'stub is called').to.be.true
-                    expect(actionResults).to.have.lengthOf(1, 'should return a single action')
-                    expect(actionResults[0]).to.deep.equal(automationAction)
+                    expect(actionResults).to.deep.equal(automationAction)
                     done()
                 })
                 .catch(err => done(err))
@@ -140,8 +139,7 @@ describe('auto-assistant.js', () => {
             autoAssistant.handleAutomationForUser(testUser, automationAction.dueAt)
                 .then(actionResults => {
                     expect(executeActionStub.calledOnce).to.be.true
-                    expect(actionResults).to.have.lengthOf(1)
-                    expect(actionResults[0]).to.deep.equal(automationAction)
+                    expect(actionResults).to.deep.equal(automationAction)
                     done()
                 })
                 .catch(err => done(err))
@@ -158,8 +156,7 @@ describe('auto-assistant.js', () => {
                     autoAssistant.handleAutomationForUser(testUser, dailyAction.dueAt)
                         .then(actionResults => {
                             expect(executeActionStub.calledOnce).to.be.true
-                            expect(actionResults).to.have.lengthOf(1)
-                            expect(actionResults[0]).to.deep.equal(dailyAction)
+                            expect(actionResults).to.deep.equal(dailyAction)
                             done()
                         })
                         .catch(err => done(err))
@@ -175,7 +172,7 @@ describe('auto-assistant.js', () => {
                             executeActionStub.returns(Promise.resolve(weeklyAction.message))
 
                             expect(executeActionStub.calledOnce).to.be.false
-                            expect(actionResults).to.have.lengthOf(0)
+                            expect(actionResults).to.be.null
                             done()
                         })
                         .catch(err => done(err))
@@ -200,14 +197,13 @@ describe('auto-assistant.js', () => {
                 autoAssistant.handleAutomationForUser(testUser, yesterdayWeeklyAction.dueAt)
                     .then(actionResults => {
                         expect(executeActionStub.calledOnce, 'executeAction() was called').to.be.true
-                        expect(actionResults).to.have.lengthOf(1)
-                        expect(actionResults[0]).to.deep.equal(yesterdayWeeklyAction)
+                        expect(actionResults).to.deep.equal(yesterdayWeeklyAction)
                         done()
                     })
                     .catch(err => done(err))
             })
 
-            it('and already executed stop_btn from previous day, empty is returned', (done) => {
+            it('and already executed stop_btn from previous day, null is returned', (done) => {
                 const yesterdayWeeklyActionExecuted = new AutomationActionResult(
                     testUser,
                     AUTOMATE_ACTION.STOP_BTN,
@@ -222,7 +218,7 @@ describe('auto-assistant.js', () => {
                 autoAssistant.handleAutomationForUser(testUser, yesterdayWeeklyActionExecuted.dueAt)
                     .then(actionResults => {
                         expect(executeActionStub.calledOnce, 'executeAction() was called').to.be.false
-                        expect(actionResults).to.have.lengthOf(0)
+                        expect(actionResults).to.be.null
                         done()
                     })
                     .catch(err => done(err))
@@ -233,11 +229,11 @@ describe('auto-assistant.js', () => {
         //     const 
         // })
 
-        it('when no automation action exists, it should return an empty array', (done) => {
+        it('when no automation action exists, it should return null', (done) => {
             const noAutomationDatetime = new Date(Date.UTC(2022, 7, 20)) // saturday
             autoAssistant.handleAutomationForUser(testUser, noAutomationDatetime)
                 .then(actionResults => {
-                    expect(actionResults).to.have.lengthOf(0)
+                    expect(actionResults).to.be.null
                     done()
                 })
                 .catch(err => done(err))
@@ -247,17 +243,17 @@ describe('auto-assistant.js', () => {
             const exceptionDatetime = new Date(Date.UTC(2022, 7, 17, 12, 0))
             autoAssistant.handleAutomationForUser(testUser, exceptionDatetime)
                 .then(actionResults => {
-                    expect(actionResults, 'no actions returned').to.have.lengthOf(0)
+                    expect(actionResults, 'no actions returned').to.be.null
                     done()
                 })
                 .catch(err => done(err))
         })
 
-        it('when action already executed, it should not return automation action', (done) => {
+        it('when action already executed, it should return null', (done) => {
             const alreadyExecutedDatetime = new Date(Date.UTC(2022, 7, 16, 14, 0))
             autoAssistant.handleAutomationForUser(testUser, alreadyExecutedDatetime)
                 .then(actionResults => {
-                    expect(actionResults).to.have.lengthOf(0)
+                    expect(actionResults).to.be.null
                     done()
                 })
                 .catch(err => done(err))
@@ -315,5 +311,41 @@ describe('auto-assistant.js', () => {
         //             done()
         //         })
         // })
+    })
+
+    describe('_sortByDatetimeAsc', () => {
+        it('should sort by dueAt ascending order', () => {
+
+            const now = Date.now()
+            const last = new AutomationAction(null, null, null, new Date(now + 1000))
+            const second = new AutomationAction(null, null, null, new Date(now))
+            const first = new AutomationAction(null, null, null, new Date(now - 1000))
+            const actions = [last, second, first]
+
+            const sorted = autoAssistant._sortByDatetimeAsc(actions)
+
+            expect(sorted[0]).to.equal(first)
+            expect(sorted[1]).to.equal(second)
+            expect(sorted[2]).to.equal(last)
+        })
+    })
+
+    describe('_isSameDay', () => {
+        it('should throw if invalid arguments passed', () => {
+            expect(() => autoAssistant._isSameDay('2022-02-02', '2022-02-02')).to.throw
+        })
+        it('should return false when dates are different', () => {
+            const monday = new Date(2022, 10, 14)
+            const tuesday = new Date(2022, 10, 15)
+
+            expect(autoAssistant._isSameDay(monday, tuesday)).to.be.false
+        })
+
+        it('should return true when dates are same and hours different', () => { 
+            const oneAmMonday = new Date(2022, 10, 14, 1)
+            const twoPmMonday = new Date(2022, 10, 14, 14)
+
+            expect(autoAssistant._isSameDay(oneAmMonday, twoPmMonday)).to.be.true
+         })
     })
 })

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node ./main.js",
     "pretest": "chmod 766 tests/util/resetdb.sh && env-cmd -f ./tests/test.env ./tests/util/resetdb.sh",
-    "test": "env-cmd -f ./tests/test.env mocha tests/**/*.js",
+    "test": "env-cmd -f ./tests/test.env mocha",
     "db:reset": "sudo psql -U hktari -d asistentapp -a -f \"./tests/util/resetdb.sql\"",
     "db:create": "env-cmd -f ./tests/test.env createdb -h localhost -p 5432 -U hktari asistentapp_test",
     "db:migrate": "env-cmd -f ./tests/test.env psql -U hktari -d asistentapp_test -a -f \"./tests/util/migratedb.sql\" ",
@@ -16,6 +16,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3.171.0",
+    "@ladjs/graceful": "^3.0.2",
     "bree": "^9.1.2",
     "cabin": "^9.1.2",
     "chalk": "^4.1.0",
@@ -25,7 +27,8 @@
     "p-map": "^5.5.0",
     "pg": "^8.7.3",
     "puppeteer": "^16.0.0",
-    "winston": "^3.8.1",
+    "winston": "^3.8.2",
+    "winston-cloudwatch": "^6.1.1",
     "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {

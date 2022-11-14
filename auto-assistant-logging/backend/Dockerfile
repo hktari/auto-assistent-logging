@@ -11,6 +11,6 @@ RUN npm install
 COPY src/ ./src/
 RUN ls -la ./src/*
 
-CMD [ "node", "src/aal-server.js" ]
+CMD [ "node", "src/main.js" ]
 
 EXPOSE 3939

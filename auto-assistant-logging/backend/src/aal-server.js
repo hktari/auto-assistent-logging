@@ -1,5 +1,3 @@
-require('dotenv').config();
-
 const express = require('express');
 const { requireAuthentication } = require('./middleware/auth');
 const app = express()
@@ -24,6 +22,8 @@ app.use(requireAuthentication, require('./routers/accountRouter'));
 app.use(require('./routers/loginInfoRouter'));
 app.use(require('./routers/workweekConfigRouter'))
 app.use(require('./routers/workdayConfigRouter'))
+app.use(require('./routers/workweekExceptionRouter'))
+app.use(require('./routers/logEntryRouter'))
 
 function logErrors(err, req, res, next) {
     log(error(err.stack))
@@ -40,6 +40,5 @@ function clientErrorHandler(err, req, res, next) {
 app.use(logErrors);
 app.use(clientErrorHandler);
 
-app.listen(process.env.PORT, () => {
-    console.log(`Listening on port ${process.env.PORT}`)
-})
+
+module.exports = app

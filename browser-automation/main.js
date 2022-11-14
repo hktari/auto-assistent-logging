@@ -1,31 +1,31 @@
 
 const Bree = require('bree');
-// const Graceful = require('@ladjs/graceful');
-const Cabin = require('cabin');
-const logger = require('./util/logging')
+const Graceful = require('@ladjs/graceful');
+
 let assistantJob = {
     name: 'browser-automation-job',
     // run on start as well
     // timeout: 0
 }
 
-if (process.env.NODE_ENV === 'development') {
+console.log('node environment: ' + process.env.NODE_ENV)
+
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
     require('dotenv').config()
-    assistantJob.interval = '5s';
+    assistantJob.interval = '10s';
 } else {
     assistantJob.cron = '*/5 * * * *';
 }
 
 const bree = new Bree({
-    logger: logger,
     jobs: [
         assistantJob
     ]
 });
 
 // handle graceful reloads, pm2 support, and events like SIGHUP, SIGINT, etc.
-// const graceful = new Graceful({ brees: [bree] });
-// graceful.listen();
+const graceful = new Graceful({ brees: [bree] });
+graceful.listen();
 
 // start all jobs (this is the equivalent of reloading a crontab):
 (async () => {
