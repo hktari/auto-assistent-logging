@@ -3,7 +3,7 @@ const { AUTOMATE_ACTION, CONFIG_TYPE } = require('../interface');
 const logger = require('./logging');
 const { getEnvVariableOrDefault } = require('./util')
 
-const THRESHOLD_MINUTES = +getEnvVariableOrDefault(process.env.TIME_TO_EXEC_THRESHOLD_MIN, 5);
+const THRESHOLD_MINUTES = +getEnvVariableOrDefault(process.env.TIME_TO_EXEC_THRESHOLD_MIN, 60);
 
 // add buffer so ${duaDate} and ${now} don't need to overlap perfectly
 const BUFFER_IN_RANGE_MS = +getEnvVariableOrDefault(process.env.TIME_TO_EXEC_BUFFER_MS, 5000);
@@ -69,7 +69,7 @@ class AutomationActionResult extends AutomationAction {
      * @param {CONFIG_TYPE} configType 
      * @param {Date} dueAt 
      * @param {string} message 
-     * @param {string} error 
+     * @param {Error} error 
      */
     constructor(user, action, configType, dueAt, message, error) {
         super(user, action, configType, dueAt)
