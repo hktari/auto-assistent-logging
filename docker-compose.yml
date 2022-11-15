@@ -12,7 +12,7 @@ services:
       - ./certbot/www:/var/www/certbot/:ro
       - ./certbot/conf/:/etc/nginx/ssl/:ro
     environment:
-      - API_HOST=api
+      - API_HOST=webapp-backend
       - API_PORT=${BACKEND_PORT}
       - DOMAIN=${DOMAIN}
   certbot:
@@ -21,8 +21,8 @@ services:
       - ./certbot/www/:/var/www/certbot/:rw
       - ./certbot/conf/:/etc/letsencrypt/:rw
 
-  api:
-    build: ./auto-assistant-logging/backend
+  webapp-backend:
+    build: ./webapp/backend
     image: hktari/assistant-logging_backend
     extra_hosts:
       - host.docker.internal:host-gateway

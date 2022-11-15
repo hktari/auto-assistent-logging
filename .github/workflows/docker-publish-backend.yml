@@ -28,6 +28,6 @@ jobs:
         name: Build and push
         uses: docker/build-push-action@v3
         with:
-          context: auto-assistant-logging/backend
+          context: webapp/backend
           push: true
           tags: hktari/auto-assistant-logging-backend:latest
