@@ -83,16 +83,14 @@ async function executeAction(username, password, action) {
         const loginBtn = await page.$('.t-Login-buttons button')
         await loginBtn.click()
 
-        await page.waitForSelector('input#P13_UPORABNIK_OA_SI_CI_ID')
-
-        const openUserSelectionBtn = '#P13_UPORABNIK_OA_SI_CI_ID_lov_btn'
-        const openUserSelectBtn = await page.waitForSelector(openUserSelectionBtn)
-
+        const openUserSelectionInput = await page.waitForSelector('input#P13_UPORABNIK_OA_SI_CI_ID')
         logger.debug('opening user selection...')
-        // requires double click to work
-        await openUserSelectBtn.click()
-        await delay(500)
-        await openUserSelectBtn.click()
+
+        await openUserSelectionInput.focus()
+        await openUserSelectionInput.click()
+
+        await delay(2000)
+
 
         const selectFirstRow = 'div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr > td'
         await page.waitForSelector(selectFirstRow)
