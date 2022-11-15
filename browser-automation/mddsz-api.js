@@ -4,7 +4,7 @@ if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 
 
 const puppeteer = require('puppeteer');
-const { AUTOMATE_ACTION } = require('./interface');
+const { AUTOMATE_ACTION, LogEntry } = require('./interface');
 const ENDPOINT = process.env.MDDSZ_WEBAPP_ENDPOINT
 const logger = require('./util/logging')
 const ExecuteFailureReason = Object.freeze({
@@ -90,22 +90,14 @@ async function executeAction(username, password, action) {
         await openUserSelectionInput.focus()
         await openUserSelectionInput.click()
 
-        const openUserSelectionBtn = '#P13_UPORABNIK_OA_SI_CI_ID_lov_btn'
-        const openUserSelectBtn = await page.waitForSelector(openUserSelectionBtn)
-
-
         await delay(2000)
 
-        await openUserSelectBtn.hover()
-        await openUserSelectBtn.click()
-
         const selectFirstRow = 'div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr > td'
-        const firstRow = await page.waitForSelector(selectFirstRow)
+        await page.waitForSelector(selectFirstRow)
+        const firstRow = await page.$(selectFirstRow)
+        logger.debug(firstRow)
         logger.debug('selecting user...')
-        
-        await firstRow.focus()
-        await firstRow.click()
-
+        await firstRow.evaluate(b => b.click())
 
         const startBtnSelector = 'button.t-Button--success';
         const stopBtnSelector = 'button.t-Button--danger';
