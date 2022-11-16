@@ -3,9 +3,10 @@ const { StatusCode } = require('express');
 const { log, info, debug } = require('../util/logging');
 
 function createToken(email, admin = false) {
+    const expiresAt = Math.floor(Date.now() / 1000) + (60 * 60 * process.env.JWT_EXPIRES_IN_HRS)
     const token = jwt.sign({
-        exp: Math.floor(Date.now() / 1000) + (60 * 60 * process.env.JWT_EXPIRES_IN_HRS),
-        data: { email: email, admin: admin }
+        exp: expiresAt,
+        data: { email: email, admin: admin, expiresAt: new Date(expiresAt) }
     }, process.env.JWT_SECRET);
 
     return token;
@@ -35,8 +36,9 @@ function requireAuthentication(req, res, next) {
                 */
                 res.status(403).json(err)
             } else {
-                log(debug('authorized: ' + decoded.email))
-                req.user = decoded;
+                log(debug('authorized'))
+                log(debug(JSON.stringify(decoded)))
+                req.user = decoded.data;
                 next()
             }
         });
