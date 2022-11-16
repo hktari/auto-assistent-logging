@@ -2,9 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "The backend for the automate assistant logging app",
-  "main": "aal-server.js",
+  "main": "main.js",
   "scripts": {
-    "start": "node ./src/aal-server",
+    "start": "node ./src/main",
     "db:drop": "sudo -u postgres dropdb asistentapp_test",
     "db:create": "sudo -u postgres createdb asistentapp_test && sudo -u postgres psql -d asistentapp_test -f ../../db/asistentapp.sql",
     "db:reset": "sudo -u postgres psql -d asistentapp_test -f ../../db/reset.sql",

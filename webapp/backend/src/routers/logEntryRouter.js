@@ -18,7 +18,8 @@ router.route('/account/:id/log-entry')
                             "action",
                             "config_type"
                     FROM log_entry le JOIN login_info li ON le.login_info_id = li.id 
-                    WHERE li.id = $1`, [req.loginInfoID])
+                    WHERE li.id = $1
+                    ORDER BY le.timestamp DESC`, [req.loginInfoID])
             .then(result => res.status(200).json(result.rows))
             .catch(err => next(err))
     })
