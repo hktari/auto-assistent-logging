@@ -19,6 +19,7 @@ router.post('/login', async (req, res, next) => {
 
             res.status(200).json({
                 token: createToken(req.body.email),
+                id: account.id,
                 email: account.email,
                 automationEnabled: account.automationEnabled
             })
@@ -47,9 +48,10 @@ router.post('/signup', async (req, res, next) => {
         const pwdHash = await crypto.hash(req.body.password)
 
         const queryResult = await db.query(`INSERT INTO ACCOUNT (email, password, "automationEnabled")
-                                        VALUES ($1, $2, $3);`, [req.body.email, pwdHash, req.body.automationEnabled ?? false])
+                                        VALUES ($1, $2, $3)
+                                        RETURNING id, email, "automationEnabled";`, [req.body.email, pwdHash, req.body.automationEnabled ?? false])
         if (queryResult.rowCount === 1) {
-            res.sendStatus(200)
+            res.send(queryResult.rows[0])
         }
     } catch (e) {
         next(e)
