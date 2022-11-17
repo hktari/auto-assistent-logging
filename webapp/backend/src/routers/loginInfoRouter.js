@@ -13,7 +13,13 @@ router.route('/account/:id/login-info')
                     encode(li.password_cipher, 'hex') as password_cipher, encode(li.iv_cipher, 'hex') as iv_cipher 
                     FROM login_info li JOIN account a ON li.account_id = a.id
                     WHERE a.id = $1`, [req.params.id])
-            .then(result => res.status(result.rowCount > 0 ? 200 : 404).json(result.rows))
+            .then(result => {
+                if (result.rowCount > 0) {
+                    res.status(200).json(result.rows[0])
+                } else {
+                    res.status(404)
+                }
+            })
             .catch(err => next(err))
     })
     .post(async (req, res, next) => {
