@@ -23,7 +23,7 @@ services:
 
   webapp-backend:
     build: ./webapp/backend
-    image: hktari/assistant-logging_backend
+    image: hktari/auto-assistant-logging-backend
     extra_hosts:
       - host.docker.internal:host-gateway
     ports:
