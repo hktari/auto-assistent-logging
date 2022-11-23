@@ -25,20 +25,12 @@ app.use(require('./routers/workdayConfigRouter'))
 app.use(require('./routers/workweekExceptionRouter'))
 app.use(require('./routers/logEntryRouter'))
 
-function logErrors(err, req, res, next) {
-    log(error(err.stack))
-    next(err)
-}
-function clientErrorHandler(err, req, res, next) {
-    if (req.xhr) {
-        res.status(500).send({ error: 'Something failed!' })
-    } else {
-        next(err)
-    }
+function errorHandler(err, req, res, next) {
+    res.status(500)
+    res.render('error', { error: err })
 }
 
-app.use(logErrors);
-app.use(clientErrorHandler);
+app.use(errorHandler)
 
 
 module.exports = app
