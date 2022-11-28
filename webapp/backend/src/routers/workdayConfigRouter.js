@@ -20,7 +20,13 @@ router.route('/account/:id/workday')
         db.query(`INSERT INTO daily_config (login_info_id, date, start_at, end_at)
                     VALUES ($1, $2, $3, $4)
                     RETURNING id, login_info_id, date::text, start_at, end_at`, [req.loginInfoID, req.body.date, req.body.start_at, req.body.end_at])
-            .then(result => res.status(result.rowCount > 0 ? 200 : 400).json(result.rows))
+            .then(result => {
+                if (result.rowCount > 0) {
+                    res.status(200).json(result.rows[0])
+                } else {
+                    res.sendStatus(400)
+                }
+            })
             .catch(err => next(err))
     })
 
