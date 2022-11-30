@@ -20,7 +20,15 @@ router.route('/account/:id/log-entry')
                     FROM log_entry le JOIN login_info li ON le.login_info_id = li.id 
                     WHERE li.id = $1
                     ORDER BY le.timestamp DESC`, [req.loginInfoID])
-            .then(result => res.status(200).json(result.rows))
+            .then(result => {
+                const payload = result.rows.map(row => {
+                    return {
+                        ...row,
+                        timestamp: new Date(row.timestamp)
+                    }
+                })
+                res.status(200).json(payload)
+            })
             .catch(err => next(err))
     })
 
