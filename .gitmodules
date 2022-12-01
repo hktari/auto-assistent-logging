@@ -1,3 +1,6 @@
 [submodule "webapp/frontend"]
 	path = webapp/frontend
 	url = git@github.com:hktari/auto-assistant-webapp-frontend.git
+[submodule "webapp/backend"]
+	path = webapp/backend
+	url = git@github.com:hktari/auto-assistant-webapp-backend.git
