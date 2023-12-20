@@ -83,34 +83,18 @@ async function executeAction(username, password, action) {
         const loginBtn = await page.$('.t-Login-buttons button')
         await loginBtn.click()
 
-        const openUserSelectionInput = await page.waitForSelector('input#P13_UPORABNIK_OA_SI_CI_ID')
-        logger.debug('opening user selection...')
-
-        await openUserSelectionInput.focus()
-        await openUserSelectionInput.click()
-
         await delay(2000)
 
-
-        const selectFirstRow = 'div.a-PopupLOV-results.a-GV > div.a-GV-bdy > div.a-GV-w-scroll > table > tbody > tr > td'
-        await page.waitForSelector(selectFirstRow)
-        const firstRow = await page.$(selectFirstRow)
-        logger.debug(firstRow)
-        logger.debug('selecting user...')
-        // use evaluate instead of element.click
-        // https://stackoverflow.com/questions/51857070/puppeteer-in-nodejs-reports-error-node-is-either-not-visible-or-not-an-htmlele
-        await firstRow.evaluate(b => b.click())
-
-        const startBtnSelector = 'button.t-Button--success';
-        const stopBtnSelector = 'button.t-Button--danger';
-        // make sure start button is enabled
-
+        const startBtnSelector = '#btn_zacni';
+        const stopBtnSelector = '#btn_koncaj';
+        
         const btnSelector = action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
         logger.debug('waiting for button...')
         const btn = await page.waitForSelector(btnSelector)
-
+        
         await delay(3000)
-
+        
+        // make sure start button is enabled
         const buttonDisabled = await page.$eval(btnSelector, btn => btn.disabled);
 
         if (buttonDisabled) {
@@ -121,8 +105,8 @@ async function executeAction(username, password, action) {
         logger.debug('clicking...')
 
         // h2 Zapis uspešno dodan.
-        const successBannerSelector = ".fos-Alert--success"
-        await page.waitForSelector(successBannerSelector)
+        const successBannerSelector = "#t_Alert_Success"
+        await page.waitForSelector(successBannerSelector, {visible: true})
         logger.debug('waiting for success banner...')
 
         await delay(5000);
