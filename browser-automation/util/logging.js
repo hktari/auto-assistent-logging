@@ -1,5 +1,4 @@
-var winston = require('winston'),
-    WinstonCloudWatch = require('winston-cloudwatch');
+var winston = require('winston');
 
 var NODE_ENV = process.env.NODE_ENV || 'development';
 const { format } = require('logform');
@@ -41,9 +40,6 @@ var config = {
     }
 }
 
-if (NODE_ENV === 'production' || NODE_ENV === 'test') {
-    logger.add(new WinstonCloudWatch(config));
-}
 
 
 //
