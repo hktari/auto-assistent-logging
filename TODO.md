@@ -1,6 +1,12 @@
 # TODO
 - write portfolio entry
-- move backend to seperate repository
+## selitev na gandi [OK]
+- konfiguriraj nginx in certifikate
+- inštaliraj bazo
+- pripravi .env file
+- zaženi kontejnerja za backend in automation worker
+
+
 
 ## WEBSERVER
 - refactor cors implementation
