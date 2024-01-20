@@ -32,6 +32,14 @@ async function executeAction(action, userConfiguration) {
     throw new Error(`Unhandled type of action ${action}`);
   }
 
+  if (!isUserConfigurationValid(userConfiguration)) {
+    throw new AutomationError(
+      action,
+      ExecuteFailureReason.InvalidConfiguration,
+      `Invalid user configuration: \n${JSON.stringify(userConfiguration)}`
+    );
+  }
+
   const browser = await createBrowser(process.env.NODE_ENV === "development");
 
   try {
