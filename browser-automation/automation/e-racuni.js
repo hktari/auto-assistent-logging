@@ -6,7 +6,7 @@ const { createBrowser } = require("./common");
 const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
-async function executeAction(cookie, endpoint, action) {
+async function executeAction(itsClientId, endpoint, action) {
   logger.debug("endpoint: " + endpoint);
   logger.debug("Executing action: " + action);
   logger.debug("ENV: " + process.env.NODE_ENV);
@@ -23,9 +23,29 @@ async function executeAction(cookie, endpoint, action) {
 
   try {
     const page = await browser.newPage();
+
     page.setDefaultTimeout(1000);
 
-    await page.goto(endpoint);
+    const homePage = "https://e-racuni.com/S8a"
+    await page.goto(homePage);
+    
+    // TODO: refactor
+    itsClientId = "IflQSpp3KaK00Cwf095MyYnQ_3881595479"
+    
+    const cookies = [
+      {
+        name: "ItcClientID",
+        value: itsClientId,
+      },
+      {
+        name: "ItcSIDhomepage",
+        value: "xtgrLk3eekf9Sptlltb0flYS_3883195249",
+      },
+    ];
+
+    await page.setCookie(...cookies);
+
+    await page.goto("https://e-racuni.com/S8a/Clockin-CA74538906CA0D009684938F0815D96F")
     await page.waitForNavigation(); // The promise resolves after navigation has finished
 
     // const startBtnSelector = "#btn_zacni";
