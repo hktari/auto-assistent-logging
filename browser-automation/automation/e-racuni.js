@@ -2,7 +2,7 @@ if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
   require("dotenv").config();
 }
 
-const { createBrowser, delay } = require("./common");
+const { AutomationError, createBrowser, delay } = require("./common");
 const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
@@ -29,30 +29,25 @@ async function executeAction(itsClientId, endpoint, action) {
     const homePage = "https://e-racuni.com/S8a";
     await page.goto(homePage);
 
-
-    // TODO: handle geolocation popup request
+    // handle geolocation popup request
     // https://github.com/puppeteer/puppeteer/issues/846
-
-    await page.evaluateOnNewDocument(function() {
+    await page.evaluateOnNewDocument(function () {
       navigator.geolocation.getCurrentPosition = function (cb) {
         setTimeout(() => {
           cb({
-            'coords': {
+            coords: {
               accuracy: 21,
               altitude: null,
               altitudeAccuracy: null,
               heading: null,
               latitude: 46.4416995,
               longitude: 15.1957154,
-              speed: null
-            }
-          })
-        }, 1000)
-      }
+              speed: null,
+            },
+          });
+        }, 1000);
+      };
     });
-    
-    // TODO: set mislinja ?
-    // Page.setGeolocation()
 
     // TODO: refactor
     itsClientId = "IflQSpp3KaK00Cwf095MyYnQ_3881595479";
@@ -73,12 +68,28 @@ async function executeAction(itsClientId, endpoint, action) {
     await page.goto(
       "https://e-racuni.com/S8a/Clockin-CA74538906CA0D009684938F0815D96F"
     );
-    // await page.waitForNavigation(); // The promise resolves after navigation has finished
 
-    const startBtnSelector = "a.clockin-button.er-button-green"
+    const startBtnSelector = "a.clockin-button.er-button-green";
     const stopBtnSelector = "a.clockin-button.er-button-red";
 
-    const btn = await page.waitForSelector(stopBtnSelector);
+    const btnSelector =
+      action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
+
+    const btn = await page.waitForSelector(btnSelector);
+    if (!btn) {
+      throw new AutomationError(action, ExecuteFailr);
+    }
+    // make sure start button is enabled
+    const buttonDisabled = await page.$eval(btnSelector, (btn) => btn.disabled);
+
+    if (buttonDisabled) {
+      throw new AutomationError(
+        action,
+        ExecuteFailureReason.ButtonDisabled,
+        `Can't click button: ${btnSelector}. \nDisabled`
+      );
+    }
+
     await btn.click();
 
     const allowGpsPopupSelector = "#locationErrorDialog-popup";
@@ -90,17 +101,6 @@ async function executeAction(itsClientId, endpoint, action) {
     // const btn = await page.waitForSelector(btnSelector);
 
     // await delay(3000);
-
-    // // make sure start button is enabled
-    // const buttonDisabled = await page.$eval(btnSelector, (btn) => btn.disabled);
-
-    // if (buttonDisabled) {
-    //   throw new MDDSZApiError(
-    //     action,
-    //     ExecuteFailureReason.ButtonDisabled,
-    //     `Can't click button: ${btnSelector}. \nDisabled`
-    //   );
-    // }
 
     // await btn.click();
     // logger.debug("clicking...");

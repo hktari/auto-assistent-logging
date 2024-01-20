@@ -1,7 +1,7 @@
 const { expect } = require('chai')
 const { describe, it } = require('mocha');
 const { AUTOMATE_ACTION, LogEntry, LOG_ENTRY_STATUS } = require('../interface');
-const { executeAction, MDDSZApiError } = require('../mddsz-api')
+const { executeAction } = require('../mddsz-api')
 const db = require('../dbFacade')
 
 // require('chai-as-promised')

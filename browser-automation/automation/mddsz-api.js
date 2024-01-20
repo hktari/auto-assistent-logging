@@ -6,23 +6,8 @@ const ENDPOINT = process.env.MDDSZ_WEBAPP_ENDPOINT;
 const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
-const { delay, createBrowser } = require("./common");
+const { delay, createBrowser, AutomationError } = require("./common");
 
-const ExecuteFailureReason = Object.freeze({
-  ButtonDisabled: "ButtonDisabled",
-});
-
-class MDDSZApiError extends Error {
-  constructor(action, failureReason, message) {
-    super(message);
-    this.action = action;
-    this.failureReason = failureReason;
-  }
-
-  toString() {
-    return `${this.action}:(${this.failureReason})\t${this.message}`;
-  }
-}
 
 async function executeAction(username, password, action) {
   logger.debug("endpoint: " + ENDPOINT);
@@ -73,7 +58,7 @@ async function executeAction(username, password, action) {
     const buttonDisabled = await page.$eval(btnSelector, (btn) => btn.disabled);
 
     if (buttonDisabled) {
-      throw new MDDSZApiError(
+      throw new AutomationError(
         action,
         ExecuteFailureReason.ButtonDisabled,
         `Can't click button: ${btnSelector}. \nDisabled`
@@ -101,7 +86,6 @@ async function executeAction(username, password, action) {
 
 const api = {
   executeAction,
-  MDDSZApiError,
 };
 
 module.exports = api;
