@@ -11,7 +11,17 @@ const {
 const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
-async function executeAction(itsClientId, endpoint, action) {
+/**
+ * E-racuni User Configuration
+ * @typedef {{itsClientId: string, itcSIDhomepage: string, appHomepageURL: string, appLoggedInURL: string}} ERacuniUserConfiguration
+ */
+/**
+ * 
+ * @param {AUTOMATE_ACTION} action 
+ * @param {ERacuniUserConfiguration} userConfiguration 
+ * @returns {Promise<string>}
+ */
+async function executeAction(action, userConfiguration) {
   logger.debug("endpoint: " + endpoint);
   logger.debug("Executing action: " + action);
   logger.debug("ENV: " + process.env.NODE_ENV);
@@ -29,7 +39,7 @@ async function executeAction(itsClientId, endpoint, action) {
   try {
     const page = await browser.newPage();
 
-    page.setDefaultTimeout(1000);
+    page.setDefaultTimeout(10000);
 
     const homePage = "https://e-racuni.com/S8a";
     await page.goto(homePage);
