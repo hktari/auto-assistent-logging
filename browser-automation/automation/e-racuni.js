@@ -2,7 +2,12 @@ if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
   require("dotenv").config();
 }
 
-const { AutomationError, createBrowser, delay } = require("./common");
+const {
+  AutomationError,
+  createBrowser,
+  delay,
+  ExecuteFailureReason,
+} = require("./common");
 const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
@@ -77,8 +82,13 @@ async function executeAction(itsClientId, endpoint, action) {
 
     const btn = await page.waitForSelector(btnSelector);
     if (!btn) {
-      throw new AutomationError(action, ExecuteFailr);
+      throw new AutomationError(
+        action,
+        ExecuteFailureReason.ButtonNotFound,
+        "timeout waiting for button selector: " + btnSelector
+      );
     }
+
     // make sure start button is enabled
     const buttonDisabled = await page.$eval(btnSelector, (btn) => btn.disabled);
 
@@ -92,25 +102,15 @@ async function executeAction(itsClientId, endpoint, action) {
 
     await btn.click();
 
-    const allowGpsPopupSelector = "#locationErrorDialog-popup";
+    logger.debug("clicking...");
 
-    const allowGpsPopupCloseBtnSelector = "a.er-button:nth-child(2)";
-    // const btnSelector =
-    //   action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
-    // logger.debug("waiting for button...");
-    // const btn = await page.waitForSelector(btnSelector);
+    const successTextIndicator = action === AUTOMATE_ACTION.START_BTN ? "na delu" : "odsoten";
 
-    // await delay(3000);
+    await page.waitForFunction(
+      `document.querySelector('body').innerText.toLowerCase().includes("${successTextIndicator}")`
+    );
 
-    // await btn.click();
-    // logger.debug("clicking...");
-
-    // // h2 Zapis uspešno dodan.
-    // const successBannerSelector = "#t_Alert_Success";
-    // await page.waitForSelector(successBannerSelector, { visible: true });
-    // logger.debug("waiting for success banner...");
-
-    await delay(5000);
+    await delay(3000);
     await browser.close();
     return "Finished successfully !";
   } catch (error) {
