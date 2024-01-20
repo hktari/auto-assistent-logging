@@ -121,6 +121,30 @@ async function executeAction(action, userConfiguration) {
   }
 }
 
+/**
+ *
+ * @param {ERacuniUserConfiguration} userConfiguration
+ */
+function isUserConfigurationValid({
+  itsClientId,
+  itcSIDhomepage,
+  appHomepageURL,
+  appLoggedInURL,
+}) {
+  if (!itsClientId?.length || !itcSIDhomepage?.length) {
+    return false;
+  }
+
+  try {
+    new URL(appHomepageURL);
+    new URL(appLoggedInURL);
+  } catch (error) {
+    return false;
+  }
+
+  return true;
+}
+
 module.exports = {
   executeAction,
 };
