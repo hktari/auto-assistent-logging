@@ -63,6 +63,8 @@ async function getWeeklyConfig(username, date) {
  * @param {boolean} onlyAutomateEnabled 
  */
 async function getUsers(onlyAutomateEnabled = true) {
+    // TODO: update db schema
+    // TODO: select eracuni fields
     let queryStr = `SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, 
     encode(li.password_cipher, 'hex') as password_cipher, encode(li.iv_cipher, 'hex') as iv_cipher
     FROM account a JOIN login_info li on a.id = li.account_id`;

@@ -100,6 +100,8 @@ async function handleAutomationForUser(user, datetime) {
                     .catch(err => {
                         reject(new AutomationActionResult(action.user, action.actionType, action.configType, action.dueAt, null, err))
                     })
+
+                    // TODO: execute action on eracuni
             })
             break;
         }
