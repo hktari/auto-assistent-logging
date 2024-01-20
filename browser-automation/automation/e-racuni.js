@@ -2,7 +2,7 @@ if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
   require("dotenv").config();
 }
 
-const { createBrowser } = require("./common");
+const { createBrowser, delay } = require("./common");
 const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
@@ -26,12 +26,37 @@ async function executeAction(itsClientId, endpoint, action) {
 
     page.setDefaultTimeout(1000);
 
-    const homePage = "https://e-racuni.com/S8a"
+    const homePage = "https://e-racuni.com/S8a";
     await page.goto(homePage);
+
+
+    // TODO: handle geolocation popup request
+    // https://github.com/puppeteer/puppeteer/issues/846
+
+    await page.evaluateOnNewDocument(function() {
+      navigator.geolocation.getCurrentPosition = function (cb) {
+        setTimeout(() => {
+          cb({
+            'coords': {
+              accuracy: 21,
+              altitude: null,
+              altitudeAccuracy: null,
+              heading: null,
+              latitude: 46.4416995,
+              longitude: 15.1957154,
+              speed: null
+            }
+          })
+        }, 1000)
+      }
+    });
     
+    // TODO: set mislinja ?
+    // Page.setGeolocation()
+
     // TODO: refactor
-    itsClientId = "IflQSpp3KaK00Cwf095MyYnQ_3881595479"
-    
+    itsClientId = "IflQSpp3KaK00Cwf095MyYnQ_3881595479";
+
     const cookies = [
       {
         name: "ItcClientID",
@@ -45,12 +70,20 @@ async function executeAction(itsClientId, endpoint, action) {
 
     await page.setCookie(...cookies);
 
-    await page.goto("https://e-racuni.com/S8a/Clockin-CA74538906CA0D009684938F0815D96F")
-    await page.waitForNavigation(); // The promise resolves after navigation has finished
+    await page.goto(
+      "https://e-racuni.com/S8a/Clockin-CA74538906CA0D009684938F0815D96F"
+    );
+    // await page.waitForNavigation(); // The promise resolves after navigation has finished
 
-    // const startBtnSelector = "#btn_zacni";
-    // const stopBtnSelector = "#btn_koncaj";
+    const startBtnSelector = "a.clockin-button.er-button-green"
+    const stopBtnSelector = "a.clockin-button.er-button-red";
 
+    const btn = await page.waitForSelector(stopBtnSelector);
+    await btn.click();
+
+    const allowGpsPopupSelector = "#locationErrorDialog-popup";
+
+    const allowGpsPopupCloseBtnSelector = "a.er-button:nth-child(2)";
     // const btnSelector =
     //   action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
     // logger.debug("waiting for button...");
@@ -77,7 +110,7 @@ async function executeAction(itsClientId, endpoint, action) {
     // await page.waitForSelector(successBannerSelector, { visible: true });
     // logger.debug("waiting for success banner...");
 
-    // await delay(5000);
+    await delay(5000);
     await browser.close();
     return "Finished successfully !";
   } catch (error) {
