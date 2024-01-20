@@ -2,6 +2,10 @@ if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
   require("dotenv").config();
 }
 
+const { createBrowser } = require("./common");
+const { AUTOMATE_ACTION, LogEntry } = require("../interface");
+const logger = require("../util/logging");
+
 async function executeAction(cookie, endpoint, action) {
   logger.debug("endpoint: " + endpoint);
   logger.debug("Executing action: " + action);
@@ -19,7 +23,7 @@ async function executeAction(cookie, endpoint, action) {
 
   try {
     const page = await browser.newPage();
-    page.setDefaultTimeout(30000); // wait max 10 sec for things to appear
+    page.setDefaultTimeout(1000);
 
     await page.goto(endpoint);
     await page.waitForNavigation(); // The promise resolves after navigation has finished

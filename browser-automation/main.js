@@ -7,6 +7,10 @@ let assistantJob = {
     // run on start as well
     // timeout: 0
 }
+const eracuni = {
+    name: 'e-racuni-job',
+
+}
 
 console.log('node environment: ' + process.env.NODE_ENV)
 
@@ -19,7 +23,8 @@ if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
 
 const bree = new Bree({
     jobs: [
-        assistantJob
+        // assistantJob
+        eracuni
     ]
 });
 
