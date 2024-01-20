@@ -14,11 +14,9 @@ const logger = require("../util/logging");
 /**
  * E-racuni User Configuration
  * @typedef {{itsClientId: string, itcSIDhomepage: string, appHomepageURL: string, appLoggedInURL: string}} ERacuniUserConfiguration
- */
-/**
- * 
- * @param {AUTOMATE_ACTION} action 
- * @param {ERacuniUserConfiguration} userConfiguration 
+ *
+ * @param {AUTOMATE_ACTION} action
+ * @param {ERacuniUserConfiguration} userConfiguration
  * @returns {Promise<string>}
  */
 async function executeAction(action, userConfiguration) {
@@ -41,8 +39,7 @@ async function executeAction(action, userConfiguration) {
 
     page.setDefaultTimeout(10000);
 
-    const homePage = "https://e-racuni.com/S8a";
-    await page.goto(homePage);
+    await page.goto(userConfiguration.appHomepageURL);
 
     // handle geolocation popup request
     // https://github.com/puppeteer/puppeteer/issues/846
@@ -64,8 +61,7 @@ async function executeAction(action, userConfiguration) {
       };
     });
 
-    // TODO: refactor
-    itsClientId = "IflQSpp3KaK00Cwf095MyYnQ_3881595479";
+    const { itsClientId, itcSIDhomepage } = userConfiguration;
 
     const cookies = [
       {
@@ -74,15 +70,13 @@ async function executeAction(action, userConfiguration) {
       },
       {
         name: "ItcSIDhomepage",
-        value: "xtgrLk3eekf9Sptlltb0flYS_3883195249",
+        value: itcSIDhomepage,
       },
     ];
 
     await page.setCookie(...cookies);
 
-    await page.goto(
-      "https://e-racuni.com/S8a/Clockin-CA74538906CA0D009684938F0815D96F"
-    );
+    await page.goto(userConfiguration.appLoggedInURL);
 
     const startBtnSelector = "a.clockin-button.er-button-green";
     const stopBtnSelector = "a.clockin-button.er-button-red";
@@ -91,7 +85,7 @@ async function executeAction(action, userConfiguration) {
       action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
 
     const btn = await page.waitForSelector(btnSelector);
-    
+
     // make sure start button is enabled
     const buttonDisabled = await page.$eval(btnSelector, (btn) => btn.disabled);
 
