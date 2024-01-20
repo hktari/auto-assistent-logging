@@ -1,4 +1,4 @@
-const { executeAction, MDDSZApiError } = require('./mddsz-api');
+const { executeAction, MDDSZApiError } = require('./automation/mddsz-api');
 const logger = require('./util/logging')
 const { getActionsForDate, AutomationActionResult } = require('./util/actions');
 const { AUTOMATE_ACTION, WORKDAY_CONFIG_AUTOMATION_TYPE, LOG_ENTRY_STATUS, WorkdayConfig, CONFIG_TYPE } = require('./interface')

@@ -34,6 +34,7 @@ if (parentPort) {
 
         let automationResults = []
         for (const user of usersToAutomate) {
+            // TODO: if exception is thrown inside 'handleAutomationForUser' it will not be logged ?
             const autoActionForUser = await handleAutomationForUser(user, curTime)
             if (autoActionForUser === null) {
                 logger.info(`User ${user.username}. Nothing to do...`)
