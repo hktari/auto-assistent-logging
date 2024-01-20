@@ -32,6 +32,7 @@ function createBrowser(debug) {
 const ExecuteFailureReason = Object.freeze({
   ButtonDisabled: "ButtonDisabled",
   ButtonNotFound: "ButtonNotFound",
+  InvalidConfiguration: "InvalidConfiguration"
 });
 
 class AutomationError extends Error {
