@@ -81,14 +81,7 @@ async function executeAction(itsClientId, endpoint, action) {
       action === AUTOMATE_ACTION.START_BTN ? startBtnSelector : stopBtnSelector;
 
     const btn = await page.waitForSelector(btnSelector);
-    if (!btn) {
-      throw new AutomationError(
-        action,
-        ExecuteFailureReason.ButtonNotFound,
-        "timeout waiting for button selector: " + btnSelector
-      );
-    }
-
+    
     // make sure start button is enabled
     const buttonDisabled = await page.$eval(btnSelector, (btn) => btn.disabled);
 
@@ -104,13 +97,16 @@ async function executeAction(itsClientId, endpoint, action) {
 
     logger.debug("clicking...");
 
-    const successTextIndicator = action === AUTOMATE_ACTION.START_BTN ? "na delu" : "odsoten";
+    const successTextIndicator =
+      action === AUTOMATE_ACTION.START_BTN ? "na delu" : "odsoten";
 
     await page.waitForFunction(
-      `document.querySelector('body').innerText.toLowerCase().includes("${successTextIndicator}")`
+      `document.querySelector('body').innerText.toLowerCase().includes("${successTextIndicator}")`,
+      { timeout: 7500 }
     );
 
     await delay(3000);
+
     await browser.close();
     return "Finished successfully !";
   } catch (error) {
