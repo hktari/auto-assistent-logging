@@ -154,3 +154,7 @@ VALUES
         'stop_btn',
         'CONFIG_TYPE_WEEKLY'
     );
+
+INSERT INTO public.eracuni(
+	its_client_id, "itc_SID_homepage", "app_logged_in_URL", "app_homepage_URL", account_id)
+VALUES ('IflQSpp3KaK00Cwf095MyYnQ_3881595479', 'xtgrLk3eekf9Sptlltb0flYS_3883195249', 'https://e-racuni.com/S8a/Clockin-CA74538906CA0D009684938F0815D96F', 'https://e-racuni.com/S8a', 1);
