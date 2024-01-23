@@ -82,16 +82,12 @@ function _sortByDatetimeAsc(actions) {
 /**
  * Checks the database for any pending automation actions for the given user and time.
  *
- * @typedef AutomationConfiguration
- * @property {import('./dbFacade').User} user
- * @property {import('./dbFacade').ERacuniUserConfiguration} eracuniConfig
- *
- * @param {AutomationConfiguration} config 
+ * @param {import('./dbFacade').User} user
+ * @param {import('./dbFacade').ERacuniUserConfiguration} eracuniConfig *
  * @param {Date} datetime the current time
  * @returns {Promise<AutomationActionResult | null>}
  */
-async function handleAutomationForUser(config, datetime) {
-  const { user, eracuniConfig } = config;
+async function handleAutomationForUser(user, datetime, eracuniConfig) {
   logger.debug("\n" + "*".repeat(50));
   logger.debug("processing user: " + user.email);
 
