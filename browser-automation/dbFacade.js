@@ -90,12 +90,12 @@ async function getWeeklyConfig(username, date) {
 
 /**
  * @param {string} accountId
- * @returns {ERacuniUserConfiguration} ERacuni Configuration for given account
+ * @returns {Promise<ERacuniUserConfiguration | null>} ERacuni Configuration for given account
  */
 async function getEracuniConfigurationBy(accountId) {
   const queryStr = `SELECT its_client_id, "itc_SID_homepage", "app_homepage_URL", "app_logged_in_URL", account_id
-	FROM public.eracuni
-	WHERE account_id = $1;`;
+	FROM eracuni JOIN account ON eracuni.account_id = account.id 
+	WHERE account.id = $1;`;
 
   const queryResult = await db.query(queryStr, [accountId]);
   if (queryResult.rowCount > 0) {
@@ -116,7 +116,7 @@ async function getEracuniConfigurationBy(accountId) {
 /**
  * Get user data from the 'user' and 'login_info' tables
  * Also decrypts the password
- * 
+ *
  * @typedef User
  * @property {string} accountId
  * @property {string} login_info_id
