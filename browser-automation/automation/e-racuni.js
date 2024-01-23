@@ -12,9 +12,11 @@ const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
 /**
- * E-racuni User Configuration
+ *  * E-racuni User Configuration
  * @typedef {{itsClientId: string, itcSIDhomepage: string, appHomepageURL: string, appLoggedInURL: string}} ERacuniUserConfiguration
- *
+ */
+
+/**
  * @param {AUTOMATE_ACTION} action
  * @param {ERacuniUserConfiguration} userConfiguration
  * @returns {Promise<string>}

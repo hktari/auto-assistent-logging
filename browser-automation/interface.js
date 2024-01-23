@@ -108,6 +108,7 @@ class WorkdayConfig {
     }
 }
 
+
 module.exports = {
     AUTOMATE_ACTION,
     LOG_ENTRY_STATUS,
