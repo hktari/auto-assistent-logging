@@ -116,12 +116,20 @@ async function getEracuniConfigurationBy(accountId) {
 /**
  * Get user data from the 'user' and 'login_info' tables
  * Also decrypts the password
+ * 
+ * @typedef User
+ * @property {string} accountId
+ * @property {string} login_info_id
+ * @property {string} email
+ * @property {boolean} automationEnabled
+ * @property {string} username
+ * @property {string} password
+ *
  * @param {boolean} onlyAutomateEnabled
+ * @returns {User[]} users
  */
 async function getUsers(onlyAutomateEnabled = true) {
-  // TODO: update db schema
-  // TODO: select eracuni fields
-  let queryStr = `SELECT li.id as login_info_id, a.email, a."automationEnabled", li.username, 
+  let queryStr = `SELECT li.account_id as "accountId", li.id as login_info_id, a.email, a."automationEnabled", li.username, 
     encode(li.password_cipher, 'hex') as password_cipher, encode(li.iv_cipher, 'hex') as iv_cipher
     FROM account a JOIN login_info li on a.id = li.account_id`;
 
@@ -135,6 +143,7 @@ async function getUsers(onlyAutomateEnabled = true) {
     try {
       const password = crypto.decrypt(row.iv_cipher, row.password_cipher);
       return {
+        accountId: row.accountId,
         login_info_id: row.login_info_id,
         email: row.email,
         automationEnabled: row.automationEnabled,

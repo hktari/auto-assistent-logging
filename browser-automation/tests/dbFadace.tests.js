@@ -15,6 +15,7 @@ chai.config.truncateThreshold = 0;
 describe("dbFacade", () => {
   const usersWithRequiredFields = [
     {
+      accountId: "0",
       login_info_id: "0",
       email: "test@example.com",
       automationEnabled: true,
@@ -22,6 +23,7 @@ describe("dbFacade", () => {
       password: "secret",
     },
     {
+      accountId: "1",
       login_info_id: "1",
       email: "test2@example.com",
       automationEnabled: true,
@@ -402,7 +404,6 @@ describe("dbFacade", () => {
 
   describe("getEracuniConfigurationBy()", () => {
     it('should return  object conforming to "ERacuniUserConfiguration" interface for accountId "1"', (done) => {
-
       const expectedEracuniConf = {
         accountId: "1",
         itsClientId: "IflQSpp3KaK00Cwf095MyYnQ_3881595479",
