@@ -35,12 +35,9 @@ if (parentPort) {
 
     let automationResults = [];
     for (const user of usersToAutomate) {
-      logger.info("fetching eracuni configuration...");
-      const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
 
-      const config = { user, eracuniConfig };
       // TODO: if exception is thrown inside 'handleAutomationForUser' it will not be logged ?
-      const autoActionForUser = await handleAutomationForUser(config, curTime);
+      const autoActionForUser = await handleAutomationForUser(user, curTime);
       if (autoActionForUser === null) {
         logger.info(`User ${user.username}. Nothing to do...`);
       } else {

@@ -1,6 +1,13 @@
+const {
+  executeAction: executeActionERacuni,
+} = require("./automation/e-racuni");
 const { executeAction } = require("./automation/mddsz-api");
 const logger = require("./util/logging");
-const { getActionsForDate, AutomationActionResult } = require("./util/actions");
+const {
+  getActionsForDate,
+  AutomationActionResult,
+  ERacuniAutomationActionResult,
+} = require("./util/actions");
 const {
   AUTOMATE_ACTION,
   WORKDAY_CONFIG_AUTOMATION_TYPE,
@@ -83,11 +90,10 @@ function _sortByDatetimeAsc(actions) {
  * Checks the database for any pending automation actions for the given user and time.
  *
  * @param {import('./dbFacade').User} user
- * @param {import('./dbFacade').ERacuniUserConfiguration} eracuniConfig *
  * @param {Date} datetime the current time
  * @returns {Promise<AutomationActionResult | null>}
  */
-async function handleAutomationForUser(user, datetime, eracuniConfig) {
+async function handleAutomationForUser(user, datetime) {
   logger.debug("\n" + "*".repeat(50));
   logger.debug("processing user: " + user.email);
 
@@ -112,6 +118,9 @@ async function handleAutomationForUser(user, datetime, eracuniConfig) {
   // sort by datetime
   actionsPlannedToday = _sortByDatetimeAsc(actionsPlannedToday);
 
+  logger.info("fetching eracuni configuration...");
+  const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
+
   // take the first action to be executed
   let actionToExecute;
   for (const action of actionsPlannedToday) {
@@ -119,34 +128,66 @@ async function handleAutomationForUser(user, datetime, eracuniConfig) {
     if (action.timeToExecute(datetime)) {
       logger.debug("ok");
       actionToExecute = new Promise((resolve, reject) => {
-        executeAction(user.username, user.password, action.actionType)
-          .then((result) => {
-            resolve(
-              new AutomationActionResult(
-                action.user,
-                action.actionType,
-                action.configType,
-                action.dueAt,
-                result,
-                null
+        if (eracuniConfig) {
+          executeAction(user.username, user.password, action.actionType)
+            .then((result) =>
+              executeActionERacuni(eracuniConfig).then((eracuniResult) => {
+                const resultMessage = `${result}\n${eracuniResult}`;
+                resolve(
+                  new ERacuniAutomationActionResult(
+                    eracuniConfig,
+                    action.user,
+                    action.actionType,
+                    action.configType,
+                    action.dueAt,
+                    resultMessage,
+                    null
+                  )
+                );
+              })
+            )
+            .catch((err) =>
+              reject(
+                new ERacuniAutomationActionResult(
+                  eracuniConfig,
+                  action.user,
+                  action.actionType,
+                  action.configType,
+                  action.dueAt,
+                  null,
+                  err
+                )
               )
             );
-          })
-          .catch((err) => {
-            reject(
-              new AutomationActionResult(
-                action.user,
-                action.actionType,
-                action.configType,
-                action.dueAt,
-                null,
-                err
-              )
-            );
-          });
-
-        // TODO: execute action on eracuni
+        } else {
+          executeAction(user.username, user.password, action.actionType)
+            .then((result) => {
+              resolve(
+                new AutomationActionResult(
+                  action.user,
+                  action.actionType,
+                  action.configType,
+                  action.dueAt,
+                  result,
+                  null
+                )
+              );
+            })
+            .catch((err) => {
+              reject(
+                new AutomationActionResult(
+                  action.user,
+                  action.actionType,
+                  action.configType,
+                  action.dueAt,
+                  null,
+                  err
+                )
+              );
+            });
+        }
       });
+
       break;
     }
   }
