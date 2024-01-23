@@ -1,6 +1,8 @@
 const sinon = require("sinon");
 const mddszApi = require("../automation/mddsz-api");
 const executeActionStub = sinon.stub(mddszApi, "executeAction");
+const eracuniApi = require("../automation/e-racuni");
+const eracuniExecuteActionStub = sinon.stub(eracuniApi, "executeAction");
 
 const chai = require("chai");
 const { expect, assert } = require("chai");
@@ -315,6 +317,7 @@ describe("auto-assistant.js", () => {
     describe.only("eracuni configuration", () => {
       it("should return na instance of ERacuniAutomationActionResult", (done) => {
         const eracuniConfig = {
+          accountId: 2,
           itsClientId: "IflQSpp3KaK00Cwf095MyYnQ_3881595479",
           itcSIDhomepage: "xtgrLk3eekf9Sptlltb0flYS_3883195249",
           appHomepageURL: "https://test.eracuni.com",
@@ -335,12 +338,14 @@ describe("auto-assistant.js", () => {
           AUTOMATE_ACTION.START_BTN,
           CONFIG_TYPE.DAILY,
           new Date(Date.UTC(2024, 0, 23, 14, 0)),
-          "Successfully executed start_btn action on MDDSZ. Successfully executed start_btn action on E-Racuni !",
+          "MDDSZ OK\nERACUNI OK",
           null
         );
 
         executeActionStub.reset();
-        executeActionStub.returns(Promise.resolve(automationAction.message));
+        executeActionStub.returns(Promise.resolve("MDDSZ OK"));
+        eracuniExecuteActionStub.reset();
+        eracuniExecuteActionStub.returns(Promise.resolve("ERACUNI OK"));
 
         autoAssistant
           .handleAutomationForUser(eracuniUser, automationAction.dueAt)
