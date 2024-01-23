@@ -1,5 +1,5 @@
 const sinon = require('sinon')
-const mddszApi = require('../mddsz-api')
+const mddszApi = require('../automation/mddsz-api')
 const executeActionStub = sinon.stub(mddszApi, "executeAction");
 
 const chai = require('chai')
