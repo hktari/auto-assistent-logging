@@ -139,7 +139,7 @@ VALUES (
 /* -------------------------------------------------------------------------- */
 /*                            E-Racuni                        */
 /* -------------------------------------------------------------------------- */
-INSERT INTO public.eracuni(
+INSERT INTO eracuni(
         its_client_id,
         "itc_SID_homepage",
         "app_logged_in_URL",

@@ -322,6 +322,7 @@ describe("auto-assistant.js", () => {
         };
 
         const eracuniUser = {
+          accountId: 2,
           login_info_id: 2,
           email: "test-eracuni@example.com",
           automationEnabled: true,

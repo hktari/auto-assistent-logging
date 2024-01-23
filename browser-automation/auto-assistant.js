@@ -96,7 +96,8 @@ function _sortByDatetimeAsc(actions) {
 async function handleAutomationForUser(user, datetime) {
   logger.debug("\n" + "*".repeat(50));
   logger.debug("processing user: " + user.email);
-
+  logger.debug("accountId: " + user.accountId);
+  
   let actionsPlannedToday = await _getAndFilterActionsForDate(user, datetime);
 
   if (datetime.getUTCHours() <= 8) {
@@ -121,7 +122,7 @@ async function handleAutomationForUser(user, datetime) {
   logger.debug("fetching eracuni configuration...");
   const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
   logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
-  
+
   // take the first action to be executed
   let actionToExecute;
   for (const action of actionsPlannedToday) {

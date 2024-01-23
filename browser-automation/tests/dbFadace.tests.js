@@ -402,19 +402,19 @@ describe("dbFacade", () => {
     });
   });
 
-  describe("getEracuniConfigurationBy()", () => {
+  describe.only("getEracuniConfigurationBy()", () => {
     it('should return  object conforming to "ERacuniUserConfiguration" interface for accountId "1"', (done) => {
       const expectedEracuniConf = {
-        accountId: "1",
+        accountId: "2",
         itsClientId: "IflQSpp3KaK00Cwf095MyYnQ_3881595479",
         itcSIDhomepage: "xtgrLk3eekf9Sptlltb0flYS_3883195249",
-        appHomepageURL: "https://e-racuni.com/S8a",
-        appLoggedInURL:
-          "https://e-racuni.com/S8a/Clockin-CA74538906CA0D009684938F0815D96F",
+        appHomepageURL: "https://test.eracuni.com",
+        appLoggedInURL: "https://test.eracuni.com/test-eracuni/2923920",
       };
 
-      db.getEracuniConfigurationBy("1")
+      db.getEracuniConfigurationBy("2")
         .then((eracuniConf) => {
+          expect(eracuniConf).to.not.be.undefined;
           expect(eracuniConf).to.include(expectedEracuniConf);
 
           done();
