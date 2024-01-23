@@ -118,9 +118,10 @@ async function handleAutomationForUser(user, datetime) {
   // sort by datetime
   actionsPlannedToday = _sortByDatetimeAsc(actionsPlannedToday);
 
-  logger.info("fetching eracuni configuration...");
+  logger.debug("fetching eracuni configuration...");
   const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
-
+  logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
+  
   // take the first action to be executed
   let actionToExecute;
   for (const action of actionsPlannedToday) {
@@ -129,6 +130,8 @@ async function handleAutomationForUser(user, datetime) {
       logger.debug("ok");
       actionToExecute = new Promise((resolve, reject) => {
         if (eracuniConfig) {
+          logger.debug("handling automation for ERacuni as well");
+
           executeAction(user.username, user.password, action.actionType)
             .then((result) =>
               executeActionERacuni(eracuniConfig).then((eracuniResult) => {
