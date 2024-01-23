@@ -85,7 +85,7 @@ async function getWeeklyConfig(username, date) {
 
 /**
  *  * E-racuni User Configuration
- * @typedef {{itsClientId: string, itcSIDhomepage: string, appHomepageURL: string, appLoggedInURL: string}} ERacuniUserConfiguration
+ * @typedef {{accountId: string, itsClientId: string, itcSIDhomepage: string, appHomepageURL: string, appLoggedInURL: string}} ERacuniUserConfiguration
  */
 
 /**
@@ -99,6 +99,8 @@ async function getEracuniConfigurationBy(accountId) {
 
   const queryResult = await db.query(queryStr, [accountId]);
   if (queryResult.rowCount > 0) {
+    const firstRow = queryResult.rows[0];
+
     return {
       accountId,
       itsClientId: firstRow.its_client_id,
@@ -252,4 +254,5 @@ module.exports = {
   getWorkweekExceptions,
   getLogEntries,
   anyLogEntryOfType,
+  getEracuniConfigurationBy,
 };
