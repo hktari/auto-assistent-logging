@@ -332,13 +332,22 @@ describe("auto-assistant.js", () => {
           username: "test-eracuni",
           password: "secret",
         };
-        const automationAction = new ERacuniAutomationActionResult(
+        const automationAction = new AutomationActionResult(
+          eracuniUser,
+          AUTOMATE_ACTION.START_BTN,
+          CONFIG_TYPE.DAILY,
+          new Date(Date.UTC(2024, 0, 23, 14, 0)),
+          "MDDSZ OK",
+          null
+        );
+
+        const eRacuniAutomationAction = new ERacuniAutomationActionResult(
           eracuniConfig,
           eracuniUser,
           AUTOMATE_ACTION.START_BTN,
           CONFIG_TYPE.DAILY,
           new Date(Date.UTC(2024, 0, 23, 14, 0)),
-          "MDDSZ OK\nERACUNI OK",
+          "ERACUNI OK",
           null
         );
 
@@ -354,7 +363,9 @@ describe("auto-assistant.js", () => {
               executeActionStub.calledOnce,
               "MDDSZ executeAction stub is called"
             ).to.be.true;
-            expect(actionResults).to.deep.equal(automationAction);
+
+            expect(actionResults[0]).to.deep.equal(automationAction);
+            expect(actionResults[1]).to.deep.equal(eRacuniAutomationAction);
             done();
           })
           .catch((err) => done(err));

@@ -91,7 +91,7 @@ function _sortByDatetimeAsc(actions) {
  *
  * @param {import('./dbFacade').User} user
  * @param {Date} datetime the current time
- * @returns {Promise<Promise<AutomationActionResult>[]>} a collection of promises. If the collection is empty, no automation is pending.
+ * @returns {Promise<AutomationActionResult[]>} a collection of promises. If the collection is empty, no automation is pending.
  */
 async function handleAutomationForUser(user, datetime) {
   logger.debug("\n" + "*".repeat(50));
@@ -130,12 +130,13 @@ async function handleAutomationForUser(user, datetime) {
     if (action.timeToExecute(datetime)) {
       logger.debug("ok");
       actionsToExecute.push(
+        // TODO: new Promise redundant ?
         new Promise((resolve, reject) => {
           executeAction(user.username, user.password, action.actionType)
             .then((result) => {
               resolve(
                 new AutomationActionResult(
-                  action.user,
+                  user,
                   action.actionType,
                   action.configType,
                   action.dueAt,
@@ -147,7 +148,7 @@ async function handleAutomationForUser(user, datetime) {
             .catch((err) => {
               reject(
                 new AutomationActionResult(
-                  action.user,
+                  user,
                   action.actionType,
                   action.configType,
                   action.dueAt,
@@ -163,33 +164,35 @@ async function handleAutomationForUser(user, datetime) {
         logger.debug("handling automation for ERacuni as well");
 
         actionsToExecute.push(
-          executeActionERacuni(eracuniConfig)
-            .then((resultMessage) => {
-              resolve(
-                new ERacuniAutomationActionResult(
-                  eracuniConfig,
-                  action.user,
-                  action.actionType,
-                  action.configType,
-                  action.dueAt,
-                  resultMessage,
-                  null
-                )
-              );
-            })
-            .catch((err) =>
-              reject(
-                new ERacuniAutomationActionResult(
-                  eracuniConfig,
-                  action.user,
-                  action.actionType,
-                  action.configType,
-                  action.dueAt,
-                  null,
-                  err
+          new Promise((resolve, reject) =>
+            executeActionERacuni(eracuniConfig)
+              .then((resultMessage) => {
+                resolve(
+                  new ERacuniAutomationActionResult(
+                    eracuniConfig,
+                    user,
+                    action.actionType,
+                    action.configType,
+                    action.dueAt,
+                    resultMessage,
+                    null
+                  )
+                );
+              })
+              .catch((err) =>
+                reject(
+                  new ERacuniAutomationActionResult(
+                    eracuniConfig,
+                    user,
+                    action.actionType,
+                    action.configType,
+                    action.dueAt,
+                    null,
+                    err
+                  )
                 )
               )
-            )
+          )
         );
       }
 
@@ -197,7 +200,15 @@ async function handleAutomationForUser(user, datetime) {
     }
   }
 
-  return actionsToExecute;
+  const automationResults = [];
+  if (actionsToExecute.length > 0) {
+    automationResults.push(await actionsToExecute[0]);
+    if (actionsToExecute.length > 1) {
+      automationResults.push(await actionsToExecute[1]);
+    }
+  }
+
+  return automationResults;
 }
 
 /**
