@@ -123,7 +123,7 @@ class AutomationActionResult extends AutomationAction {
   }
 
   toString() {
-    return super.toString() + `\n${this.error.toString()}`;
+    return super.toString() + `\n${this.error?.toString()}`;
   }
 }
 
