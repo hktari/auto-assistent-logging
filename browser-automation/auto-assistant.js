@@ -91,13 +91,13 @@ function _sortByDatetimeAsc(actions) {
  *
  * @param {import('./dbFacade').User} user
  * @param {Date} datetime the current time
- * @returns {Promise<AutomationActionResult | null>}
+ * @returns {Promise<Promise<AutomationActionResult>[]>} a collection of promises. If the collection is empty, no automation is pending.
  */
 async function handleAutomationForUser(user, datetime) {
   logger.debug("\n" + "*".repeat(50));
   logger.debug("processing user: " + user.email);
   logger.debug("accountId: " + user.accountId);
-  
+
   let actionsPlannedToday = await _getAndFilterActionsForDate(user, datetime);
 
   if (datetime.getUTCHours() <= 8) {
@@ -124,46 +124,13 @@ async function handleAutomationForUser(user, datetime) {
   logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
 
   // take the first action to be executed
-  let actionToExecute;
+  let actionsToExecute = [];
   for (const action of actionsPlannedToday) {
     logger.debug("considering executing " + action + " ...");
     if (action.timeToExecute(datetime)) {
       logger.debug("ok");
-      actionToExecute = new Promise((resolve, reject) => {
-        if (eracuniConfig) {
-          logger.debug("handling automation for ERacuni as well");
-
-          executeAction(user.username, user.password, action.actionType)
-            .then((result) =>
-              executeActionERacuni(eracuniConfig).then((eracuniResult) => {
-                const resultMessage = `${result}\n${eracuniResult}`;
-                resolve(
-                  new ERacuniAutomationActionResult(
-                    eracuniConfig,
-                    action.user,
-                    action.actionType,
-                    action.configType,
-                    action.dueAt,
-                    resultMessage,
-                    null
-                  )
-                );
-              })
-            )
-            .catch((err) =>
-              reject(
-                new ERacuniAutomationActionResult(
-                  eracuniConfig,
-                  action.user,
-                  action.actionType,
-                  action.configType,
-                  action.dueAt,
-                  null,
-                  err
-                )
-              )
-            );
-        } else {
+      actionsToExecute.push(
+        new Promise((resolve, reject) => {
           executeAction(user.username, user.password, action.actionType)
             .then((result) => {
               resolve(
@@ -189,18 +156,48 @@ async function handleAutomationForUser(user, datetime) {
                 )
               );
             });
-        }
-      });
+        })
+      );
+
+      if (eracuniConfig) {
+        logger.debug("handling automation for ERacuni as well");
+
+        actionsToExecute.push(
+          executeActionERacuni(eracuniConfig)
+            .then((resultMessage) => {
+              resolve(
+                new ERacuniAutomationActionResult(
+                  eracuniConfig,
+                  action.user,
+                  action.actionType,
+                  action.configType,
+                  action.dueAt,
+                  resultMessage,
+                  null
+                )
+              );
+            })
+            .catch((err) =>
+              reject(
+                new ERacuniAutomationActionResult(
+                  eracuniConfig,
+                  action.user,
+                  action.actionType,
+                  action.configType,
+                  action.dueAt,
+                  null,
+                  err
+                )
+              )
+            )
+        );
+      }
 
       break;
     }
   }
 
-  if (actionToExecute) {
-    return await actionToExecute;
-  } else {
-    return null;
-  }
+  return actionsToExecute;
 }
 
 /**

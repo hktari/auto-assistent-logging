@@ -5,6 +5,7 @@ const {
   handleAutomationForUser,
   logAutomationResult,
 } = require("../auto-assistant");
+const { AutomationActionResult } = require("../util/actions");
 
 // store boolean if the job is cancelled
 let isCancelled = false;
@@ -35,15 +36,32 @@ if (parentPort) {
 
     let automationResults = [];
     for (const user of usersToAutomate) {
-
       // TODO: if exception is thrown inside 'handleAutomationForUser' it will not be logged ?
+
       const autoActionForUser = await handleAutomationForUser(user, curTime);
-      if (autoActionForUser === null) {
-        logger.info(`User ${user.username}. Nothing to do...`);
-      } else {
-        automationResults.push(autoActionForUser);
+      logger.info(
+        `User ${user.username}. ${
+          autoActionForUser.length > 0
+            ? autoActionForUser.length + " actions pending"
+            : "Nothing to do..."
+        }`
+      );
+      if (autoActionForUser.length > 0) {
+        const results = await Promise.allSettled(autoActionForUser);
+
+        automationResults.push(
+          results.map((result) => {
+            if (result.status === "fulfilled") {
+              return result.value;
+            } else {
+              return result.reason;
+            }
+          })
+        );
       }
     }
+
+    // Promise. allSettled(automationResults)
 
     for (const result of automationResults) {
       try {
