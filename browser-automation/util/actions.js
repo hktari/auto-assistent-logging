@@ -43,7 +43,7 @@ class AutomationAction {
   }
 
   toString() {
-    return `\t${this.user.username}\t${this.actionType}\t${
+    return `${this.user.username}\t${this.actionType}\t${
       this.configType
     }\t${this.dueAt.toUTCString()}`;
   }
@@ -121,6 +121,10 @@ class AutomationActionResult extends AutomationAction {
     this.message = message;
     this.error = error;
   }
+
+  toString() {
+    return super.toString() + `\n${this.error.toString()}`;
+  }
 }
 
 class ERacuniAutomationActionResult extends AutomationActionResult {
@@ -134,7 +138,7 @@ class ERacuniAutomationActionResult extends AutomationActionResult {
    * @param {Error} error
    */
   constructor(eracuniConfig, user, action, configType, dueAt, message, error) {
-    super(user, action, configType, dueAt);
+    super(user, action, configType, dueAt, message, error);
     this.eracuniConfig = eracuniConfig;
   }
 }
