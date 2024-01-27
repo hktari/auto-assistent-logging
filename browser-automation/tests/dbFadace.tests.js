@@ -26,7 +26,7 @@ describe("dbFacade", () => {
       accountId: "1",
       login_info_id: "1",
       email: "test2@example.com",
-      automationEnabled: true,
+      automationEnabled: false,
       username: "test2",
       password: "secret2",
     },
@@ -51,7 +51,7 @@ describe("dbFacade", () => {
     it("result should contain properties", (done) => {
       const db = require("../dbFacade");
 
-      db.getUsers()
+      db.getUsers(false)
         .then((users) => {
           users.forEach((user, idx) => {
             expect(user).to.deep.equal(usersWithRequiredFields[idx]);
