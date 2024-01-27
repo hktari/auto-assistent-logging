@@ -38,27 +38,17 @@ if (parentPort) {
     for (const user of usersToAutomate) {
       // TODO: if exception is thrown inside 'handleAutomationForUser' it will not be logged ?
 
-      const autoActionForUser = await handleAutomationForUser(user, curTime);
+      // TODO: calling this throws error
+      const autoActionsForUser = await handleAutomationForUser(user, curTime);
       logger.info(
         `User ${user.username}. ${
-          autoActionForUser.length > 0
-            ? autoActionForUser.length + " actions pending"
+          autoActionsForUser.length > 0
+            ? autoActionsForUser.length + " actions executed"
             : "Nothing to do..."
         }`
       );
-      if (autoActionForUser.length > 0) {
-        const results = await Promise.allSettled(autoActionForUser);
 
-        automationResults.push(
-          results.map((result) => {
-            if (result.status === "fulfilled") {
-              return result.value;
-            } else {
-              return result.reason;
-            }
-          })
-        );
-      }
+      automationResults.push(autoActionsForUser);
     }
 
     // Promise. allSettled(automationResults)
@@ -72,6 +62,7 @@ if (parentPort) {
       }
     }
   } catch (err) {
+    console.log('HELLO')
     jobError = "Error occured: " + err?.toString();
     logger.error(err?.toString());
   }
