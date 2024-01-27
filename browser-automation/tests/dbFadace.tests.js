@@ -30,6 +30,14 @@ describe("dbFacade", () => {
       username: "test2",
       password: "secret2",
     },
+    {
+      accountId: "2",
+      login_info_id: "2",
+      email: "test-eracuni@example.com",
+      automationEnabled: true,
+      username: "test-eracuni",
+      password: "secret",
+    },
   ];
 
   let db;
@@ -39,7 +47,7 @@ describe("dbFacade", () => {
 
   it("should import without errors", () => {});
 
-  describe("getUsers()", () => {
+  describe.only("getUsers()", () => {
     it("result should contain properties", (done) => {
       const db = require("../dbFacade");
 
@@ -53,10 +61,10 @@ describe("dbFacade", () => {
         .catch((err) => done(err));
     });
 
-    it("should return two users", (done) => {
+    it("should return three users", (done) => {
       db.getUsers((onlyAutomateEnabled = false))
         .then((res) => {
-          assert(res.length === 2, "users array contains two entries");
+          expect(res.length).to.equal(3);
           done();
         })
         .catch((err) => {
@@ -64,10 +72,10 @@ describe("dbFacade", () => {
         });
     });
 
-    it("should return a single user with automationEnabled", (done) => {
+    it("should return two users with automationEnabled", (done) => {
       db.getUsers()
         .then((usersList) => {
-          expect(usersList.length).to.equal(1);
+          expect(usersList.length).to.equal(2);
           expect(usersList[0].automationEnabled).to.be.true;
           done();
         })
@@ -402,7 +410,7 @@ describe("dbFacade", () => {
     });
   });
 
-  describe.only("getEracuniConfigurationBy()", () => {
+  describe("getEracuniConfigurationBy()", () => {
     it('should return  object conforming to "ERacuniUserConfiguration" interface for accountId "1"', (done) => {
       const expectedEracuniConf = {
         accountId: "2",
