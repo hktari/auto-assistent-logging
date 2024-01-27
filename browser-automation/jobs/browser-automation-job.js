@@ -48,7 +48,7 @@ if (parentPort) {
         }`
       );
 
-      automationResults.push(autoActionsForUser);
+      automationResults.concat(autoActionsForUser);
     }
 
     // Promise. allSettled(automationResults)
