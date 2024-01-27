@@ -26,6 +26,7 @@ chai.config.truncateThreshold = 0;
 
 describe("auto-assistant.js", () => {
   const testUser = {
+    accountId: 0,
     login_info_id: 0,
     email: "test@example.com",
     automationEnabled: true,
@@ -212,7 +213,7 @@ describe("auto-assistant.js", () => {
               executeActionStub.returns(Promise.resolve(weeklyAction.message));
 
               expect(executeActionStub.calledOnce).to.be.false;
-              expect(actionResults).to.be.null;
+              expect(actionResults).to.deep.equal([]);
               done();
             })
             .catch((err) => done(err));
@@ -270,7 +271,7 @@ describe("auto-assistant.js", () => {
           .then((actionResults) => {
             expect(executeActionStub.calledOnce, "executeAction() was called")
               .to.be.false;
-            expect(actionResults).to.be.null;
+            expect(actionResults).to.deep.equal([]);
             done();
           })
           .catch((err) => done(err));
@@ -286,7 +287,7 @@ describe("auto-assistant.js", () => {
       autoAssistant
         .handleAutomationForUser(testUser, noAutomationDatetime)
         .then((actionResults) => {
-          expect(actionResults).to.be.null;
+          expect(actionResults).to.deep.equal([]);
           done();
         })
         .catch((err) => done(err));
@@ -297,7 +298,7 @@ describe("auto-assistant.js", () => {
       autoAssistant
         .handleAutomationForUser(testUser, exceptionDatetime)
         .then((actionResults) => {
-          expect(actionResults, "no actions returned").to.be.null;
+          expect(actionResults, "no actions returned").to.deep.equal([]);
           done();
         })
         .catch((err) => done(err));
@@ -308,14 +309,14 @@ describe("auto-assistant.js", () => {
       autoAssistant
         .handleAutomationForUser(testUser, alreadyExecutedDatetime)
         .then((actionResults) => {
-          expect(actionResults).to.be.null;
+          expect(actionResults).to.deep.equal([]);
           done();
         })
         .catch((err) => done(err));
     });
 
-    describe.only("eracuni configuration", () => {
-      it("should return na instance of ERacuniAutomationActionResult", (done) => {
+    describe("eracuni configuration", () => {
+      it("should return an instance of ERacuniAutomationActionResult", (done) => {
         const eracuniConfig = {
           accountId: 2,
           itsClientId: "IflQSpp3KaK00Cwf095MyYnQ_3881595479",
