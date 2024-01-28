@@ -10,12 +10,16 @@ const {
 let isCancelled = false;
 
 const loggerEndPromise = () =>
-  new Promise(
-    (resolve, reject) => {
-      logger.end();
-      logger.once("finish", () => resolve());
-    }
-  );
+  new Promise((resolve, reject) => {
+    logger.end();
+    logger.once("finish", () => resolve());
+  });
+
+// The unhandledRejection listener
+process.on("unhandledRejection", (error) => {
+  console.log("unhandledRejection", error);
+  process.exit(1);
+});
 
 // handle cancellation (this is a very simple example)
 if (parentPort) {
