@@ -130,6 +130,7 @@ async function handleAutomationForUser(user, datetime) {
     // TODO: early continue
     if (action.timeToExecute(datetime)) {
       logger.debug("ok");
+
       try {
         const mddszResultMsg = await executeAction(
           user.username,
@@ -147,6 +148,8 @@ async function handleAutomationForUser(user, datetime) {
           )
         );
       } catch (err) {
+        logger.error(err.stack);
+
         automationResults.push(
           new AutomationActionResult(
             user,
@@ -163,6 +166,7 @@ async function handleAutomationForUser(user, datetime) {
         logger.debug("handling automation for ERacuni as well");
 
         try {
+          // TODO: pass action
           const eracuniResultMsg = await executeActionERacuni(eracuniConfig);
           automationResults.push(
             new ERacuniAutomationActionResult(
@@ -176,6 +180,7 @@ async function handleAutomationForUser(user, datetime) {
             )
           );
         } catch (err) {
+          logger.error(err.stack);
           automationResults.push(
             new ERacuniAutomationActionResult(
               eracuniConfig,
