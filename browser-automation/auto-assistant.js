@@ -123,31 +123,59 @@ async function handleAutomationForUser(user, datetime) {
   const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
   logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
 
+  const automationResults = [];
   // take the first action to be executed
-  let actionsToExecute = [];
   for (const action of actionsPlannedToday) {
     logger.debug("considering executing " + action + " ...");
     if (action.timeToExecute(datetime)) {
       logger.debug("ok");
-      actionsToExecute.push(
-        // TODO: new Promise redundant ?
-        new Promise((resolve, reject) => {
-          executeAction(user.username, user.password, action.actionType)
-            .then((result) => {
-              resolve(
-                new AutomationActionResult(
+      automationResults.push(
+        await executeAction(user.username, user.password, action.actionType)
+          .then(
+            (result) =>
+              new AutomationActionResult(
+                user,
+                action.actionType,
+                action.configType,
+                action.dueAt,
+                result,
+                null
+              )
+          )
+          .catch(
+            (err) =>
+              new AutomationActionResult(
+                user,
+                action.actionType,
+                action.configType,
+                action.dueAt,
+                null,
+                err
+              )
+          )
+      );
+
+      if (eracuniConfig) {
+        logger.debug("handling automation for ERacuni as well");
+
+        automationResults.push(
+          await executeActionERacuni(eracuniConfig)
+            .then(
+              (resultMessage) =>
+                new ERacuniAutomationActionResult(
+                  eracuniConfig,
                   user,
                   action.actionType,
                   action.configType,
                   action.dueAt,
-                  result,
+                  resultMessage,
                   null
                 )
-              );
-            })
-            .catch((err) => {
-              reject(
-                new AutomationActionResult(
+            )
+            .catch(
+              (err) =>
+                new ERacuniAutomationActionResult(
+                  eracuniConfig,
                   user,
                   action.actionType,
                   action.configType,
@@ -155,56 +183,11 @@ async function handleAutomationForUser(user, datetime) {
                   null,
                   err
                 )
-              );
-            });
-        })
-      );
-
-      if (eracuniConfig) {
-        logger.debug("handling automation for ERacuni as well");
-
-        actionsToExecute.push(
-          new Promise((resolve, reject) =>
-            executeActionERacuni(eracuniConfig)
-              .then((resultMessage) => {
-                resolve(
-                  new ERacuniAutomationActionResult(
-                    eracuniConfig,
-                    user,
-                    action.actionType,
-                    action.configType,
-                    action.dueAt,
-                    resultMessage,
-                    null
-                  )
-                );
-              })
-              .catch((err) =>
-                reject(
-                  new ERacuniAutomationActionResult(
-                    eracuniConfig,
-                    user,
-                    action.actionType,
-                    action.configType,
-                    action.dueAt,
-                    null,
-                    err
-                  )
-                )
-              )
-          )
+            )
         );
       }
 
       break;
-    }
-  }
-
-  const automationResults = [];
-  if (actionsToExecute.length > 0) {
-    automationResults.push(await actionsToExecute[0]);
-    if (actionsToExecute.length > 1) {
-      automationResults.push(await actionsToExecute[1]);
     }
   }
 
