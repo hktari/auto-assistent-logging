@@ -129,62 +129,64 @@ async function handleAutomationForUser(user, datetime) {
     logger.debug("considering executing " + action + " ...");
     if (action.timeToExecute(datetime)) {
       logger.debug("ok");
-      automationResults.push(
-        await executeAction(user.username, user.password, action.actionType)
-          .then(
-            (result) =>
-              new AutomationActionResult(
-                user,
-                action.actionType,
-                action.configType,
-                action.dueAt,
-                result,
-                null
-              )
+      try {
+        const mddszResultMsg = await executeAction(
+          user.username,
+          user.password,
+          action.actionType
+        );
+        automationResults.push(
+          new AutomationActionResult(
+            user,
+            action.actionType,
+            action.configType,
+            action.dueAt,
+            mddszResultMsg,
+            null
           )
-          .catch(
-            (err) =>
-              new AutomationActionResult(
-                user,
-                action.actionType,
-                action.configType,
-                action.dueAt,
-                null,
-                err
-              )
+        );
+      } catch (error) {
+        automationResults.push(
+          new AutomationActionResult(
+            user,
+            action.actionType,
+            action.configType,
+            action.dueAt,
+            null,
+            err
           )
-      );
+        );
+      }
 
       if (eracuniConfig) {
         logger.debug("handling automation for ERacuni as well");
 
-        automationResults.push(
-          await executeActionERacuni(eracuniConfig)
-            .then(
-              (resultMessage) =>
-                new ERacuniAutomationActionResult(
-                  eracuniConfig,
-                  user,
-                  action.actionType,
-                  action.configType,
-                  action.dueAt,
-                  resultMessage,
-                  null
-                )
+        try {
+          const eracuniResultMsg = await executeActionERacuni(eracuniConfig);
+          automationResults.push(
+            new ERacuniAutomationActionResult(
+              eracuniConfig,
+              user,
+              action.actionType,
+              action.configType,
+              action.dueAt,
+              eracuniResultMsg,
+              null
             )
-            .catch(
-              (err) =>
-                new ERacuniAutomationActionResult(
-                  eracuniConfig,
-                  user,
-                  action.actionType,
-                  action.configType,
-                  action.dueAt,
-                  null,
-                  err
-                )
+          );
+        } catch (error) {
+          automationResults.push(
+            new ERacuniAutomationActionResult(
+              eracuniConfig,
+              user,
+              action.actionType,
+              action.configType,
+              action.dueAt,
+              null,
+              err
             )
-        );
+          );
+        }
       }
 
       break;
