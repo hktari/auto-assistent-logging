@@ -22,7 +22,7 @@ const logger = require("../util/logging");
  * @returns {Promise<string>}
  */
 async function executeAction(action, userConfiguration) {
-  logger.debug("endpoint: " + endpoint);
+  logger.debug("endpoint: " + userConfiguration.appHomepageURL);
   logger.debug("Executing action: " + action);
   logger.debug("ENV: " + process.env.NODE_ENV);
 
