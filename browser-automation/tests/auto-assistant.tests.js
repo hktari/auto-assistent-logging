@@ -315,6 +315,11 @@ describe("auto-assistant.js", () => {
         .catch((err) => done(err));
     });
 
+    it('when start_btn has failed and stop_btn should be executed, it should return successful stop_btn', () => { 
+      // TODO: implement
+      expect(true).to.be.false
+     })
+
     describe("eracuni configuration", () => {
       it("should return an instance of ERacuniAutomationActionResult", (done) => {
         const eracuniConfig = {

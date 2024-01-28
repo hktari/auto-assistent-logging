@@ -123,6 +123,9 @@ async function handleAutomationForUser(user, datetime) {
   const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
   logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
 
+
+  // TODO: when start_btn is failing (in the case when user has clicked it manually), it should not prevent stop_btn execution
+
   const automationResults = [];
   // take the first action to be executed
   for (const action of actionsPlannedToday) {
