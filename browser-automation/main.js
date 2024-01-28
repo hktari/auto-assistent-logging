@@ -5,7 +5,7 @@ const Graceful = require('@ladjs/graceful');
 let assistantJob = {
     name: 'browser-automation-job',
     // run on start as well
-    // timeout: 0
+    timeout: 0
 }
 
 console.log('node environment: ' + process.env.NODE_ENV)

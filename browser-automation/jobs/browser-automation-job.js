@@ -5,10 +5,17 @@ const {
   handleAutomationForUser,
   logAutomationResult,
 } = require("../auto-assistant");
-const { AutomationActionResult } = require("../util/actions");
 
 // store boolean if the job is cancelled
 let isCancelled = false;
+
+const loggerEndPromise = () =>
+  new Promise(
+    (resolve, reject) => {
+      logger.end();
+      logger.once("finish", () => resolve());
+    }
+  );
 
 // handle cancellation (this is a very simple example)
 if (parentPort) {
@@ -27,7 +34,6 @@ if (parentPort) {
   try {
     logger.info(`${"-".repeat(50)}`);
     logger.info("start");
-
     const curTime = new Date();
     logger.info("time: " + curTime.toUTCString());
 
@@ -51,27 +57,17 @@ if (parentPort) {
       automationResults.concat(autoActionsForUser);
     }
 
-    // Promise. allSettled(automationResults)
-
     for (const result of automationResults) {
       try {
         await logAutomationResult(result);
       } catch (err) {
-        jobError = "Error occured when adding log entry: " + err?.toString();
-        logger.error(err?.toString());
+        logger.error("Error occured when adding log entry");
+        logger.error(err.stack);
       }
     }
   } catch (err) {
-    console.log('HELLO')
-    jobError = "Error occured: " + err?.toString();
-    logger.error(err?.toString());
+    logger.error(err.stack);
   }
 
-  if (parentPort) {
-    parentPort.postMessage(jobError ?? "done");
-  }
-
-  logger.info("end");
-  logger.end();
-  process.exit(jobError ? 1 : 0);
+  await loggerEndPromise();
 })();
