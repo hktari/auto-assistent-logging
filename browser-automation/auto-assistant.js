@@ -127,6 +127,7 @@ async function handleAutomationForUser(user, datetime) {
   // take the first action to be executed
   for (const action of actionsPlannedToday) {
     logger.debug("considering executing " + action + " ...");
+    // TODO: early continue
     if (action.timeToExecute(datetime)) {
       logger.debug("ok");
       try {
