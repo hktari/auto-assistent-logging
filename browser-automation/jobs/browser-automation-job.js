@@ -9,7 +9,7 @@ const {
 // store boolean if the job is cancelled
 let isCancelled = false;
 
-const loggerEndPromise = () =>
+const flushLogs = () =>
   new Promise((resolve, reject) => {
     logger.end();
     logger.once("finish", () => resolve());
@@ -73,5 +73,8 @@ if (parentPort) {
     logger.error(err.stack);
   }
 
-  await loggerEndPromise();
+  await flushLogs();
+
+  if (parentPort) parentPort.postMessage("done");
+  else process.exit(0);
 })();
