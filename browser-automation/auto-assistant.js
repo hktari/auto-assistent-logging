@@ -166,8 +166,7 @@ async function handleAutomationForUser(user, datetime) {
         logger.debug("handling automation for ERacuni as well");
 
         try {
-          // TODO: pass action
-          const eracuniResultMsg = await executeActionERacuni(eracuniConfig);
+          const eracuniResultMsg = await executeActionERacuni(action.actionType, eracuniConfig);
           automationResults.push(
             new ERacuniAutomationActionResult(
               eracuniConfig,

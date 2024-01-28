@@ -14,9 +14,19 @@ const BUFFER_IN_RANGE_MS = +getEnvVariableOrDefault(
   5000
 );
 
+/**
+ * @class AutomationAction
+ * @constructor
+ * @public
+ */
 class AutomationAction {
   constructor(user, action, configType, dueAt) {
     this.user = user;
+    /**
+     * Automation Action type
+     * @type {AUTOMATE_ACTION}
+     * @public
+     */
     this.actionType = action;
     this.configType = configType;
     this.dueAt = dueAt;
