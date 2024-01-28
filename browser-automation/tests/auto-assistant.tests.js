@@ -152,7 +152,7 @@ describe("auto-assistant.js", () => {
     });
   });
 
-  describe.only("handleAutomationForUser()", () => {
+  describe("handleAutomationForUser()", () => {
     it("should return an instance of AutomationActionResult", (done) => {
       const automationAction = automationActionsForUser["test"][0].actions[0];
       executeActionStub.reset();
@@ -248,7 +248,7 @@ describe("auto-assistant.js", () => {
           .catch((err) => done(err));
       });
 
-      it("and already executed stop_btn from previous day, null is returned", (done) => {
+      it("and already executed stop_btn from previous day, [] is returned", (done) => {
         const yesterdayWeeklyActionExecuted = new AutomationActionResult(
           testUser,
           AUTOMATE_ACTION.STOP_BTN,
@@ -282,7 +282,7 @@ describe("auto-assistant.js", () => {
     //     const
     // })
 
-    it("when no automation action exists, it should return null", (done) => {
+    it("when no automation action exists, it should return []", (done) => {
       const noAutomationDatetime = new Date(Date.UTC(2022, 7, 20)); // saturday
       autoAssistant
         .handleAutomationForUser(testUser, noAutomationDatetime)
@@ -304,7 +304,7 @@ describe("auto-assistant.js", () => {
         .catch((err) => done(err));
     });
 
-    it("when action already executed, it should return null", (done) => {
+    it("when action already executed, it should return []", (done) => {
       const alreadyExecutedDatetime = new Date(Date.UTC(2022, 7, 16, 14, 0));
       autoAssistant
         .handleAutomationForUser(testUser, alreadyExecutedDatetime)
