@@ -46,16 +46,16 @@ if (parentPort) {
 
     let automationResults = [];
     for (const user of usersToAutomate) {
-      const autoActionsForUser = await handleAutomationForUser(user, curTime);
+      const userAutomationResults = await handleAutomationForUser(user, curTime);
       logger.info(
         `User ${user.username}. ${
-          autoActionsForUser.length > 0
-            ? autoActionsForUser.length + " actions executed"
+          userAutomationResults.length > 0
+            ? userAutomationResults.length + " automations performed"
             : "Nothing to do..."
         }`
       );
 
-      automationResults.concat(autoActionsForUser);
+      automationResults.concat(userAutomationResults);
     }
 
     for (const result of automationResults) {
