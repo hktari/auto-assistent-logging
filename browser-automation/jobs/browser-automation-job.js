@@ -55,7 +55,7 @@ if (parentPort) {
         }`
       );
 
-      automationResults.concat(userAutomationResults);
+      automationResults = automationResults.concat(userAutomationResults);
     }
 
     for (const result of automationResults) {
