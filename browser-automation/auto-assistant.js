@@ -146,7 +146,7 @@ async function handleAutomationForUser(user, datetime) {
             null
           )
         );
-      } catch (error) {
+      } catch (err) {
         automationResults.push(
           new AutomationActionResult(
             user,
@@ -175,7 +175,7 @@ async function handleAutomationForUser(user, datetime) {
               null
             )
           );
-        } catch (error) {
+        } catch (err) {
           automationResults.push(
             new ERacuniAutomationActionResult(
               eracuniConfig,
