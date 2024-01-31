@@ -6,7 +6,6 @@ const executeActionStub = sinon.stub(mddszApi, "executeAction");
 const eracuniExecuteActionStub = sinon.stub(eracuniApi, "executeAction");
 
 const dbFacade = require("../dbFacade");
-const getLogEntriesStub = sinon.stub(dbFacade, "getLogEntries");
 
 const chai = require("chai");
 const { expect, assert } = require("chai");
@@ -319,9 +318,16 @@ describe("auto-assistant.js", () => {
         .catch((err) => done(err));
     });
 
-    it("when start_btn has failed and stop_btn should be executed, it should return successful stop_btn", () => {
-      // TODO: implement
-      expect(true).to.be.false;
+    it.only("[943D9429-1EA6-4DA1-8D76-C6B5F9D480D1] when start_btn has failed and stop_btn should be executed, it should return AutomationActionResult of type STOP_BTN", (done) => {
+      const time = new Date("2024-01-31T22:00:00");
+      autoAssistant
+        .handleAutomationForUser(testUser, time)
+        .then((result) => {
+          expect(result).to.have.length(1);
+          expect(result[0].actionType).to.be(AUTOMATE_ACTION.STOP_BTN);
+          done();
+        })
+        .catch((err) => done(err));
     });
 
     describe("eracuni configuration", () => {
@@ -342,9 +348,10 @@ describe("auto-assistant.js", () => {
         password: "secret",
       };
 
-      it.only("388D06F5-AB37-4B0F-8734-DFACF13528C0: when failed log entry exists for mddsz automation and successful for e-racuni. It should retry mddsz automation", (done) => {
-        getLogEntriesStub.reset();
+      it("388D06F5-AB37-4B0F-8734-DFACF13528C0: when failed log entry exists for mddsz automation and successful for e-racuni. It should retry mddsz automation", (done) => {
         const time = new Date("2024-01-31T14:00:00");
+        const getLogEntriesStub = sinon.stub(dbFacade, "getLogEntries");
+        getLogEntriesStub.reset();
         const testCaseLogEntries = Promise.resolve([
           new LogEntry(
             eracuniUser.username,

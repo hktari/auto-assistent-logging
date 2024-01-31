@@ -136,6 +136,39 @@ VALUES (
         'stop_btn',
         'CONFIG_TYPE_WEEKLY'
     );
+
+
+
+-- [943D9429-1EA6-4DA1-8D76-C6B5F9D480D1]
+INSERT INTO daily_config (
+        "login_info_id",
+        "date",
+        "start_at",
+        "end_at"
+    )
+VALUES (0, '2024-01-31T00:00:00', '14:00', '22:00');
+INSERT INTO log_entry (
+        "login_info_id",
+        "status",
+        "timestamp",
+        "error",
+        "message",
+        "action",
+        "config_type"
+    )
+VALUES (
+        0,
+        'failed',
+        '2024-01-31T14:00:00',
+        NULL,
+        'Failed to execute start_btn action',
+        'start_btn',
+        'CONFIG_TYPE_DAILY'
+    );
+
+
+
+
 /* -------------------------------------------------------------------------- */
 /*                            E-Racuni                        */
 /* -------------------------------------------------------------------------- */
