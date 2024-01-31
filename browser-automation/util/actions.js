@@ -20,6 +20,13 @@ const BUFFER_IN_RANGE_MS = +getEnvVariableOrDefault(
  * @public
  */
 class AutomationAction {
+  /**
+   * 
+   * @param {import("../dbFacade").User} user 
+   * @param {AUTOMATE_ACTION} action 
+   * @param {CONFIG_TYPE} configType 
+   * @param {Date} dueAt 
+   */
   constructor(user, action, configType, dueAt) {
     this.user = user;
     /**

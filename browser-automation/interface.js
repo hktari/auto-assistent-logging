@@ -28,7 +28,21 @@ class WorkweekException {
     }
 }
 
+/**
+ * @class LogEntry
+ * @constructor
+ */
 class LogEntry {
+    /**
+     * 
+     * @param {String} username 
+     * @param {LOG_ENTRY_STATUS} status 
+     * @param {Date} timestamp 
+     * @param {String} error 
+     * @param {String} message 
+     * @param {AUTOMATE_ACTION} action 
+     * @param {CONFIG_TYPE} configType 
+     */
     constructor(username, status, timestamp, error, message, action, configType) {
         this.username = username
         this.status = status
