@@ -160,3 +160,11 @@ INSERT INTO daily_config (
         "end_at"
     )
 VALUES (2, '2024-01-23T00:00:00', '14:00', '22:00');
+-- 388D06F5-AB37-4B0F-8734-DFACF13528C0
+INSERT INTO daily_config (
+        "login_info_id",
+        "date",
+        "start_at",
+        "end_at"
+    )
+VALUES (2, '2024-01-31T00:00:00', '14:00', '22:00');

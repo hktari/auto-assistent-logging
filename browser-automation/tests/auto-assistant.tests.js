@@ -1,8 +1,12 @@
 const sinon = require("sinon");
 const mddszApi = require("../automation/mddsz-api");
-const executeActionStub = sinon.stub(mddszApi, "executeAction");
 const eracuniApi = require("../automation/e-racuni");
+
+const executeActionStub = sinon.stub(mddszApi, "executeAction");
 const eracuniExecuteActionStub = sinon.stub(eracuniApi, "executeAction");
+
+const dbFacade = require("../dbFacade");
+const getLogEntriesStub = sinon.stub(dbFacade, "getLogEntries");
 
 const chai = require("chai");
 const { expect, assert } = require("chai");
@@ -315,29 +319,64 @@ describe("auto-assistant.js", () => {
         .catch((err) => done(err));
     });
 
-    it('when start_btn has failed and stop_btn should be executed, it should return successful stop_btn', () => { 
+    it("when start_btn has failed and stop_btn should be executed, it should return successful stop_btn", () => {
       // TODO: implement
-      expect(true).to.be.false
-     })
+      expect(true).to.be.false;
+    });
 
     describe("eracuni configuration", () => {
-      it("should return an instance of ERacuniAutomationActionResult", (done) => {
-        const eracuniConfig = {
-          accountId: 2,
-          itsClientId: "IflQSpp3KaK00Cwf095MyYnQ_3881595479",
-          itcSIDhomepage: "xtgrLk3eekf9Sptlltb0flYS_3883195249",
-          appHomepageURL: "https://test.eracuni.com",
-          appLoggedInURL: "https://test.eracuni.com/test-eracuni/2923920",
-        };
+      const eracuniConfig = {
+        accountId: 2,
+        itsClientId: "IflQSpp3KaK00Cwf095MyYnQ_3881595479",
+        itcSIDhomepage: "xtgrLk3eekf9Sptlltb0flYS_3883195249",
+        appHomepageURL: "https://test.eracuni.com",
+        appLoggedInURL: "https://test.eracuni.com/test-eracuni/2923920",
+      };
 
-        const eracuniUser = {
-          accountId: 2,
-          login_info_id: 2,
-          email: "test-eracuni@example.com",
-          automationEnabled: true,
-          username: "test-eracuni",
-          password: "secret",
-        };
+      const eracuniUser = {
+        accountId: 2,
+        login_info_id: 2,
+        email: "test-eracuni@example.com",
+        automationEnabled: true,
+        username: "test-eracuni",
+        password: "secret",
+      };
+
+      it.only("388D06F5-AB37-4B0F-8734-DFACF13528C0: when failed log entry exists for mddsz automation and successful for e-racuni. It should retry mddsz automation", (done) => {
+        getLogEntriesStub.reset();
+        const time = new Date("2024-01-31T14:00:00");
+        const testCaseLogEntries = Promise.resolve([
+          new LogEntry(
+            eracuniUser.username,
+            LOG_ENTRY_STATUS.SUCCESSFUL,
+            time,
+            null,
+            "e-računi OK",
+            AUTOMATE_ACTION.START_BTN,
+            CONFIG_TYPE.DAILY
+          ),
+          new LogEntry(
+            eracuniUser.username,
+            LOG_ENTRY_STATUS.FAILED,
+            time,
+            null,
+            "MDDSZ ERR",
+            AUTOMATE_ACTION.START_BTN,
+            CONFIG_TYPE.DAILY
+          ),
+        ]);
+        getLogEntriesStub.returns(testCaseLogEntries);
+
+        autoAssistant
+          .handleAutomationForUser(eracuniUser, time)
+          .then((result) => {
+            expect(result).to.have.length(1);
+            done();
+          })
+          .catch((err) => done(err));
+      });
+
+      it("should return an instance of ERacuniAutomationActionResult", (done) => {
         const automationAction = new AutomationActionResult(
           eracuniUser,
           AUTOMATE_ACTION.START_BTN,

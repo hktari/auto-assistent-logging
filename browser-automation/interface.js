@@ -11,6 +11,9 @@ const AUTOMATE_ACTION = Object.freeze({
     STOP_BTN: 'stop_btn'
 })
 
+/**
+ * @typedef {'successful' | 'failed'} LOG_ENTRY_STATUS
+ */
 const LOG_ENTRY_STATUS = Object.freeze({
     SUCCESSFUL: 'successful',
     FAILED: 'failed'
