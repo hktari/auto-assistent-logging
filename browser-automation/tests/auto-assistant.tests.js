@@ -23,6 +23,7 @@ const {
   ERacuniAutomationActionResult,
 } = require("../util/actions");
 const deepEqualInAnyOrder = require("deep-equal-in-any-order");
+const Sinon = require("sinon");
 
 chai.use(deepEqualInAnyOrder);
 chai.config.truncateThreshold = 0;
@@ -36,6 +37,10 @@ describe("auto-assistant.js", () => {
     username: "test",
     password: "secret",
   };
+
+  beforeEach(() => {
+    Sinon.restore();
+  });
 
   const automationActionsForUser = {
     test: [
@@ -199,7 +204,7 @@ describe("auto-assistant.js", () => {
             .handleAutomationForUser(testUser, dailyAction.dueAt)
             .then((actionResults) => {
               expect(executeActionStub.calledOnce).to.be.true;
-              expect(actionResults).to.have.length(1)
+              expect(actionResults).to.have.length(1);
               expect(actionResults[0]).to.deep.equal(dailyAction);
               done();
             })
@@ -379,6 +384,8 @@ describe("auto-assistant.js", () => {
           .handleAutomationForUser(eracuniUser, time)
           .then((result) => {
             expect(result).to.have.length(1);
+            getLogEntriesStub.restore();
+
             done();
           })
           .catch((err) => done(err));
