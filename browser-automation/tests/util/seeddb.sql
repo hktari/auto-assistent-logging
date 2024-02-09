@@ -40,7 +40,7 @@ INSERT INTO daily_config (
         "start_at",
         "end_at"
     ) OVERRIDING SYSTEM VALUE
-VALUES (0, 0, '2022-05-01T00:00:00', '12:00', '20:00')
+VALUES (0, 0, '2022-05-01T00:00:00', '12:00', '20:00');
 INSERT INTO work_week_config (
         "id",
         "login_info_id",
