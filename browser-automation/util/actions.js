@@ -1,5 +1,9 @@
 const db = require("../dbFacade");
-const { AUTOMATE_ACTION, CONFIG_TYPE, AUTOMATION_TYPE } = require("../interface");
+const {
+  AUTOMATE_ACTION,
+  CONFIG_TYPE,
+  AUTOMATION_TYPE,
+} = require("../interface");
 const logger = require("./logging");
 const { getEnvVariableOrDefault } = require("./util");
 
@@ -21,11 +25,11 @@ const BUFFER_IN_RANGE_MS = +getEnvVariableOrDefault(
  */
 class AutomationAction {
   /**
-   * 
-   * @param {import("../dbFacade").User} user 
-   * @param {AUTOMATE_ACTION} action 
-   * @param {CONFIG_TYPE} configType 
-   * @param {Date} dueAt 
+   *
+   * @param {import("../dbFacade").User} user
+   * @param {AUTOMATE_ACTION} action
+   * @param {CONFIG_TYPE} configType
+   * @param {Date} dueAt
    */
   constructor(user, action, configType, dueAt) {
     this.user = user;
@@ -135,13 +139,14 @@ class AutomationActionResult extends AutomationAction {
    * @param {Error} error
    */
   constructor(user, action, configType, automationType, dueAt, message, error) {
-    super(user, action, configType, dueAt);
+    super(user, action, configType, automationType, dueAt);
     this.message = message;
     this.error = error;
+    this.automationType = automationType;
   }
 
   toString() {
-    return super.toString() + `\n${this.error?.toString()}`;
+    return super.toString() + `\t${this.automationType}\n${this.error?.toString()}`;
   }
 }
 
@@ -156,7 +161,15 @@ class ERacuniAutomationActionResult extends AutomationActionResult {
    * @param {Error} error
    */
   constructor(eracuniConfig, user, action, configType, dueAt, message, error) {
-    super(user, action, configType, AUTOMATION_TYPE.ERACUNI, dueAt, message, error);
+    super(
+      user,
+      action,
+      configType,
+      AUTOMATION_TYPE.ERACUNI,
+      dueAt,
+      message,
+      error
+    );
     this.eracuniConfig = eracuniConfig;
   }
 }

@@ -15,6 +15,7 @@ const {
   WorkdayConfig,
   CONFIG_TYPE,
   LogEntry,
+  AUTOMATION_TYPE,
 } = require("./interface");
 
 const db = require("./dbFacade");
@@ -125,7 +126,6 @@ async function handleAutomationForUser(user, datetime) {
   const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
   logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
 
-
   // TODO: when start_btn is failing (in the case when user has clicked it manually), it should not prevent stop_btn execution
 
   const automationResults = [];
@@ -150,6 +150,7 @@ async function handleAutomationForUser(user, datetime) {
           user,
           action.actionType,
           action.configType,
+          AUTOMATION_TYPE.MDDSZ,
           action.dueAt,
           mddszResultMsg,
           null
@@ -163,6 +164,7 @@ async function handleAutomationForUser(user, datetime) {
           user,
           action.actionType,
           action.configType,
+          AUTOMATION_TYPE.MDDSZ,
           action.dueAt,
           null,
           err
