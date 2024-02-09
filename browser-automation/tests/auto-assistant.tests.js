@@ -199,7 +199,8 @@ describe("auto-assistant.js", () => {
             .handleAutomationForUser(testUser, dailyAction.dueAt)
             .then((actionResults) => {
               expect(executeActionStub.calledOnce).to.be.true;
-              expect(actionResults).to.deep.equal(dailyAction);
+              expect(actionResults).to.have.length(1)
+              expect(actionResults[0]).to.deep.equal(dailyAction);
               done();
             })
             .catch((err) => done(err));
@@ -318,7 +319,7 @@ describe("auto-assistant.js", () => {
         .catch((err) => done(err));
     });
 
-    it.only("[943D9429-1EA6-4DA1-8D76-C6B5F9D480D1] when start_btn has failed and stop_btn should be executed, it should return AutomationActionResult of type STOP_BTN", (done) => {
+    it("[943D9429-1EA6-4DA1-8D76-C6B5F9D480D1] when start_btn has failed and stop_btn should be executed, it should return AutomationActionResult of type STOP_BTN", (done) => {
       const time = new Date("2024-01-31T22:00:00");
       autoAssistant
         .handleAutomationForUser(testUser, time)
