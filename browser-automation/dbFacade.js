@@ -199,7 +199,7 @@ async function addLogEntry(
  */
 async function getLogEntries(username, date) {
   const queryResult = await db.query(
-    `SELECT li.username, le.status, le.timestamp, le.error, le.message, le.action, le.config_type
+    `SELECT li.username, le.status, le.timestamp, le.error, le.message, le.action, le.config_type, le.automation_type
         FROM log_entry le JOIN login_info li ON le.login_info_id = li.id
         WHERE li.username = $1 
         AND DATE_TRUNC('day', le.timestamp) = DATE_TRUNC('day', date '${date.toISOString()}'); `,
@@ -215,7 +215,8 @@ async function getLogEntries(username, date) {
         row.error,
         row.message,
         row.action,
-        row.config_type
+        row.config_type,
+        row.automation_type
       )
   );
 }

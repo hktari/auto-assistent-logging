@@ -14,6 +14,7 @@ const {
   LOG_ENTRY_STATUS,
   WorkdayConfig,
   CONFIG_TYPE,
+  LogEntry,
 } = require("./interface");
 
 const db = require("./dbFacade");
@@ -100,6 +101,7 @@ async function handleAutomationForUser(user, datetime) {
 
   let actionsPlannedToday = await _getAndFilterActionsForDate(user, datetime);
 
+  // handle overnight work shifts
   if (datetime.getUTCHours() <= 8) {
     const yesterday = new Date(datetime);
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
@@ -230,7 +232,8 @@ async function logAutomationResult(automationResult) {
     automationResult.error?.toString(),
     automationResult.message,
     automationResult.actionType,
-    automationResult.configType
+    automationResult.configType,
+    automationResult.automationType
   );
 }
 

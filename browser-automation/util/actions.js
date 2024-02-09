@@ -1,5 +1,5 @@
 const db = require("../dbFacade");
-const { AUTOMATE_ACTION, CONFIG_TYPE } = require("../interface");
+const { AUTOMATE_ACTION, CONFIG_TYPE, AUTOMATION_TYPE } = require("../interface");
 const logger = require("./logging");
 const { getEnvVariableOrDefault } = require("./util");
 
@@ -129,11 +129,12 @@ class AutomationActionResult extends AutomationAction {
    * @param {getUsers() return} user
    * @param {AUTOMATE_ACTION} action
    * @param {CONFIG_TYPE} configType
+   * @param {AUTOMATION_TYPE} automationType
    * @param {Date} dueAt
    * @param {string} message
    * @param {Error} error
    */
-  constructor(user, action, configType, dueAt, message, error) {
+  constructor(user, action, configType, automationType, dueAt, message, error) {
     super(user, action, configType, dueAt);
     this.message = message;
     this.error = error;
@@ -155,7 +156,7 @@ class ERacuniAutomationActionResult extends AutomationActionResult {
    * @param {Error} error
    */
   constructor(eracuniConfig, user, action, configType, dueAt, message, error) {
-    super(user, action, configType, dueAt, message, error);
+    super(user, action, configType, AUTOMATION_TYPE.ERACUNI, dueAt, message, error);
     this.eracuniConfig = eracuniConfig;
   }
 }
