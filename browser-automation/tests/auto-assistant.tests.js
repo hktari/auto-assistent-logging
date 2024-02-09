@@ -251,7 +251,7 @@ describe("auto-assistant.js", () => {
           .then((actionResults) => {
             expect(executeActionStub.calledOnce, "executeAction() was called")
               .to.be.true;
-            expect(actionResults).to.deep.equal(yesterdayWeeklyAction);
+            expect(actionResults[0]).to.deep.equal(yesterdayWeeklyAction);
             done();
           })
           .catch((err) => done(err));
@@ -330,7 +330,7 @@ describe("auto-assistant.js", () => {
         .handleAutomationForUser(testUser, time)
         .then((result) => {
           expect(result).to.have.length(1);
-          expect(result[0].actionType).to.be(AUTOMATE_ACTION.STOP_BTN);
+          expect(result[0].actionType).to.equal(AUTOMATE_ACTION.STOP_BTN);
           done();
         })
         .catch((err) => done(err));
