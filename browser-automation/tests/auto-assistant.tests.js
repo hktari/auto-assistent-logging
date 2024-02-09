@@ -170,7 +170,7 @@ describe("auto-assistant.js", () => {
         .handleAutomationForUser(testUser, automationAction.dueAt)
         .then((actionResults) => {
           expect(executeActionStub.calledOnce, "stub is called").to.be.true;
-          expect(actionResults).to.deep.equal(automationAction);
+          expect(actionResults[0]).to.deep.equal(automationAction);
           done();
         })
         .catch((err) => done(err));
@@ -186,7 +186,7 @@ describe("auto-assistant.js", () => {
         .handleAutomationForUser(testUser, automationAction.dueAt)
         .then((actionResults) => {
           expect(executeActionStub.calledOnce).to.be.true;
-          expect(actionResults).to.deep.equal(automationAction);
+          expect(actionResults[0]).to.deep.equal(automationAction);
           done();
         })
         .catch((err) => done(err));
