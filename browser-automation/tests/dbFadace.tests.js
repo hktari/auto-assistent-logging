@@ -9,6 +9,7 @@ const {
   CONFIG_TYPE,
   LogEntry,
 } = require("../interface");
+const Sinon = require("sinon");
 
 chai.config.truncateThreshold = 0;
 
@@ -43,11 +44,12 @@ describe("dbFacade", () => {
   let db;
   beforeEach(() => {
     db = require("../dbFacade");
+    Sinon.restore();
   });
 
   it("should import without errors", () => {});
 
-  describe.only("getUsers()", () => {
+  describe("getUsers()", () => {
     it("result should contain properties", (done) => {
       const db = require("../dbFacade");
 
