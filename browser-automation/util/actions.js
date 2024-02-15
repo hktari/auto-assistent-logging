@@ -139,7 +139,7 @@ class AutomationActionResult extends AutomationAction {
    * @param {Error} error
    */
   constructor(user, action, configType, automationType, dueAt, message, error) {
-    super(user, action, configType, automationType, dueAt);
+    super(user, action, configType, dueAt);
     this.message = message;
     this.error = error;
     this.automationType = automationType;
