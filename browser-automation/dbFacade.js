@@ -1,10 +1,11 @@
 const {
   AUTOMATE_ACTION,
-  WORKDAY_CONFIG_AUTOMATION_TYPE,
+  CONFIG_TYPE,
   LOG_ENTRY_STATUS,
   WorkdayConfig,
   WorkweekException,
   LogEntry,
+  AUTOMATION_TYPE,
 } = require("./interface");
 const { db } = require("./database");
 const crypto = require("./util/crypto");
@@ -165,6 +166,18 @@ async function getUsers(onlyAutomateEnabled = true) {
   return users;
 }
 
+/**
+ *
+ * @param {string} login_info_id
+ * @param {LOG_ENTRY_STATUS} status
+ * @param {Date} timestamp
+ * @param {string} error
+ * @param {string} message
+ * @param {AUTOMATE_ACTION} action
+ * @param {CONFIG_TYPE} configType
+ * @param {AUTOMATION_TYPE} configType
+ * @returns
+ */
 async function addLogEntry(
   login_info_id,
   status,
@@ -172,11 +185,12 @@ async function addLogEntry(
   error,
   message,
   action,
-  configType
+  configType,
+  automationType
 ) {
   const queryResult = await db.query(
-    `INSERT INTO log_entry(login_info_id, status, "timestamp", error, message, "action", config_type)
-    VALUES($1, $2, $3, $4, $5, $6, $7); `,
+    `INSERT INTO log_entry(login_info_id, status, "timestamp", error, message, "action", config_type, automation_type)
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8); `,
     [
       login_info_id,
       status,
@@ -185,6 +199,7 @@ async function addLogEntry(
       message,
       action,
       configType,
+      automationType,
     ]
   );
   logger.debug("[AUTOMATION]: inserted " + queryResult.rowCount + " rows");
