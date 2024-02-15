@@ -7,6 +7,7 @@ const {
   getActionsForDate,
   AutomationActionResult,
   ERacuniAutomationActionResult,
+  AutomationAction,
 } = require("./util/actions");
 const {
   AUTOMATE_ACTION,
@@ -49,7 +50,7 @@ function _datetimeRangeCompare(datetimeFirst, datetimeSecond, rangeMs = 60000) {
 }
 
 /**
- * filters the @param actionsList based on whether there is a successful entry inside @param logEntries
+ * filters the actionsList based on whether there is a successful entry inside logEntries
  * @param {AutomationAction[]} actionsList
  * @param {LogEntry[]} logEntries
  * @returns
@@ -61,6 +62,7 @@ function _filterOutAlreadyExecuted(actionsList, logEntries) {
         le.action === action.actionType &&
         action.configType === le.configType &&
         _isSameDay(action.dueAt, le.timestamp) &&
+        action.automationType === le.automationType &&
         le.status === LOG_ENTRY_STATUS.SUCCESSFUL
       );
     });
@@ -68,9 +70,16 @@ function _filterOutAlreadyExecuted(actionsList, logEntries) {
   });
 }
 
-async function _getAndFilterActionsForDate(user, datetime) {
+/**
+ *
+ * @param {import("./dbFacade").User} user
+ * @param {Date} datetime
+ * @param {AUTOMATION_TYPE[]} automationTypes
+ * @returns {Promise<AutomationAction[]>}
+ */
+async function _getAndFilterActionsForDate(user, datetime, automationTypes) {
   logger.debug("processing for datetime: " + datetime.toUTCString());
-  let actionsForDate = await getActionsForDate(user, datetime);
+  let actionsForDate = await getActionsForDate(user, datetime, automationTypes);
 
   const workweekExceptions = await db.getWorkweekExceptions(
     user.username,
@@ -101,7 +110,21 @@ async function handleAutomationForUser(user, datetime, browser) {
   logger.debug("processing user: " + user.email);
   logger.debug("accountId: " + user.accountId);
 
-  let actionsPlannedToday = await _getAndFilterActionsForDate(user, datetime);
+  const automationTypesConfiguredForUser = [AUTOMATION_TYPE.MDDSZ];
+
+  logger.debug("fetching eracuni configuration...");
+  const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
+  logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
+
+  if (eracuniConfig) {
+    automationTypesConfiguredForUser.push(AUTOMATION_TYPE.ERACUNI);
+  }
+
+  let actionsPlannedToday = await _getAndFilterActionsForDate(
+    user,
+    datetime,
+    automationTypesConfiguredForUser
+  );
 
   // handle overnight work shifts
   if (datetime.getUTCHours() <= 8) {
@@ -109,6 +132,23 @@ async function handleAutomationForUser(user, datetime, browser) {
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
     actionsPlannedToday = actionsPlannedToday.concat(
       await _getAndFilterActionsForDate(user, yesterday)
+    );
+  }
+
+  logger.debug("");
+  if (eracuniConfig) {
+    logger.debug("handling automation for ERacuni as well");
+    actionsPlannedToday = actionsPlannedToday.concat(
+      actionsPlannedToday.map(
+        (action) =>
+          new AutomationAction(
+            action.user,
+            action.actionType,
+            action.configType,
+            action.dueAt,
+            AUTOMATION_TYPE.ERACUNI
+          )
+      )
     );
   }
 
@@ -122,10 +162,6 @@ async function handleAutomationForUser(user, datetime, browser) {
 
   // sort by datetime
   actionsPlannedToday = _sortByDatetimeAsc(actionsPlannedToday);
-
-  logger.debug("fetching eracuni configuration...");
-  const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
-  logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
 
   // TODO: when start_btn is failing (in the case when user has clicked it manually), it should not prevent stop_btn execution
 
@@ -174,40 +210,38 @@ async function handleAutomationForUser(user, datetime, browser) {
       );
     }
 
-    if (eracuniConfig) {
-      logger.debug("handling automation for ERacuni as well");
+    //  TODO: switch on automationType
 
-      try {
-        const eracuniResultMsg = await executeActionERacuni(
-          action.actionType,
+    try {
+      const eracuniResultMsg = await executeActionERacuni(
+        action.actionType,
+        eracuniConfig,
+        browser
+      );
+      automationResults.push(
+        new ERacuniAutomationActionResult(
           eracuniConfig,
-          browser
-        );
-        automationResults.push(
-          new ERacuniAutomationActionResult(
-            eracuniConfig,
-            user,
-            action.actionType,
-            action.configType,
-            action.dueAt,
-            eracuniResultMsg,
-            null
-          )
-        );
-      } catch (err) {
-        logger.error(err.stack);
-        automationResults.push(
-          new ERacuniAutomationActionResult(
-            eracuniConfig,
-            user,
-            action.actionType,
-            action.configType,
-            action.dueAt,
-            null,
-            err
-          )
-        );
-      }
+          user,
+          action.actionType,
+          action.configType,
+          action.dueAt,
+          eracuniResultMsg,
+          null
+        )
+      );
+    } catch (err) {
+      logger.error(err.stack);
+      automationResults.push(
+        new ERacuniAutomationActionResult(
+          eracuniConfig,
+          user,
+          action.actionType,
+          action.configType,
+          action.dueAt,
+          null,
+          err
+        )
+      );
     }
 
     break;

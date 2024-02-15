@@ -30,8 +30,9 @@ class AutomationAction {
    * @param {AUTOMATE_ACTION} action
    * @param {CONFIG_TYPE} configType
    * @param {Date} dueAt
+   * @param {AUTOMATION_TYPE} automationType
    */
-  constructor(user, action, configType, dueAt) {
+  constructor(user, action, configType, dueAt, automationType) {
     this.user = user;
     /**
      * Automation Action type
@@ -41,6 +42,7 @@ class AutomationAction {
     this.actionType = action;
     this.configType = configType;
     this.dueAt = dueAt;
+    this.automationType = automationType;
   }
 
   timeToExecute(time) {
@@ -66,63 +68,76 @@ class AutomationAction {
   toString() {
     return `${this.user.username}\t${this.actionType}\t${
       this.configType
-    }\t${this.dueAt.toUTCString()}`;
+    }\t${this.dueAt.toUTCString()}\t${this.automationType}`;
   }
 }
 
-async function getActionsForDate(user, date) {
+/**
+ *
+ * @param {import("../dbFacade").User} user
+ * @param {Date} date
+ * @param {AUTOMATION_TYPE[]} automationTypes
+ * @returns
+ */
+async function getActionsForDate(user, date, automationTypes) {
   const actionsList = [];
 
-  const dailyConfig = await db.getDailyConfig(user.username, date);
-  if (dailyConfig?.startAt) {
-    logger.debug("found start action");
-    actionsList.push(
-      new AutomationAction(
-        user,
-        AUTOMATE_ACTION.START_BTN,
-        CONFIG_TYPE.DAILY,
-        dailyConfig.startAt,
-        undefined
-      )
-    );
-  }
-  if (dailyConfig?.endAt) {
-    logger.debug("found stop action");
-    actionsList.push(
-      new AutomationAction(
-        user,
-        AUTOMATE_ACTION.STOP_BTN,
-        CONFIG_TYPE.DAILY,
-        dailyConfig.endAt,
-        undefined
-      )
-    );
-  }
+  for (const automationType of automationTypes) {
+    const dailyConfig = await db.getDailyConfig(user.username, date);
+    if (dailyConfig?.startAt) {
+      logger.debug("found start action");
+      actionsList.push(
+        new AutomationAction(
+          user,
+          AUTOMATE_ACTION.START_BTN,
+          CONFIG_TYPE.DAILY,
+          dailyConfig.startAt,
+          undefined,
+          automationType
+        )
+      );
+    }
+    if (dailyConfig?.endAt) {
+      logger.debug("found stop action");
+      actionsList.push(
+        new AutomationAction(
+          user,
+          AUTOMATE_ACTION.STOP_BTN,
+          CONFIG_TYPE.DAILY,
+          dailyConfig.endAt,
+          undefined,
+          automationType
+        )
+      );
+    }
 
-  const weeklyConfig = await db.getWeeklyConfig(user.username, date);
-  if (weeklyConfig?.startAt) {
-    logger.debug("found start action");
-    actionsList.push(
-      new AutomationAction(
-        user,
-        AUTOMATE_ACTION.START_BTN,
-        CONFIG_TYPE.WEEKLY,
-        weeklyConfig.startAt,
-        undefined
-      )
-    );
-  }
-  if (weeklyConfig?.endAt) {
-    logger.debug("found stop action");
-    actionsList.push(
-      new AutomationAction(
-        user,
-        AUTOMATE_ACTION.STOP_BTN,
-        CONFIG_TYPE.WEEKLY,
-        weeklyConfig.endAt,
-        undefined
-      )
-    );
+    const weeklyConfig = await db.getWeeklyConfig(user.username, date);
+    if (weeklyConfig?.startAt) {
+      logger.debug("found start action");
+      actionsList.push(
+        new AutomationAction(
+          user,
+          AUTOMATE_ACTION.START_BTN,
+          CONFIG_TYPE.WEEKLY,
+          weeklyConfig.startAt,
+          undefined,
+          automationType
+        )
+      );
+    }
+    if (weeklyConfig?.endAt) {
+      logger.debug("found stop action");
+      actionsList.push(
+        new AutomationAction(
+          user,
+          AUTOMATE_ACTION.STOP_BTN,
+          CONFIG_TYPE.WEEKLY,
+          weeklyConfig.endAt,
+          undefined,
+          automationType
+        )
+      );
+    }
   }
 
   return actionsList;
@@ -139,14 +154,13 @@ class AutomationActionResult extends AutomationAction {
    * @param {Error} error
    */
   constructor(user, action, configType, automationType, dueAt, message, error) {
-    super(user, action, configType, dueAt);
+    super(user, action, configType, dueAt, automationType);
     this.message = message;
     this.error = error;
-    this.automationType = automationType;
   }
 
   toString() {
-    return super.toString() + `\t${this.automationType}\n${this.error?.toString()}`;
+    return super.toString() + `\n${this.error?.toString()}`;
   }
 }
 
