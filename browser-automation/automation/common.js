@@ -3,6 +3,7 @@ if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
 }
 
 const puppeteer = require("puppeteer");
+const browser = null;
 
 function delay(waitTime) {
   return new Promise((resolve) => {
@@ -12,27 +13,51 @@ function delay(waitTime) {
   });
 }
 
-function createBrowser(debug) {
+/**
+ *
+ * @param {boolean} debug
+ * @returns {Promise<puppeteer.Browser>} browser
+ */
+async function createBrowser(debug) {
+  if (browser) {
+    return browser;
+  }
+
+  let browserConfig;
+
   if (debug) {
-    return puppeteer.launch({
+    browserConfig = {
       // devtools: true
       headless: false,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       slowMo: 50,
-    });
+    };
   } else {
-    return puppeteer.launch({
+    browserConfig = {
       headless: true,
       args: ["--no-sandbox", "--disable-setuid-sandbox"],
       slowMo: 0,
-    });
+    };
+  }
+  browser = puppeteer.launch(browserConfig);
+  return browser;
+}
+
+/**
+ *
+ * @returns {Promise<void>}
+ */
+async function closeBrowser() {
+  if (browser) {
+    await browser.close();
+    browser = null;
   }
 }
 
 const ExecuteFailureReason = Object.freeze({
   ButtonDisabled: "ButtonDisabled",
   ButtonNotFound: "ButtonNotFound",
-  InvalidConfiguration: "InvalidConfiguration"
+  InvalidConfiguration: "InvalidConfiguration",
 });
 
 class AutomationError extends Error {
@@ -50,6 +75,7 @@ class AutomationError extends Error {
 module.exports = {
   delay,
   createBrowser,
+  closeBrowser,
   ExecuteFailureReason,
   AutomationError,
 };
