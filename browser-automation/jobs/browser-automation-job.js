@@ -36,7 +36,7 @@ if (parentPort) {
 
 (async () => {
   let jobError = null;
-  const browser = null;
+  let browser = null;
   try {
     logger.info(`${"-".repeat(50)}`);
     logger.info("start");
