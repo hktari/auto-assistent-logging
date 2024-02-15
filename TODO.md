@@ -1,10 +1,7 @@
 # TODO
-- write portfolio entry
-## selitev na gandi [OK]
-- konfiguriraj nginx in certifikate
-- inštaliraj bazo
-- pripravi .env file
-- zaženi kontejnerja za backend in automation worker
+- bugfix: MDDSZ fails: TimeoutError: Timed out after 30000 ms while trying to connect to the browser! Only Chrome at revision r1022525 is guaranteed to work.
+- add implementation for test case 388D06F5-AB37-4B0F-8734-DFACF13528C0 (automation_type)
+- implement support on backend and frontend for eračuni configuration
 
 
 

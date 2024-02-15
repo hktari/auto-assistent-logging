@@ -4,7 +4,6 @@ if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
 
 const {
   AutomationError,
-  createBrowser,
   delay,
   ExecuteFailureReason,
 } = require("./common");
@@ -19,12 +18,12 @@ const logger = require("../util/logging");
 /**
  * @param {AUTOMATE_ACTION} action
  * @param {ERacuniUserConfiguration} userConfiguration
+ * @param {import('puppeteer').Browser} browser
  * @returns {Promise<string>}
  */
-async function executeAction(action, userConfiguration) {
+async function executeAction(action, userConfiguration, browser) {
   logger.debug("endpoint: " + userConfiguration.appHomepageURL);
   logger.debug("Executing action: " + action);
-  logger.debug("ENV: " + process.env.NODE_ENV);
 
   const VALID_ACTION = Object.entries(AUTOMATE_ACTION)
     .map((val) => val[1])
@@ -33,6 +32,10 @@ async function executeAction(action, userConfiguration) {
   if (!VALID_ACTION) {
     throw new Error(`Unhandled type of action ${action}`);
   }
+  if (!browser) {
+    throw new Error("browser is undefined");
+  }
+
 
   if (!isUserConfigurationValid(userConfiguration)) {
     throw new AutomationError(
@@ -41,8 +44,6 @@ async function executeAction(action, userConfiguration) {
       `Invalid user configuration: \n${JSON.stringify(userConfiguration)}`
     );
   }
-
-  const browser = await createBrowser(process.env.NODE_ENV === "development");
 
   try {
     const page = await browser.newPage();
@@ -121,13 +122,10 @@ async function executeAction(action, userConfiguration) {
 
     await delay(3000);
 
-    await browser.close();
     return "Finished successfully !";
   } catch (error) {
     logger.error(error.toString());
     throw error;
-  } finally {
-    await browser.close();
   }
 }
 
@@ -156,6 +154,5 @@ function isUserConfigurationValid({
 }
 
 module.exports = {
-  
   executeAction,
 };

@@ -357,7 +357,7 @@ describe("auto-assistant.js", () => {
       it("388D06F5-AB37-4B0F-8734-DFACF13528C0: when failed log entry exists for mddsz automation and successful for e-racuni. It should retry mddsz automation", (done) => {
         const time = new Date("2024-01-31T14:00:00");
         const getLogEntriesStub = sinon.stub(dbFacade, "getLogEntries");
-        getLogEntriesStub.reset();
+
         const testCaseLogEntries = Promise.resolve([
           new LogEntry(
             eracuniUser.username,
@@ -384,7 +384,6 @@ describe("auto-assistant.js", () => {
           .handleAutomationForUser(eracuniUser, time)
           .then((result) => {
             expect(result).to.have.length(1);
-            getLogEntriesStub.restore();
 
             done();
           })

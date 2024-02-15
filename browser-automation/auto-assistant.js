@@ -93,9 +93,10 @@ function _sortByDatetimeAsc(actions) {
  *
  * @param {import('./dbFacade').User} user
  * @param {Date} datetime the current time
+ * @param {import('puppeteer').Browser} browser
  * @returns {Promise<AutomationActionResult[]>} a collection of promises. If the collection is empty, no automation is pending.
  */
-async function handleAutomationForUser(user, datetime) {
+async function handleAutomationForUser(user, datetime, browser) {
   logger.debug("\n" + "*".repeat(50));
   logger.debug("processing user: " + user.email);
   logger.debug("accountId: " + user.accountId);
@@ -143,7 +144,8 @@ async function handleAutomationForUser(user, datetime) {
       const mddszResultMsg = await executeAction(
         user.username,
         user.password,
-        action.actionType
+        action.actionType,
+        browser
       );
       automationResults.push(
         new AutomationActionResult(
@@ -178,7 +180,8 @@ async function handleAutomationForUser(user, datetime) {
       try {
         const eracuniResultMsg = await executeActionERacuni(
           action.actionType,
-          eracuniConfig
+          eracuniConfig,
+          browser
         );
         automationResults.push(
           new ERacuniAutomationActionResult(

@@ -5,6 +5,7 @@ const {
   handleAutomationForUser,
   logAutomationResult,
 } = require("../auto-assistant");
+const puppeteer = require("puppeteer");
 
 // store boolean if the job is cancelled
 let isCancelled = false;
@@ -35,18 +36,42 @@ if (parentPort) {
 
 (async () => {
   let jobError = null;
+  const browser = null;
   try {
     logger.info(`${"-".repeat(50)}`);
     logger.info("start");
     const curTime = new Date();
     logger.info("time: " + curTime.toUTCString());
 
+    let browserConfig;
+
+    if (process.env.NODE_ENV === "development") {
+      browserConfig = {
+        // devtools: true
+        headless: false,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        slowMo: 50,
+      };
+    } else {
+      browserConfig = {
+        headless: true,
+        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        slowMo: 0,
+      };
+    }
+    logger.debug("creating browser...");
+    browser = await puppeteer.launch(browserConfig);
+
     const usersToAutomate = await db.getUsers();
     logger.info(`got ${usersToAutomate.length} users`);
 
     let automationResults = [];
     for (const user of usersToAutomate) {
-      const userAutomationResults = await handleAutomationForUser(user, curTime);
+      const userAutomationResults = await handleAutomationForUser(
+        user,
+        curTime,
+        browser
+      );
       logger.info(
         `User ${user.username}. ${
           userAutomationResults.length > 0
@@ -68,6 +93,11 @@ if (parentPort) {
     }
   } catch (err) {
     logger.error(err.stack);
+  } finally {
+    if (browser) {
+      logger.debug("closing browser...");
+      await browser.close();
+    }
   }
 
   await flushLogs();

@@ -6,10 +6,20 @@ const ENDPOINT = process.env.MDDSZ_WEBAPP_ENDPOINT;
 const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
-const { delay, createBrowser, AutomationError } = require("./common");
+const {
+  delay,
+  AutomationError,
+} = require("./common");
 
-
-async function executeAction(username, password, action) {
+/**
+ *
+ * @param {string} username
+ * @param {string} password
+ * @param {AUTOMATE_ACTION} action
+ * @param {import('puppeteer').Browser} browser
+ * @returns
+ */
+async function executeAction(username, password, action, browser) {
   logger.debug("endpoint: " + ENDPOINT);
   logger.debug("Executing action: " + action);
   logger.debug("ENV: " + process.env.NODE_ENV);
@@ -21,9 +31,10 @@ async function executeAction(username, password, action) {
   if (!VALID_ACTION) {
     throw new Error(`Unhandled type of action ${action}`);
   }
-
-  const browser = await createBrowser(process.env.NODE_ENV === "development");
-
+  if (!browser) {
+    throw new Error("browser is undefined");
+  }
+  
   try {
     const page = await browser.newPage();
     page.setDefaultTimeout(30000); // wait max 10 sec for things to appear
@@ -74,13 +85,10 @@ async function executeAction(username, password, action) {
     logger.debug("waiting for success banner...");
 
     await delay(5000);
-    await browser.close();
     return "Finished successfully !";
   } catch (error) {
     logger.error(error.toString());
     throw error;
-  } finally {
-    await browser.close();
   }
 }
 
