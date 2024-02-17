@@ -125,10 +125,6 @@ async function getPendingAutomationAction(user, datetime, endpoint) {
   // sort by datetime
   actionsPlannedToday = _sortByDatetimeAsc(actionsPlannedToday);
 
-  logger.debug("fetching eracuni configuration...");
-  const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
-  logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
-
   // TODO: when start_btn is failing (in the case when user has clicked it manually), it should not prevent stop_btn execution
 
   const automationResults = [];
@@ -140,10 +136,6 @@ async function getPendingAutomationAction(user, datetime, endpoint) {
     }
 
     logger.debug("ok");
-
-    if (eracuniConfig) {
-      logger.debug("handling automation for ERacuni as well");
-    }
 
     // take the first action to be executed
     return action;
@@ -195,10 +187,11 @@ async function _executeMDDSZAutomation(user, action, browser) {
  *
  * @param {*} user
  * @param {*} action
+ * @param {import("./automation/e-racuni").ERacuniUserConfiguration} eracuniConfig
  * @param {*} browser
  * @returns {Promise<AutomationActionResult>}
  */
-async function _executeEracuniAutomation(user, action, browser) {
+async function _executeEracuniAutomation(user, action, eracuniConfig, browser) {
   try {
     const eracuniResultMsg = await executeActionERacuni(
       action.actionType,
@@ -230,30 +223,56 @@ async function _executeEracuniAutomation(user, action, browser) {
 
 /**
  *
+ * @param {import("./dbFacade").User} user
+ * @param {AUTOMATION_TYPE} endpoint
+ * @returns {Promise<boolean>}
+ */
+async function _isAutomationEnabledForEndpoint(user, endpoint) {
+  switch (endpoint) {
+    case AUTOMATION_TYPE.MDDSZ:
+      return true;
+    case AUTOMATION_TYPE.ERACUNI:
+      const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
+      return !!eracuniConfig;
+    default:
+      throw new Error("unhandled case");
+  }
+}
+
+/**
+ *
  * @param {import('./dbFacade').User} user
  * @param {Date} datetime the current time
  * @param {import('puppeteer').Browser} browser
  * @returns {Promise<AutomationActionResult[]>}
  */
 async function handleAutomationForUser(user, datetime, browser) {
-  // if MDDSZ automation is enabled
-  const mddszAutomation = await getPendingAutomationAction(
-    user,
-    datetime,
-    AUTOMATION_TYPE.MDDSZ
-  );
-
-  // if eracuni is enabled
-  const eracuniAutomation = await getPendingAutomationAction(
-    user,
-    datetime,
-    AUTOMATION_TYPE.ERACUNI
-  );
-
-  // execute automations
   const results = [];
-  results.push(_executeMDDSZAutomation(user, mddszAutomation, browser));
-  results.push(_executeEracuniAutomation(user, eracuniAutomation, browser));
+
+  // if MDDSZ automation is enabled
+  if (_isAutomationEnabledForEndpoint(user, AUTOMATION_TYPE.MDDSZ)) {
+    const mddszAutomation = await getPendingAutomationAction(
+      user,
+      datetime,
+      AUTOMATION_TYPE.MDDSZ
+    );
+    results.push(_executeMDDSZAutomation(user, mddszAutomation, browser));
+  }
+
+  if (_isAutomationEnabledForEndpoint(user, AUTOMATION_TYPE.ERACUNI)) {
+    logger.debug("fetching eracuni configuration...");
+    const eracuniConfig = await db.getEracuniConfigurationBy(user.accountId);
+    logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
+    logger.debug("handling automation for ERacuni as well");
+
+    const eracuniAutomation = await getPendingAutomationAction(
+      user,
+      datetime,
+      AUTOMATION_TYPE.ERACUNI
+    );
+    results.push(_executeEracuniAutomation(user, eracuniAutomation, browser));
+  }
+
 
   return results;
 }
