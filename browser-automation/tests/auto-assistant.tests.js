@@ -16,6 +16,7 @@ const {
   CONFIG_TYPE,
   LogEntry,
   LOG_ENTRY_STATUS,
+  AUTOMATION_TYPE,
 } = require("../interface");
 const {
   AutomationAction,
@@ -355,7 +356,7 @@ describe("auto-assistant.js", () => {
       };
 
       it("388D06F5-AB37-4B0F-8734-DFACF13528C0: when failed log entry exists for mddsz automation and successful for e-racuni. It should retry mddsz automation", (done) => {
-        const time = new Date("2024-01-31T14:00:00");
+        const time = new Date(Date.UTC(2024, 0, 31, 14, 0));
         const getLogEntriesStub = sinon.stub(dbFacade, "getLogEntries");
 
         const testCaseLogEntries = Promise.resolve([
@@ -366,7 +367,8 @@ describe("auto-assistant.js", () => {
             null,
             "e-računi OK",
             AUTOMATE_ACTION.START_BTN,
-            CONFIG_TYPE.DAILY
+            CONFIG_TYPE.DAILY,
+            AUTOMATION_TYPE.ERACUNI
           ),
           new LogEntry(
             eracuniUser.username,
@@ -375,7 +377,8 @@ describe("auto-assistant.js", () => {
             null,
             "MDDSZ ERR",
             AUTOMATE_ACTION.START_BTN,
-            CONFIG_TYPE.DAILY
+            CONFIG_TYPE.DAILY,
+            AUTOMATION_TYPE.MDDSZ
           ),
         ]);
         getLogEntriesStub.returns(testCaseLogEntries);
