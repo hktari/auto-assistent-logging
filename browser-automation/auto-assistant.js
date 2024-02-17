@@ -7,6 +7,7 @@ const {
   getActionsForDate,
   AutomationActionResult,
   ERacuniAutomationActionResult,
+  AutomationAction,
 } = require("./util/actions");
 const {
   AUTOMATE_ACTION,
@@ -52,14 +53,16 @@ function _datetimeRangeCompare(datetimeFirst, datetimeSecond, rangeMs = 60000) {
  * filters the @param actionsList based on whether there is a successful entry inside @param logEntries
  * @param {AutomationAction[]} actionsList
  * @param {LogEntry[]} logEntries
+ * @param {AUTOMATION_TYPE} endpoint
  * @returns
  */
-function _filterOutAlreadyExecuted(actionsList, logEntries) {
+function _filterOutAlreadyExecuted(actionsList, logEntries, endpoint) {
   return actionsList.filter((action) => {
     const logEntryMatchesAction = logEntries.some((le) => {
       return (
         le.action === action.actionType &&
         action.configType === le.configType &&
+        endpoint === le.automationType &&
         _isSameDay(action.dueAt, le.timestamp) &&
         le.status === LOG_ENTRY_STATUS.SUCCESSFUL
       );
@@ -93,19 +96,15 @@ function _sortByDatetimeAsc(actions) {
  *
  * @param {import('./dbFacade').User} user
  * @param {Date} datetime the current time
- * @param {} endpoint the
+ * @param {AUTOMATION_TYPE} endpoint
  * @returns {Promise<AutomationAction | null>}
  */
-async function getPendingAutomationAction(user, datetime, endpoint) {
-  logger.debug("\n" + "*".repeat(50));
-  logger.debug("processing user: " + user.email);
-  logger.debug("accountId: " + user.accountId);
-
+async function _getPendingAutomationAction(user, datetime, endpoint) {
   let actionsPlannedToday = await _getAndFilterActionsForDate(user, datetime);
 
   // handle overnight work shifts
   // the roots of the issues lies in the design of the daily / weekly config objects.
-  // the 'date' field is bound to the start of the work shift, and the end
+  // the 'date' field is bound to the start of the work shift, so in order to fetch the end, one has to pass the day before
   if (datetime.getUTCHours() <= 8) {
     const yesterday = new Date(datetime);
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
@@ -118,7 +117,8 @@ async function getPendingAutomationAction(user, datetime, endpoint) {
   logger.debug("filtering out already executed actions");
   actionsPlannedToday = _filterOutAlreadyExecuted(
     actionsPlannedToday,
-    logEntriesToday
+    logEntriesToday,
+    endpoint
   );
   logger.debug(actionsPlannedToday.length + " left");
 
@@ -127,14 +127,14 @@ async function getPendingAutomationAction(user, datetime, endpoint) {
 
   // TODO: when start_btn is failing (in the case when user has clicked it manually), it should not prevent stop_btn execution
 
-  const automationResults = [];
   for (const action of actionsPlannedToday) {
     logger.debug("considering executing " + action + " ...");
 
     if (!action.timeToExecute(datetime)) {
+      logger.debug('not yet')
       continue;
     }
-
+    
     logger.debug("ok");
 
     // take the first action to be executed
@@ -251,7 +251,7 @@ async function handleAutomationForUser(user, datetime, browser) {
 
   // if MDDSZ automation is enabled
   if (_isAutomationEnabledForEndpoint(user, AUTOMATION_TYPE.MDDSZ)) {
-    const mddszAutomation = await getPendingAutomationAction(
+    const mddszAutomation = await _getPendingAutomationAction(
       user,
       datetime,
       AUTOMATION_TYPE.MDDSZ
@@ -265,14 +265,13 @@ async function handleAutomationForUser(user, datetime, browser) {
     logger.debug(`found ${!!eracuniConfig ? "one" : "none"} `);
     logger.debug("handling automation for ERacuni as well");
 
-    const eracuniAutomation = await getPendingAutomationAction(
+    const eracuniAutomation = await _getPendingAutomationAction(
       user,
       datetime,
       AUTOMATION_TYPE.ERACUNI
     );
     results.push(_executeEracuniAutomation(user, eracuniAutomation, browser));
   }
-
 
   return results;
 }
@@ -304,7 +303,7 @@ async function logAutomationResult(automationResult) {
 }
 
 module.exports = {
-  handleAutomationForUser: getPendingAutomationAction,
+  handleAutomationForUser,
   logAutomationResult,
   _sortByDatetimeAsc,
   _isSameDay,

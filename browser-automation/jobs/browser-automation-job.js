@@ -67,6 +67,10 @@ if (parentPort) {
 
     let automationResults = [];
     for (const user of usersToAutomate) {
+      logger.debug("\n" + "*".repeat(50));
+      logger.debug("processing user: " + user.email);
+      logger.debug("accountId: " + user.accountId);
+
       const userAutomationResults = await handleAutomationForUser(
         user,
         curTime,
