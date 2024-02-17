@@ -93,10 +93,10 @@ function _sortByDatetimeAsc(actions) {
  *
  * @param {import('./dbFacade').User} user
  * @param {Date} datetime the current time
- * @param {import('puppeteer').Browser} browser
- * @returns {Promise<AutomationActionResult[]>} a collection of promises. If the collection is empty, no automation is pending.
+ * @param {} endpoint the
+ * @returns {Promise<AutomationAction | null>}
  */
-async function handleAutomationForUser(user, datetime, browser) {
+async function getPendingAutomationAction(user, datetime, endpoint) {
   logger.debug("\n" + "*".repeat(50));
   logger.debug("processing user: " + user.email);
   logger.debug("accountId: " + user.accountId);
@@ -104,6 +104,8 @@ async function handleAutomationForUser(user, datetime, browser) {
   let actionsPlannedToday = await _getAndFilterActionsForDate(user, datetime);
 
   // handle overnight work shifts
+  // the roots of the issues lies in the design of the daily / weekly config objects.
+  // the 'date' field is bound to the start of the work shift, and the end
   if (datetime.getUTCHours() <= 8) {
     const yesterday = new Date(datetime);
     yesterday.setUTCDate(yesterday.getUTCDate() - 1);
@@ -130,7 +132,6 @@ async function handleAutomationForUser(user, datetime, browser) {
   // TODO: when start_btn is failing (in the case when user has clicked it manually), it should not prevent stop_btn execution
 
   const automationResults = [];
-  // take the first action to be executed
   for (const action of actionsPlannedToday) {
     logger.debug("considering executing " + action + " ...");
 
@@ -140,80 +141,121 @@ async function handleAutomationForUser(user, datetime, browser) {
 
     logger.debug("ok");
 
-    try {
-      const mddszResultMsg = await executeAction(
-        user.username,
-        user.password,
-        action.actionType,
-        browser
-      );
-      automationResults.push(
-        new AutomationActionResult(
-          user,
-          action.actionType,
-          action.configType,
-          AUTOMATION_TYPE.MDDSZ,
-          action.dueAt,
-          mddszResultMsg,
-          null
-        )
-      );
-    } catch (err) {
-      logger.error(err.stack);
-
-      automationResults.push(
-        new AutomationActionResult(
-          user,
-          action.actionType,
-          action.configType,
-          AUTOMATION_TYPE.MDDSZ,
-          action.dueAt,
-          null,
-          err
-        )
-      );
-    }
-
     if (eracuniConfig) {
       logger.debug("handling automation for ERacuni as well");
-
-      try {
-        const eracuniResultMsg = await executeActionERacuni(
-          action.actionType,
-          eracuniConfig,
-          browser
-        );
-        automationResults.push(
-          new ERacuniAutomationActionResult(
-            eracuniConfig,
-            user,
-            action.actionType,
-            action.configType,
-            action.dueAt,
-            eracuniResultMsg,
-            null
-          )
-        );
-      } catch (err) {
-        logger.error(err.stack);
-        automationResults.push(
-          new ERacuniAutomationActionResult(
-            eracuniConfig,
-            user,
-            action.actionType,
-            action.configType,
-            action.dueAt,
-            null,
-            err
-          )
-        );
-      }
     }
 
-    break;
+    // take the first action to be executed
+    return action;
   }
 
-  return automationResults;
+  return null;
+}
+
+/**
+ *
+ * @param {*} user
+ * @param {*} action
+ * @param {*} browser
+ * @returns {Promise<AutomationActionResult>}
+ */
+async function _executeMDDSZAutomation(user, action, browser) {
+  try {
+    const mddszResultMsg = await executeAction(
+      user.username,
+      user.password,
+      action.actionType,
+      browser
+    );
+    return new AutomationActionResult(
+      user,
+      action.actionType,
+      action.configType,
+      AUTOMATION_TYPE.MDDSZ,
+      action.dueAt,
+      mddszResultMsg,
+      null
+    );
+  } catch (err) {
+    logger.error(err.stack);
+
+    return new AutomationActionResult(
+      user,
+      action.actionType,
+      action.configType,
+      AUTOMATION_TYPE.MDDSZ,
+      action.dueAt,
+      null,
+      err
+    );
+  }
+}
+
+/**
+ *
+ * @param {*} user
+ * @param {*} action
+ * @param {*} browser
+ * @returns {Promise<AutomationActionResult>}
+ */
+async function _executeEracuniAutomation(user, action, browser) {
+  try {
+    const eracuniResultMsg = await executeActionERacuni(
+      action.actionType,
+      eracuniConfig,
+      browser
+    );
+    return new AutomationActionResult(
+      eracuniConfig,
+      user,
+      action.actionType,
+      action.configType,
+      action.dueAt,
+      eracuniResultMsg,
+      null
+    );
+  } catch (err) {
+    logger.error(err.stack);
+    return new AutomationActionResult(
+      eracuniConfig,
+      user,
+      action.actionType,
+      action.configType,
+      action.dueAt,
+      null,
+      err
+    );
+  }
+}
+
+/**
+ *
+ * @param {import('./dbFacade').User} user
+ * @param {Date} datetime the current time
+ * @param {import('puppeteer').Browser} browser
+ * @returns {Promise<AutomationActionResult[]>}
+ */
+async function handleAutomationForUser(user, datetime, browser) {
+  // if MDDSZ automation is enabled
+  const mddszAutomation = await getPendingAutomationAction(
+    user,
+    datetime,
+    AUTOMATION_TYPE.MDDSZ
+  );
+
+  // if eracuni is enabled
+  const eracuniAutomation = await getPendingAutomationAction(
+    user,
+    datetime,
+    AUTOMATION_TYPE.ERACUNI
+  );
+
+  // execute automations
+  const results = [];
+  results.push(_executeMDDSZAutomation(user, mddszAutomation, browser));
+  results.push(_executeEracuniAutomation(user, eracuniAutomation, browser));
+
+  return results;
 }
 
 /**
@@ -243,7 +285,7 @@ async function logAutomationResult(automationResult) {
 }
 
 module.exports = {
-  handleAutomationForUser,
+  handleAutomationForUser: getPendingAutomationAction,
   logAutomationResult,
   _sortByDatetimeAsc,
   _isSameDay,
