@@ -131,10 +131,10 @@ async function _getPendingAutomationAction(user, datetime, endpoint) {
     logger.debug("considering executing " + action + " ...");
 
     if (!action.timeToExecute(datetime)) {
-      logger.debug('not yet')
+      logger.debug("not yet");
       continue;
     }
-    
+
     logger.debug("ok");
 
     // take the first action to be executed
@@ -256,7 +256,9 @@ async function handleAutomationForUser(user, datetime, browser) {
       datetime,
       AUTOMATION_TYPE.MDDSZ
     );
-    results.push(_executeMDDSZAutomation(user, mddszAutomation, browser));
+    if (mddszAutomation) {
+      results.push(_executeMDDSZAutomation(user, mddszAutomation, browser));
+    }
   }
 
   if (_isAutomationEnabledForEndpoint(user, AUTOMATION_TYPE.ERACUNI)) {
@@ -270,7 +272,9 @@ async function handleAutomationForUser(user, datetime, browser) {
       datetime,
       AUTOMATION_TYPE.ERACUNI
     );
-    results.push(_executeEracuniAutomation(user, eracuniAutomation, browser));
+    if (eracuniAutomation) {
+      results.push(_executeEracuniAutomation(user, eracuniAutomation, browser));
+    }
   }
 
   return results;
