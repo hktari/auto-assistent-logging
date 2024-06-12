@@ -55,7 +55,7 @@ async function executeAction(username, password, action, browser) {
 
     await delay(2000);
 
-    const startBtnSelector = "#btn_zacni";
+    const startBtnSelector = "#B78945817123878707";
     const stopBtnSelector = "#btn_koncaj";
 
     const btnSelector =
