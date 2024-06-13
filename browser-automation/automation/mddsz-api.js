@@ -6,10 +6,7 @@ const ENDPOINT = process.env.MDDSZ_WEBAPP_ENDPOINT;
 const { AUTOMATE_ACTION, LogEntry } = require("../interface");
 const logger = require("../util/logging");
 
-const {
-  delay,
-  AutomationError,
-} = require("./common");
+const { delay, AutomationError } = require("./common");
 
 /**
  *
@@ -34,7 +31,7 @@ async function executeAction(username, password, action, browser) {
   if (!browser) {
     throw new Error("browser is undefined");
   }
-  
+
   try {
     const page = await browser.newPage();
     page.setDefaultTimeout(30000); // wait max 10 sec for things to appear
@@ -55,7 +52,16 @@ async function executeAction(username, password, action, browser) {
 
     await delay(2000);
 
-    const startBtnSelector = "#B78945817123878707";
+    const newSessionBtnSelector = "#B78945817123878707";
+    try {
+      logger.debug("check for new session button...");
+      const newSessionBtn = await page.waitForSelector(newSessionBtnSelector, {
+        visible: true,
+      });
+      await newSessionBtn.click();
+    } catch (error) {}
+
+    const startBtnSelector = "#btn_zacni";
     const stopBtnSelector = "#btn_koncaj";
 
     const btnSelector =
