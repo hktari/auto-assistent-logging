@@ -5,7 +5,22 @@ const {
   handleAutomationForUser,
   logAutomationResult,
 } = require("../auto-assistant");
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-extra");
+
+
+// add recaptcha plugin and provide it your 2captcha token (= their apiKey)
+// 2captcha is the builtin solution provider but others would work as well.
+// Please note: You need to add funds to your 2captcha account for this to work
+const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
+puppeteer.use(
+  RecaptchaPlugin({
+    provider: {
+      id: '2captcha',
+      token: process.env.TWOCAPTCHA_API_KEY // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
+    },
+    visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
+  })
+)
 
 // store boolean if the job is cancelled
 let isCancelled = false;

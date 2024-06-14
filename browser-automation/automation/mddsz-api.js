@@ -37,9 +37,18 @@ async function executeAction(username, password, action, browser) {
     page.setDefaultTimeout(30000); // wait max 10 sec for things to appear
 
     await page.goto(ENDPOINT);
+
+    logger.debug("solving recaptchas...");
+
     await page.waitForNavigation(); // The promise resolves after navigation has finished
 
+
     const usernameInput = await page.waitForSelector("#P9999_USERNAME");
+
+    // That's it, a single line of code to solve reCAPTCHAs 🎉
+    await page.solveRecaptchas();
+
+
     await usernameInput.type(username);
 
     const pwdInput = await page.$("#P9999_PASSWORD");
