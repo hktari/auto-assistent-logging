@@ -4,6 +4,7 @@
   "description": "",
   "main": "main.js",
   "scripts": {
+    "dev": "env-cmd -f ./development.env npm run start",
     "start": "node ./main.js",
     "pretest": "chmod 766 tests/util/resetdb.sh && env-cmd -f ./tests/test.env ./tests/util/resetdb.sh",
     "test": "env-cmd -f ./tests/test.env mocha",
@@ -27,7 +28,7 @@
     "node-cron": "^3.0.1",
     "p-map": "^5.5.0",
     "pg": "^8.7.3",
-    "puppeteer": "^16.2.0",
+    "puppeteer": "^22.11.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-recaptcha": "^3.6.8",
     "winston": "^3.8.2",

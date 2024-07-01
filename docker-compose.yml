@@ -60,3 +60,10 @@ services:
       - CLOUDWATCH_LOG_GROUP=${CLOUDWATCH_LOG_GROUP}
       - CLOUDWATCH_REGION=${CLOUDWATCH_REGION}
       - LOG_LEVEL=${LOG_LEVEL}
+    volumes:
+      - ./screenshots/:/var/screenshots/:rw
+    cap_add:
+      - SYS_ADMIN
+
+
+

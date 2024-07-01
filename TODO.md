@@ -4,6 +4,9 @@
 - implement support on backend and frontend for eračuni configuration
 
 
+## BROWSER AUTOMATION
+- use docker image from https://pptr.dev/guides/docker to run script in puppeteer container. The script needs to be compiled using a bundler.
+
 
 ## WEBSERVER
 - refactor cors implementation

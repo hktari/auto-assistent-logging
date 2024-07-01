@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  browser-automation:
+    build: .
+    image: test-puppeteer
+    cap_add:
+      - SYS_ADMIN
+
+
+
